@@ -276,7 +276,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       if (!isOpen) resetForm();
     }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-2xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] p-0 overflow-hidden gap-0 [&>button]:hidden">
         {/* Header with gradient */}
         <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-6 py-4">
           <div className="flex items-center justify-between">

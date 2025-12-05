@@ -13,11 +13,12 @@ const RecipeForm = dynamic(
     loading: () => (
       <Button
         variant="outline"
+        size="sm"
         className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:border-amber-300 opacity-50 cursor-pointer"
         disabled
       >
-        <Pencil className="mr-2 h-4 w-4" />
-        Modifier
+        <Pencil className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Modifier</span>
       </Button>
     ),
   }
@@ -34,10 +35,11 @@ export function EditRecipeButton({ recipe }: EditRecipeButtonProps) {
       trigger={
         <Button
           variant="outline"
+          size="sm"
           className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:border-amber-300 cursor-pointer"
         >
-          <Pencil className="mr-2 h-4 w-4" />
-          Modifier
+          <Pencil className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Modifier</span>
         </Button>
       }
     />

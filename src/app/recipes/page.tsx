@@ -15,6 +15,8 @@ interface SearchParams {
   search?: string;
   sort?: string;
   maxTime?: string;
+  authors?: string;
+  myRecipes?: string;
 }
 
 // Category sort order (priority)
@@ -29,8 +31,12 @@ const categoryOrder: Record<string, number> = {
   SNACK: 8,
 };
 
-async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
-  const { category, search, maxTime } = searchParams;
+async function getRecipes(searchParams: SearchParams, userId?: string): Promise<Recipe[]> {
+  const { category, search, maxTime, authors, myRecipes } = searchParams;
+
+  // Parse author filter
+  const authorIds = authors ? authors.split(",").filter(Boolean) : [];
+  const filterMyRecipes = myRecipes === "true" && userId;
 
   const recipes = await db.recipe.findMany({
     where: {
@@ -62,6 +68,17 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
                     { cookingTime: { lte: parseInt(maxTime) } },
                   ],
                 },
+              ],
+            }
+          : {},
+        // Filter by my recipes
+        filterMyRecipes ? { userId } : {},
+        // Filter by selected authors
+        authorIds.length > 0
+          ? {
+              OR: [
+                { userId: { in: authorIds } },
+                { author: { in: authorIds } },
               ],
             }
           : {},
@@ -124,11 +141,10 @@ function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>, sortOption?: s
   });
 }
 
-async function RecipesContent({ searchParams }: { searchParams: SearchParams }) {
-  const session = await auth();
+async function RecipesContent({ searchParams, userId }: { searchParams: SearchParams; userId?: string }) {
   const [recipes, favoriteIds] = await Promise.all([
-    getRecipes(searchParams),
-    getFavoriteIds(session?.user?.id),
+    getRecipes(searchParams, userId),
+    getFavoriteIds(userId),
   ]);
   
   const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort);
@@ -142,6 +158,15 @@ interface PageProps {
 
 export default async function RecipesPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  // Parse selected authors from URL
+  const selectedAuthors = params.myRecipes === "true" 
+    ? ["mine"] 
+    : params.authors 
+      ? params.authors.split(",").filter(Boolean)
+      : [];
 
   return (
     <main className="min-h-screen">
@@ -179,6 +204,8 @@ export default async function RecipesPage({ searchParams }: PageProps) {
         <RecipeFilters
           currentCategory={params.category}
           currentSearch={params.search}
+          currentUserId={userId}
+          selectedAuthors={selectedAuthors}
         />
 
         {/* Advanced Filters - hidden on mobile */}
@@ -188,7 +215,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
         />
 
         <Suspense fallback={<RecipeListSkeleton />}>
-          <RecipesContent searchParams={params} />
+          <RecipesContent searchParams={params} userId={userId} />
         </Suspense>
       </section>
     </main>

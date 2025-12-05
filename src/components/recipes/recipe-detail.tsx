@@ -47,30 +47,32 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
       {/* Top Navigation Bar */}
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-2">
           <Button
             asChild
             variant="outline"
+            size="sm"
             className="cursor-pointer"
           >
             <Link href="/recipes">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Retour</span>
             </Link>
           </Button>
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1.5 sm:gap-2 items-center">
             <ShareButtons title={`${recipe.name} - Gourmiso`} />
 
             {recipe.videoUrl && (
               <Button
                 asChild
                 variant="outline"
+                size="sm"
                 className="cursor-pointer"
               >
                 <a href={recipe.videoUrl} target="_blank" rel="noopener noreferrer">
-                  <Play className="mr-2 h-4 w-4" />
-                  Vidéo
+                  <Play className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Vidéo</span>
                 </a>
               </Button>
             )}
@@ -86,10 +88,11 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
                   trigger={
                     <Button
                       variant="outline"
+                      size="sm"
                       className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 cursor-pointer"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Supprimer
+                      <Trash2 className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Supprimer</span>
                     </Button>
                   }
                 />
