@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { RecipeList } from "@/components/recipes/recipe-list";
 import { RecipeListSkeleton } from "@/components/recipes/recipe-skeleton";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
@@ -37,9 +38,9 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
         search
           ? {
               OR: [
-                { name: { contains: search } },
-                { description: { contains: search } },
-                { author: { contains: search } },
+                { name: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+                { author: { contains: search, mode: "insensitive" } },
               ],
             }
           : {},
@@ -51,26 +52,51 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
     },
   });
 
-  // Sort: by category order, then by rating (desc), then by name (asc)
-  const sortedRecipes = (recipes as Recipe[]).sort((a, b) => {
-    // First: sort by category
+  return recipes as Recipe[];
+}
+
+async function getFavoriteIds(userId?: string): Promise<Set<number>> {
+  if (!userId) return new Set();
+  
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: { favorites: { select: { id: true } } },
+  });
+  
+  return new Set(user?.favorites.map(f => f.id) || []);
+}
+
+function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>): Recipe[] {
+  return recipes.sort((a, b) => {
+    // First: favorites come first
+    const aIsFav = favoriteIds.has(a.id);
+    const bIsFav = favoriteIds.has(b.id);
+    if (aIsFav && !bIsFav) return -1;
+    if (!aIsFav && bIsFav) return 1;
+
+    // Second: sort by category
     const catOrderA = categoryOrder[a.category] || 99;
     const catOrderB = categoryOrder[b.category] || 99;
     if (catOrderA !== catOrderB) return catOrderA - catOrderB;
 
-    // Second: sort by rating (descending - higher rating first)
+    // Third: sort by rating (descending)
     if (b.rating !== a.rating) return b.rating - a.rating;
 
-    // Third: sort by name (alphabetically)
+    // Fourth: sort by name (alphabetically)
     return a.name.localeCompare(b.name, "fr");
   });
-
-  return sortedRecipes;
 }
 
 async function RecipesContent({ searchParams }: { searchParams: SearchParams }) {
-  const recipes = await getRecipes(searchParams);
-  return <RecipeList recipes={recipes} />;
+  const session = await auth();
+  const [recipes, favoriteIds] = await Promise.all([
+    getRecipes(searchParams),
+    getFavoriteIds(session?.user?.id),
+  ]);
+  
+  const sortedRecipes = sortRecipes(recipes, favoriteIds);
+  
+  return <RecipeList recipes={sortedRecipes} favoriteIds={favoriteIds} />;
 }
 
 interface PageProps {

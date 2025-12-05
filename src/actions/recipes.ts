@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { recipeCreateSchema, recipeUpdateSchema } from "@/lib/validations";
 import type { RecipeCreateInput } from "@/lib/validations";
 
@@ -13,6 +14,7 @@ export async function createRecipe(
   input: RecipeCreateInput
 ): Promise<ActionResult<{ id: number }>> {
   try {
+    const session = await auth();
     const validation = recipeCreateSchema.safeParse(input);
 
     if (!validation.success) {
@@ -24,12 +26,15 @@ export async function createRecipe(
     const recipe = await db.recipe.create({
       data: {
         ...recipeData,
+        // Link recipe to user if authenticated
+        ...(session?.user?.id && { userId: session.user.id }),
         ingredients: { create: ingredients },
         steps: { create: steps },
       },
     });
 
     revalidatePath("/recipes");
+    revalidatePath("/profile/recipes");
     return { success: true, data: { id: recipe.id } };
   } catch (error) {
     console.error("Failed to create recipe:", error);

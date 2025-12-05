@@ -3,9 +3,10 @@ import type { Recipe } from "@/types/recipe";
 
 interface RecipeListProps {
   recipes: Recipe[];
+  favoriteIds?: Set<number>;
 }
 
-export function RecipeList({ recipes }: RecipeListProps) {
+export function RecipeList({ recipes, favoriteIds = new Set() }: RecipeListProps) {
   if (recipes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
@@ -37,7 +38,11 @@ export function RecipeList({ recipes }: RecipeListProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {recipes.map((recipe) => (
-        <RecipeCard key={recipe.id} recipe={recipe} />
+        <RecipeCard 
+          key={recipe.id} 
+          recipe={recipe} 
+          isFavorited={favoriteIds.has(recipe.id)}
+        />
       ))}
     </div>
   );
