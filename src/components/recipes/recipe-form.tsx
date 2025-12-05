@@ -241,7 +241,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-100px)]">
-          <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          <form onSubmit={handleSubmit} className="px-5 pt-3 pb-5 space-y-5">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                 ⚠️ {error}
@@ -257,7 +257,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
               
               <div className="flex flex-col sm:flex-row gap-3">
                 {/* Nom de la recette */}
-                <div className="flex-1 space-y-1">
+                <div className="flex-1 min-w-0 space-y-1">
                   <Label htmlFor="name" className="text-stone-600 text-xs">
                     Nom de la recette <span className="text-red-500">*</span>
                   </Label>
@@ -271,45 +271,48 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   />
                 </div>
 
-                {/* Catégorie */}
-                <div className="w-full sm:w-40 space-y-1">
-                  <Label htmlFor="category" className="text-stone-600 text-xs">
-                    Catégorie
-                  </Label>
-                  <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
-                    <SelectTrigger className="cursor-pointer h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value} className="cursor-pointer">
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Catégorie + Auteur groupés */}
+                <div className="flex gap-2 sm:flex-shrink-0">
+                  {/* Catégorie */}
+                  <div className="space-y-1">
+                    <Label htmlFor="category" className="text-stone-600 text-xs">
+                      Catégorie
+                    </Label>
+                    <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
+                      <SelectTrigger className="cursor-pointer h-9 w-36">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value} className="cursor-pointer">
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Publier anonymement */}
-                <div className="w-full sm:w-auto space-y-1">
-                  <Label className="text-stone-600 text-xs">Auteur</Label>
-                  <div 
-                    className="flex items-center gap-1.5 h-9 px-3 border rounded-md bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors whitespace-nowrap" 
-                    onClick={() => setPublishAnonymously(!publishAnonymously)}
-                  >
-                    <Checkbox
-                      id="publishAnonymously"
-                      checked={publishAnonymously}
-                      onCheckedChange={(checked) => setPublishAnonymously(checked === true)}
-                      className="h-3.5 w-3.5"
-                    />
-                    <label
-                      htmlFor="publishAnonymously"
-                      className="text-xs text-stone-600 cursor-pointer flex items-center gap-1"
+                  {/* Publier anonymement */}
+                  <div className="space-y-1">
+                    <Label className="text-stone-600 text-xs">Auteur</Label>
+                    <div 
+                      className="flex items-center gap-1.5 h-9 px-2.5 border rounded-md bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors whitespace-nowrap" 
+                      onClick={() => setPublishAnonymously(!publishAnonymously)}
                     >
-                      <UserX className="h-3 w-3" />
-                      Anonyme
-                    </label>
+                      <Checkbox
+                        id="publishAnonymously"
+                        checked={publishAnonymously}
+                        onCheckedChange={(checked) => setPublishAnonymously(checked === true)}
+                        className="h-3.5 w-3.5"
+                      />
+                      <label
+                        htmlFor="publishAnonymously"
+                        className="text-xs text-stone-600 cursor-pointer flex items-center gap-1"
+                      >
+                        <UserX className="h-3 w-3" />
+                        Anonyme
+                      </label>
+                    </div>
                   </div>
                 </div>
 
