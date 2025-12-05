@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Star, ChefHat } from "lucide-react";
+import { Clock, Users, Star } from "lucide-react";
+import { RecipeImage } from "./recipe-image";
 import type { Recipe } from "@/types/recipe";
 
 interface RecipeCardProps {
@@ -39,20 +39,14 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
       <Card className="group h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 hover:-translate-y-1 border-0 bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
         {/* Image - smaller aspect ratio on mobile */}
         <div className="relative aspect-[3/2] sm:aspect-[4/3] overflow-hidden bg-stone-100 dark:bg-stone-800">
-          {recipe.imageUrl ? (
-            <Image
-              src={recipe.imageUrl}
-              alt={recipe.name}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <ChefHat className="h-10 w-10 sm:h-16 sm:w-16 text-stone-300 dark:text-stone-600" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <RecipeImage
+            src={recipe.imageUrl}
+            alt={recipe.name}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            iconSize="sm"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           <Badge
             className={`absolute top-2 left-2 sm:top-3 sm:left-3 border-0 shadow-md text-xs sm:text-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 ${categoryColors[recipe.category] || "bg-stone-500 text-white"}`}
           >

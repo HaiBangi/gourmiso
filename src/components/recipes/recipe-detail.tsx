@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Clock, Users, Star, ChefHat, Play, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Users, Star, Play, Trash2 } from "lucide-react";
+import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import type { Recipe } from "@/types/recipe";
@@ -28,20 +28,14 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative h-[40vh] min-h-[300px] max-h-[500px] w-full overflow-hidden bg-stone-900">
-        {recipe.imageUrl ? (
-          <Image
-            src={recipe.imageUrl}
-            alt={recipe.name}
-            fill
-            className="object-cover opacity-80"
-            priority
-            sizes="100vw"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-800 to-stone-900">
-            <ChefHat className="h-32 w-32 text-stone-700" />
-          </div>
-        )}
+        <RecipeImage
+          src={recipe.imageUrl}
+          alt={recipe.name}
+          priority
+          sizes="100vw"
+          className="object-cover opacity-80"
+          iconSize="xl"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
         {/* Top Navigation */}
@@ -204,7 +198,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
           </Card>
 
           {/* Steps */}
-          <Card className="md:col-span-3 border-0  pb-6 shadow-lg bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
+          <Card className="md:col-span-3 border-0 pb-6 shadow-lg bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
             <CardHeader>
               <CardTitle className="font-serif text-xl flex items-center gap-2">
                 <span className="text-2xl">👨‍🍳</span>
