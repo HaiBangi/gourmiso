@@ -38,7 +38,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     <Link href={`/recipes/${recipe.id}`}>
       <Card className="group h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 hover:-translate-y-1 border-0 bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
         {/* Image */}
-        <div className="relative aspect-[5/4] overflow-hidden bg-stone-100 dark:bg-stone-800">
+        <div className="relative aspect-[6/6] overflow-hidden bg-stone-100 dark:bg-stone-800">
           {recipe.imageUrl ? (
             <Image
               src={recipe.imageUrl}
@@ -49,38 +49,38 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <ChefHat className="h-12 w-12 text-stone-300 dark:text-stone-600" />
+              <ChefHat className="h-16 w-16 text-stone-300 dark:text-stone-600" />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <Badge
-            className={`absolute top-2.5 left-2.5 border-0 shadow-md text-xs ${categoryColors[recipe.category] || "bg-stone-500 text-white"}`}
+            className={`absolute top-3 left-3 border-0 shadow-md text-sm px-2.5 py-1 ${categoryColors[recipe.category] || "bg-stone-500 text-white"}`}
           >
             {categoryLabels[recipe.category] || recipe.category}
           </Badge>
           {recipe.rating > 0 && (
-            <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-sm px-2 py-0.5 shadow-md">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="text-xs font-medium text-white">{recipe.rating}/10</span>
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-sm px-2.5 py-1 shadow-md">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <span className="text-sm font-medium text-white">{recipe.rating}/10</span>
             </div>
           )}
         </div>
 
-        {/* Content - minimal padding */}
-        <div className="flex flex-col flex-1 px-2.5 py-1.5">
-          <h3 className="font-serif text-base font-semibold leading-tight text-stone-900 dark:text-stone-100 line-clamp-2 group-hover:text-amber-600 transition-colors">
+        {/* Content */}
+        <div className="flex flex-col flex-1 p-4">
+          <h3 className="font-serif text-lg font-semibold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2 group-hover:text-amber-600 transition-colors">
             {recipe.name}
           </h3>
-          <p className="text-xs text-stone-500 dark:text-stone-400">par {recipe.author}</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">par {recipe.author}</p>
           
           {/* Time & Servings */}
-          <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400 mt-1.5">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-4 text-sm text-stone-500 dark:text-stone-400 mt-3">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
               <span>{totalTime} min</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
               <span>{recipe.servings} pers.</span>
             </div>
           </div>

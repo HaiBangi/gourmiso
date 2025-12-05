@@ -81,21 +81,21 @@ export default async function RecipesPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen">
-      {/* Compact Header */}
+      {/* Header */}
       <header className="relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
 
-        <div className="relative mx-auto max-w-7xl px-6 py-5">
+        <div className="relative mx-auto max-w-screen-2xl px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
-                <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex items-center gap-5">
+              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                <ChefHat className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="font-serif text-2xl font-bold text-white">
+                <h1 className="font-serif text-3xl font-bold text-white">
                   Gourmiso
                 </h1>
-                <p className="text-sm text-white/80 hidden sm:block">
+                <p className="text-base text-white/80 hidden sm:block">
                   Les recettes de MISO
                 </p>
               </div>
@@ -104,10 +104,9 @@ export default async function RecipesPage({ searchParams }: PageProps) {
             <RecipeForm
               trigger={
                 <Button
-                  size="sm"
-                  className="bg-white text-amber-600 hover:bg-white/90 gap-2"
+                  className="bg-white text-amber-600 hover:bg-white/90 gap-2 h-11 px-5 text-base"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5" />
                   <span className="hidden sm:inline">Nouvelle recette</span>
                   <span className="sm:hidden">Ajouter</span>
                 </Button>
@@ -118,7 +117,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
       </header>
 
       {/* Content */}
-      <section className="mx-auto max-w-7xl px-6 py-6">
+      <section className="mx-auto max-w-screen-2xl px-8 py-8">
         {/* Quick Category Filters */}
         <QuickFilters currentCategory={params.category} />
 

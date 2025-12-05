@@ -36,7 +36,7 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
   };
 
   return (
-    <div className={`flex flex-wrap gap-2 mb-4 ${isPending ? "opacity-50" : ""}`}>
+    <div className={`flex flex-wrap gap-3 mb-6 ${isPending ? "opacity-50" : ""}`}>
       {quickCategories.map((cat) => {
         const isActive = currentCategory === cat.value;
         return (
@@ -44,10 +44,10 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
             key={cat.value}
             onClick={() => handleClick(cat.value)}
             className={`
-              cursor-pointer text-sm px-3 py-1.5 transition-all
+              cursor-pointer text-base px-4 py-2 transition-all
               ${isActive 
                 ? `${cat.color} text-white ring-2 ring-offset-2 ring-stone-400` 
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300"
+                : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300"
               }
             `}
           >
@@ -65,7 +65,7 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
               router.push(`/recipes?${params.toString()}`);
             });
           }}
-          className="cursor-pointer text-sm px-3 py-1.5 bg-stone-200 text-stone-600 hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-300"
+          className="cursor-pointer text-base px-4 py-2 bg-stone-200 text-stone-600 hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-300"
         >
           ✕ Tout afficher
         </Badge>
@@ -73,4 +73,3 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
     </div>
   );
 }
-

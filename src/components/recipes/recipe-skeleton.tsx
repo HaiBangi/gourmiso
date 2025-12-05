@@ -4,25 +4,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function RecipeCardSkeleton() {
   return (
     <Card className="overflow-hidden border-0 bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
-      <Skeleton className="aspect-[5/4] rounded-none" />
-      <CardHeader className="pb-2">
+      <Skeleton className="aspect-[4/3] rounded-none" />
+      <div className="p-4">
         <Skeleton className="h-6 w-3/4" />
         <Skeleton className="h-4 w-1/3 mt-2" />
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex gap-4">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-4 w-16" />
+        <div className="flex gap-4 mt-3">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-20" />
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
 
 export function RecipeListSkeleton() {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {Array.from({ length: 10 }).map((_, i) => (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+      {Array.from({ length: 8 }).map((_, i) => (
         <RecipeCardSkeleton key={i} />
       ))}
     </div>
