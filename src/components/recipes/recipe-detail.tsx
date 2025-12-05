@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Users, Star, Play, Trash2 } from "lucide-react";
+import { Clock, Users, Star, Play } from "lucide-react";
 import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
-import { DeleteRecipeDialog } from "./delete-recipe-dialog";
+import { DeleteRecipeButton } from "./delete-recipe-button";
 import { RecipeComments } from "./recipe-comments";
 import { IngredientsCard } from "./ingredients-card";
 import { ShareButtons } from "./share-buttons";
@@ -41,6 +41,8 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeDetailProps) {
+  console.log("[RecipeDetail] canEdit prop received:", canEdit);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       {/* Hero Section */}
@@ -76,21 +78,7 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
           {canEdit && (
             <div className="absolute top-3 right-3 flex gap-2 z-10">
               <EditRecipeButton recipe={recipe} />
-              <DeleteRecipeDialog
-                recipeId={recipe.id}
-                recipeName={recipe.name}
-                redirectAfterDelete
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 dark:text-red-400 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-white/50 dark:border-stone-700/50 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700 cursor-pointer shadow-lg"
-                  >
-                    <Trash2 className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Supprimer</span>
-                  </Button>
-                }
-              />
+              <DeleteRecipeButton recipeId={recipe.id} recipeName={recipe.name} />
             </div>
           )}
 
@@ -152,13 +140,18 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
               <Users className="h-5 w-5 text-emerald-600" />
             </div>
-            <p className="font-semibold text-stone-900 dark:text-stone-100 text-lg">
-              {recipe.servings}
-            </p>
+            <div>
+              <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                Personnes
+              </p>
+              <p className="font-semibold text-stone-900 dark:text-stone-100">
+                {recipe.servings} pers.
+              </p>
+            </div>
           </div>
           {recipe.rating > 0 && (
             <div className="flex items-center gap-3">

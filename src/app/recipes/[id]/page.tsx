@@ -81,6 +81,13 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const isAdmin = session?.user?.role === "ADMIN";
   const canEdit = isOwner || isAdmin;
 
+  // Debug logging
+  console.log("[RecipePage] Recipe ID:", recipe.id);
+  console.log("[RecipePage] Recipe userId:", recipe.userId);
+  console.log("[RecipePage] Session user ID:", session?.user?.id);
+  console.log("[RecipePage] Session user role:", session?.user?.role);
+  console.log("[RecipePage] isOwner:", isOwner, "isAdmin:", isAdmin, "canEdit:", canEdit);
+
   // Extract comments from recipe
   const { comments, ...recipeData } = recipe;
 

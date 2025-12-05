@@ -8,16 +8,14 @@ import type { Recipe } from "@/types/recipe";
 // Import RecipeForm dynamically without SSR to avoid hydration issues
 const RecipeForm = dynamic(
   () => import("./recipe-form").then((mod) => ({ default: mod.RecipeForm })),
-  { 
+  {
     ssr: false,
     loading: () => (
       <Button
-        variant="outline"
-        size="sm"
-        className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 opacity-50 cursor-pointer dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-950"
+        className="bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md opacity-50"
         disabled
       >
-        <Copy className="h-4 w-4 sm:mr-2" />
+        <Copy className="h-4 w-4 sm:h-5 sm:w-5" />
         <span className="hidden sm:inline">Dupliquer</span>
       </Button>
     ),
@@ -42,11 +40,9 @@ export function DuplicateRecipeButton({ recipe }: DuplicateRecipeButtonProps) {
       recipe={recipeToDuplicate}
       trigger={
         <Button
-          variant="outline"
-          size="sm"
-          className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 cursor-pointer dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-950"
+          className="bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md"
         >
-          <Copy className="h-4 w-4 sm:mr-2" />
+          <Copy className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Dupliquer</span>
         </Button>
       }

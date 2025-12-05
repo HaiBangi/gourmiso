@@ -133,6 +133,9 @@ export async function deleteRecipe(id: number): Promise<ActionResult> {
   try {
     const session = await auth();
 
+    console.log("[deleteRecipe] Session user ID:", session?.user?.id);
+    console.log("[deleteRecipe] Recipe ID to delete:", id);
+
     if (!session?.user?.id) {
       return { success: false, error: "Vous devez être connecté pour supprimer une recette" };
     }
@@ -143,7 +146,11 @@ export async function deleteRecipe(id: number): Promise<ActionResult> {
       db.recipe.findUnique({ where: { id }, select: { userId: true } }),
     ]);
 
+    console.log("[deleteRecipe] User role:", user?.role);
+    console.log("[deleteRecipe] Recipe userId:", recipe?.userId);
+
     if (!user || !recipe) {
+      console.log("[deleteRecipe] User or recipe not found");
       return { success: false, error: "Utilisateur ou recette non trouvé" };
     }
 
@@ -151,11 +158,15 @@ export async function deleteRecipe(id: number): Promise<ActionResult> {
     const isOwner = recipe.userId === session.user.id;
     const isAdmin = user.role === "ADMIN";
 
+    console.log("[deleteRecipe] isOwner:", isOwner, "isAdmin:", isAdmin);
+
     if (!isOwner && !isAdmin) {
+      console.log("[deleteRecipe] Permission denied");
       return { success: false, error: "Vous n'avez pas la permission de supprimer cette recette" };
     }
 
     await db.recipe.delete({ where: { id } });
+    console.log("[deleteRecipe] Recipe deleted successfully");
     revalidatePath("/recipes");
     revalidatePath("/profile/recipes");
     return { success: true, data: undefined };

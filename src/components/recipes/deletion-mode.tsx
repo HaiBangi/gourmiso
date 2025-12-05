@@ -116,16 +116,18 @@ export function DeletionActions({ selectedIds, onClear }: DeletionActionsProps) 
               <AlertTriangle className="h-5 w-5" />
               Confirmer la suppression
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Êtes-vous sûr de vouloir supprimer <strong>{selectedIds.size} recette{selectedIds.size > 1 ? "s" : ""}</strong> ?
-              </p>
-              <p className="text-red-600 font-semibold">
-                Cette action est irréversible !
-              </p>
-              {error && (
-                <p className="text-red-600 text-sm mt-2">{error}</p>
-              )}
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Êtes-vous sûr de vouloir supprimer <strong>{selectedIds.size} recette{selectedIds.size > 1 ? "s" : ""}</strong> ?
+                </p>
+                <p className="text-red-600 font-semibold">
+                  Cette action est irréversible !
+                </p>
+                {error && (
+                  <p className="text-red-600 text-sm mt-2">{error}</p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
