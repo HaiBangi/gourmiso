@@ -4,6 +4,7 @@ import { RecipeList } from "@/components/recipes/recipe-list";
 import { RecipeListSkeleton } from "@/components/recipes/recipe-skeleton";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
 import { RecipeForm } from "@/components/recipes/recipe-form";
+import { QuickFilters } from "@/components/recipes/quick-filters";
 import { Button } from "@/components/ui/button";
 import type { Recipe } from "@/types/recipe";
 import { ChefHat, Plus } from "lucide-react";
@@ -12,6 +13,18 @@ interface SearchParams {
   category?: string;
   search?: string;
 }
+
+// Category sort order (priority)
+const categoryOrder: Record<string, number> = {
+  MAIN_DISH: 1,
+  STARTER: 2,
+  DESSERT: 3,
+  SIDE_DISH: 4,
+  SOUP: 5,
+  SALAD: 6,
+  BEVERAGE: 7,
+  SNACK: 8,
+};
 
 async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
   const { category, search } = searchParams;
@@ -35,10 +48,23 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
       ingredients: true,
       steps: { orderBy: { order: "asc" } },
     },
-    orderBy: { createdAt: "desc" },
   });
 
-  return recipes as Recipe[];
+  // Sort: by category order, then by rating (desc), then by name (asc)
+  const sortedRecipes = (recipes as Recipe[]).sort((a, b) => {
+    // First: sort by category
+    const catOrderA = categoryOrder[a.category] || 99;
+    const catOrderB = categoryOrder[b.category] || 99;
+    if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+
+    // Second: sort by rating (descending - higher rating first)
+    if (b.rating !== a.rating) return b.rating - a.rating;
+
+    // Third: sort by name (alphabetically)
+    return a.name.localeCompare(b.name, "fr");
+  });
+
+  return sortedRecipes;
 }
 
 async function RecipesContent({ searchParams }: { searchParams: SearchParams }) {
@@ -92,7 +118,11 @@ export default async function RecipesPage({ searchParams }: PageProps) {
       </header>
 
       {/* Content */}
-      <section className="mx-auto max-w-7xl px-6 py-8">
+      <section className="mx-auto max-w-7xl px-6 py-6">
+        {/* Quick Category Filters */}
+        <QuickFilters currentCategory={params.category} />
+
+        {/* Search & Category Dropdown */}
         <RecipeFilters
           currentCategory={params.category}
           currentSearch={params.search}

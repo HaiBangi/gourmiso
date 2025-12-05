@@ -1,36 +1,231 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍳 Gourmiso
 
-## Getting Started
+A modern, elegant recipe management application built with Next.js 16, featuring a beautiful UI, full CRUD operations, and a responsive design.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)
+![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Features
+
+- **📖 Recipe Management** - Create, read, update, and delete recipes
+- **🔍 Search & Filter** - Search by name, author, or description with category filters
+- **🏷️ Categories** - Organize recipes by type (Main Dish, Starter, Dessert, etc.)
+- **⭐ Ratings** - Rate your recipes from 0 to 10
+- **📱 Responsive Design** - Beautiful on desktop, tablet, and mobile
+- **🎨 Modern UI** - Clean design with ShadCN components and Tailwind CSS
+- **⚡ Fast** - Server-side rendering with Next.js App Router
+- **🔄 Real-time Updates** - Server actions with automatic revalidation
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | [Next.js 16](https://nextjs.org/) (App Router) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) |
+| **Database** | [SQLite](https://www.sqlite.org/) with [Prisma ORM](https://www.prisma.io/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
+| **Components** | [ShadCN UI](https://ui.shadcn.com/) |
+| **Validation** | [Zod](https://zod.dev/) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+
+## 📁 Project Structure
+
+```
+gourmiso/
+├── prisma/
+│   ├── schema.prisma          # Database schema
+│   ├── migrations/            # Database migrations
+│   ├── seed.ts                # Seed data script
+│   └── import-old-recipes.ts  # Import script for legacy data
+├── src/
+│   ├── app/
+│   │   ├── api/recipes/       # REST API endpoints
+│   │   │   ├── route.ts       # GET all, POST create
+│   │   │   └── [id]/route.ts  # GET, PUT, DELETE by ID
+│   │   ├── recipes/
+│   │   │   ├── page.tsx       # Recipe list page
+│   │   │   ├── loading.tsx    # Loading skeleton
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx   # Recipe detail page
+│   │   │       ├── loading.tsx
+│   │   │       └── not-found.tsx
+│   │   ├── layout.tsx         # Root layout
+│   │   └── page.tsx           # Home (redirects to /recipes)
+│   ├── components/
+│   │   ├── ui/                # ShadCN UI components
+│   │   └── recipes/           # Recipe-specific components
+│   │       ├── recipe-card.tsx
+│   │       ├── recipe-list.tsx
+│   │       ├── recipe-detail.tsx
+│   │       ├── recipe-form.tsx
+│   │       ├── recipe-filters.tsx
+│   │       ├── recipe-skeleton.tsx
+│   │       └── delete-recipe-dialog.tsx
+│   ├── actions/
+│   │   └── recipes.ts         # Server actions
+│   ├── lib/
+│   │   ├── db.ts              # Prisma client
+│   │   ├── utils.ts           # Utility functions
+│   │   └── validations.ts     # Zod schemas
+│   └── types/
+│       └── recipe.ts          # TypeScript types
+├── public/
+│   └── pattern.svg            # Background pattern
+└── package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [Node.js](https://nodejs.org/) 18+ 
+- npm, yarn, or pnpm
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/gourmiso.git
+   cd gourmiso
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Set up the database**
+   ```bash
+   npx prisma migrate dev --name init
+   ```
 
-## Deploy on Vercel
+4. **Seed the database** (optional)
+   ```bash
+   npm run db:seed
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+6. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 📜 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run db:migrate` | Run Prisma migrations |
+| `npm run db:seed` | Seed the database |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run db:reset` | Reset database and run migrations |
+
+## 🗃️ Database Schema
+
+### Recipe
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | Int | Primary key |
+| `name` | String | Recipe name |
+| `description` | String? | Optional description |
+| `category` | String | Category enum |
+| `author` | String | Recipe author |
+| `imageUrl` | String? | Image URL |
+| `videoUrl` | String? | Video URL |
+| `preparationTime` | Int | Prep time in minutes |
+| `cookingTime` | Int | Cook time in minutes |
+| `rating` | Int | Rating 0-10 |
+| `servings` | Int | Number of servings |
+| `createdAt` | DateTime | Creation timestamp |
+| `updatedAt` | DateTime | Update timestamp |
+
+### Ingredient
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | Int | Primary key |
+| `name` | String | Ingredient name |
+| `quantity` | Float? | Optional quantity |
+| `unit` | String? | Unit (g, ml, etc.) |
+| `recipeId` | Int | Foreign key to Recipe |
+
+### Step
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | Int | Primary key |
+| `order` | Int | Step order |
+| `text` | String | Step instructions |
+| `recipeId` | Int | Foreign key to Recipe |
+
+## 🏷️ Categories
+
+| Value | Label (FR) |
+|-------|------------|
+| `MAIN_DISH` | Plat principal |
+| `STARTER` | Entrée |
+| `DESSERT` | Dessert |
+| `SIDE_DISH` | Accompagnement |
+| `SOUP` | Soupe |
+| `SALAD` | Salade |
+| `BEVERAGE` | Boisson |
+| `SNACK` | En-cas |
+
+## 🔌 API Endpoints
+
+### GET `/api/recipes`
+Get all recipes with optional filtering.
+
+**Query Parameters:**
+- `category` - Filter by category
+
+**Response:** Array of Recipe objects with ingredients and steps
+
+### POST `/api/recipes`
+Create a new recipe.
+
+**Body:** Recipe data with ingredients and steps arrays
+
+### GET `/api/recipes/[id]`
+Get a single recipe by ID.
+
+### PUT `/api/recipes/[id]`
+Update a recipe by ID.
+
+### DELETE `/api/recipes/[id]`
+Delete a recipe by ID.
+
+## 🎨 Customization
+
+### Adding New Categories
+
+1. Update the enum in `src/types/recipe.ts`
+2. Add labels in component files (`recipe-card.tsx`, `recipe-detail.tsx`, etc.)
+3. Add colors in `categoryColors` objects
+
+### Styling
+
+- Global styles: `src/app/globals.css`
+- Theme variables defined using CSS custom properties
+- Tailwind configuration in `tailwind.config.ts`
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) - The React Framework
+- [ShadCN UI](https://ui.shadcn.com/) - Beautiful UI components
+- [Prisma](https://www.prisma.io/) - Next-generation ORM
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
+- [Unsplash](https://unsplash.com/) - Recipe images
+
+---
+
+Made with ❤️ and 🍳
