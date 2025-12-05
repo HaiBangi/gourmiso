@@ -233,14 +233,14 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl lg:max-w-5xl xl:max-w-6xl max-h-[90vh] p-0 overflow-hidden">
         {/* Header */}
-        <DialogHeader className="px-6 py-4 border-b bg-stone-50">
-          <DialogTitle className="font-serif text-xl text-stone-800 flex items-center gap-2">
+        <DialogHeader className="px-5 py-3 border-b bg-stone-50">
+          <DialogTitle className="font-serif text-lg text-stone-800 flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-amber-500" />
             {recipe ? "Modifier la recette" : "Nouvelle recette"}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-120px)]">
+        <ScrollArea className="max-h-[calc(90vh-100px)]">
           <form onSubmit={handleSubmit} className="p-5 space-y-5">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
@@ -249,15 +249,15 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
             )}
 
             {/* Section: Basic Info */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex items-center gap-2 text-amber-700">
                 <ChefHat className="h-4 w-4 text-amber-500" />
                 <h3 className="font-medium text-sm">Informations générales</h3>
               </div>
               
-              <div className="grid gap-3 sm:grid-cols-6">
+              <div className="flex flex-col sm:flex-row gap-3">
                 {/* Nom de la recette */}
-                <div className="sm:col-span-3 space-y-1">
+                <div className="flex-1 space-y-1">
                   <Label htmlFor="name" className="text-stone-600 text-xs">
                     Nom de la recette <span className="text-red-500">*</span>
                   </Label>
@@ -272,7 +272,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 </div>
 
                 {/* Catégorie */}
-                <div className="sm:col-span-2 space-y-1">
+                <div className="w-full sm:w-40 space-y-1">
                   <Label htmlFor="category" className="text-stone-600 text-xs">
                     Catégorie
                   </Label>
@@ -291,10 +291,10 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 </div>
 
                 {/* Publier anonymement */}
-                <div className="sm:col-span-1 space-y-1">
+                <div className="w-full sm:w-auto space-y-1">
                   <Label className="text-stone-600 text-xs">Auteur</Label>
                   <div 
-                    className="flex items-center justify-center gap-1.5 h-9 px-2 border rounded-md bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors" 
+                    className="flex items-center gap-1.5 h-9 px-3 border rounded-md bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors whitespace-nowrap" 
                     onClick={() => setPublishAnonymously(!publishAnonymously)}
                   >
                     <Checkbox
@@ -313,32 +313,33 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div className="sm:col-span-6 space-y-1">
-                  <Label htmlFor="description" className="text-stone-600 text-xs">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Une courte description de la recette..."
-                    rows={2}
-                  />
-                </div>
+              </div>
 
-                {/* Tags */}
-                <div className="sm:col-span-6 space-y-1">
-                  <Label className="text-stone-600 text-xs flex items-center gap-1.5">
-                    <Tag className="h-3.5 w-3.5 text-amber-500" />
-                    Tags / Mots-clés
-                  </Label>
-                  <TagInput
-                    value={tags}
-                    onChange={setTags}
-                    placeholder="Ex: asiatique, riz, végétarien..."
-                  />
-                </div>
+              {/* Description */}
+              <div className="space-y-1">
+                <Label htmlFor="description" className="text-stone-600 text-xs">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Une courte description de la recette..."
+                  rows={2}
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-1">
+                <Label className="text-stone-600 text-xs flex items-center gap-1.5">
+                  <Tag className="h-3.5 w-3.5 text-amber-500" />
+                  Tags / Mots-clés
+                </Label>
+                <TagInput
+                  value={tags}
+                  onChange={setTags}
+                  placeholder="Ex: asiatique, riz, végétarien..."
+                />
               </div>
             </div>
 
