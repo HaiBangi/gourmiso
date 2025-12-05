@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +22,32 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, Trash2, ChefHat, Clock, Image, ListOrdered, 
   UtensilsCrossed, UserX, ImageIcon, Video, Tag, 
-  Sparkles, Users, Star, Timer, Flame, Save, X
+  Sparkles, Users, Star, Timer, Flame, Save, X, RotateCcw
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import { TagInput } from "./tag-input";
 import type { Recipe } from "@/types/recipe";
+
+// Key for localStorage draft
+const DRAFT_KEY = "gourmiso_recipe_draft";
+
+interface DraftData {
+  name: string;
+  description: string;
+  category: string;
+  imageUrl: string;
+  videoUrl: string;
+  preparationTime: string;
+  cookingTime: string;
+  servings: string;
+  rating: string;
+  publishAnonymously: boolean;
+  tags: string[];
+  ingredients: { id: string; name: string; quantity: string; unit: string }[];
+  steps: { id: string; text: string }[];
+  savedAt: number;
+}
 
 const categories = [
   { value: "MAIN_DISH", label: "Plat principal", emoji: "🍽️" },
@@ -131,6 +151,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const [name, setName] = useState(recipe?.name || "");
   const [description, setDescription] = useState(recipe?.description || "");
@@ -150,6 +171,107 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
   const [steps, setSteps] = useState<StepInput[]>([]);
+
+  // Save draft to localStorage
+  const saveDraft = useCallback(() => {
+    // Only save drafts for new recipes, not edits
+    if (recipe) return;
+    
+    const draft: DraftData = {
+      name,
+      description,
+      category,
+      imageUrl,
+      videoUrl,
+      preparationTime,
+      cookingTime,
+      servings,
+      rating,
+      publishAnonymously,
+      tags,
+      ingredients,
+      steps,
+      savedAt: Date.now(),
+    };
+    
+    // Only save if there's meaningful content
+    const hasContent = name.trim() || 
+      description.trim() || 
+      ingredients.some(i => i.name.trim()) || 
+      steps.some(s => s.text.trim());
+    
+    if (hasContent) {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch (e) {
+        console.warn("Could not save draft to localStorage");
+      }
+    }
+  }, [name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, publishAnonymously, tags, ingredients, steps, recipe]);
+
+  // Load draft from localStorage
+  const loadDraft = useCallback(() => {
+    if (recipe) return null;
+    
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const draft: DraftData = JSON.parse(saved);
+        // Only restore if draft is less than 24 hours old
+        if (Date.now() - draft.savedAt < 24 * 60 * 60 * 1000) {
+          return draft;
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load draft from localStorage");
+    }
+    return null;
+  }, [recipe]);
+
+  // Clear draft from localStorage
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {
+      console.warn("Could not clear draft from localStorage");
+    }
+  }, []);
+
+  // Auto-save draft when form changes (debounced)
+  useEffect(() => {
+    if (!mounted || !open || recipe) return;
+    
+    const timeoutId = setTimeout(() => {
+      saveDraft();
+    }, 1000); // Save after 1 second of inactivity
+    
+    return () => clearTimeout(timeoutId);
+  }, [mounted, open, saveDraft, recipe]);
+
+  // Initialize form and restore draft when dialog opens
+  useEffect(() => {
+    if (open && !recipe) {
+      const draft = loadDraft();
+      if (draft && (draft.name || draft.ingredients.some(i => i.name) || draft.steps.some(s => s.text))) {
+        setName(draft.name);
+        setDescription(draft.description);
+        setCategory(draft.category as typeof category);
+        setImageUrl(draft.imageUrl);
+        setVideoUrl(draft.videoUrl);
+        setPreparationTime(draft.preparationTime);
+        setCookingTime(draft.cookingTime);
+        setServings(draft.servings);
+        setRating(draft.rating);
+        setPublishAnonymously(draft.publishAnonymously);
+        setTags(draft.tags);
+        setIngredients(draft.ingredients.length > 0 ? draft.ingredients : [{ id: "ing-0", name: "", quantity: "", unit: "" }]);
+        setSteps(draft.steps.length > 0 ? draft.steps : [{ id: "step-0", text: "" }]);
+        setDraftRestored(true);
+      }
+    }
+  }, [open, recipe, loadDraft]);
 
   useEffect(() => {
     setIngredients(getInitialIngredients(recipe));
@@ -236,6 +358,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       }
 
       if (result.success) {
+        clearDraft(); // Clear draft on successful save
         setOpen(false);
         router.push("/recipes");
         router.refresh();
@@ -264,8 +387,11 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "" }]);
       setSteps([{ id: "step-0", text: "" }]);
       setTags([]);
+      setPublishAnonymously(false);
+      clearDraft(); // Clear draft when resetting
     }
     setError(null);
+    setDraftRestored(false);
   };
 
   const selectedCategory = categories.find(c => c.value === category);
@@ -316,6 +442,33 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   <p className="text-red-800 font-medium text-sm">Erreur</p>
                   <p className="text-red-600 text-sm">{error}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Draft restored message */}
+            {draftRestored && !recipe && (
+              <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 bg-blue-100 rounded-full">
+                    <RotateCcw className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-blue-800 font-medium text-sm">Brouillon restauré</p>
+                    <p className="text-blue-600 text-xs">Votre travail précédent a été récupéré automatiquement</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    resetForm();
+                    setDraftRestored(false);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 text-xs cursor-pointer"
+                >
+                  Recommencer
+                </Button>
               </div>
             )}
 
@@ -561,17 +714,17 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   }
                 >
                   <div className="space-y-2">
-                    {/* Header row */}
-                    <div className="hidden sm:grid grid-cols-[60px_80px_1fr_32px] gap-2 text-xs text-stone-500 font-medium px-1">
-                      <span>Quantité</span>
-                      <span>Unité</span>
-                      <span>Ingrédient</span>
+                    {/* Header row - aligned with the inputs below */}
+                    <div className="hidden sm:grid grid-cols-[60px_80px_1fr_32px] gap-2 text-xs text-stone-500 font-medium ml-2 mr-2">
+                      <span className="text-center">Quantité</span>
+                      <span className="text-center">Unité</span>
+                      <span className="pl-1">Ingrédient</span>
                       <span></span>
                     </div>
                     {mounted && ingredients.map((ing, index) => (
                       <div 
                         key={ing.id} 
-                        className="grid grid-cols-[60px_80px_1fr_32px] gap-2 items-center p-2 rounded-lg bg-white border border-stone-100 hover:border-emerald-200 transition-colors"
+                        className="grid grid-cols-[60px_80px_1fr_32px] gap-2 items-center px-2 py-2 rounded-lg bg-white border border-stone-100 hover:border-emerald-200 transition-colors"
                       >
                         <Input
                           value={ing.quantity}
