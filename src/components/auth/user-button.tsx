@@ -31,7 +31,7 @@ export function UserButton() {
 
   if (!session?.user) {
     return (
-      <Button asChild variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base">
+      <Button asChild variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md">
         <Link href="/auth/signin">
           <User className="mr-2 h-4 w-4" />
           Connexion

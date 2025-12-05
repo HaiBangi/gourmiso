@@ -43,7 +43,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
           <Button
             asChild
             variant="ghost"
-            className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white"
+            className="bg-black/40 backdrop-blur-md hover:bg-black/60 text-white border border-white/20 cursor-pointer shadow-lg"
           >
             <Link href="/recipes">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -56,7 +56,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               <Button
                 asChild
                 variant="ghost"
-                className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white"
+                className="bg-black/40 backdrop-blur-md hover:bg-black/60 text-white border border-white/20 cursor-pointer shadow-lg"
               >
                 <a href={recipe.videoUrl} target="_blank" rel="noopener noreferrer">
                   <Play className="mr-2 h-4 w-4" />
@@ -74,7 +74,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               trigger={
                 <Button
                   variant="ghost"
-                  className="bg-red-500/20 backdrop-blur-sm hover:bg-red-500/30 text-white"
+                  className="bg-red-600/70 backdrop-blur-md hover:bg-red-600/90 text-white border border-red-400/30 cursor-pointer shadow-lg"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Supprimer

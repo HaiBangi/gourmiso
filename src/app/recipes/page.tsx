@@ -106,7 +106,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
               <RecipeForm
                 trigger={
                   <Button
-                    className="bg-white text-amber-600 hover:bg-white/90 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base"
+                    className="bg-white text-amber-600 hover:bg-amber-50 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md"
                   >
                     <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="hidden sm:inline">Nouvelle recette</span>
