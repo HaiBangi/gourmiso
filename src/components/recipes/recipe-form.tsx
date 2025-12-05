@@ -189,10 +189,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
       if (result.success) {
         setOpen(false);
+        router.push("/recipes");
         router.refresh();
-        if (!recipe && "data" in result && result.data) {
-          router.push(`/recipes/${result.data.id}`);
-        }
       } else {
         setError(result.error);
       }

@@ -73,16 +73,16 @@ export default async function ProfilePage() {
       </header>
 
       {/* Stats */}
-      <section className="mx-auto max-w-screen-xl px-4 py-8 sm:px-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <section className="mx-auto max-w-screen-xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-3">
+          <Card className="p-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Mes recettes
               </CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4">
               <div className="text-3xl font-bold">{user._count.recipes}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 recettes créées
@@ -90,14 +90,14 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="p-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Favoris
               </CardTitle>
               <Heart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4">
               <div className="text-3xl font-bold">{user._count.favorites}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 recettes sauvegardées
@@ -105,14 +105,14 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="p-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Membre depuis
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4">
               <div className="text-xl font-bold">
                 {new Date(user.createdAt).toLocaleDateString("fr-FR", {
                   month: "long",
@@ -127,12 +127,12 @@ export default async function ProfilePage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <h2 className="text-xl font-bold mb-4">Actions rapides</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
             <Card className="hover:shadow-lg transition-shadow">
               <Link href="/profile/recipes">
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-amber-100">
                       <ChefHat className="h-5 w-5 text-amber-600" />
@@ -148,7 +148,7 @@ export default async function ProfilePage() {
 
             <Card className="hover:shadow-lg transition-shadow">
               <Link href="/profile/favorites">
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-red-100">
                       <Heart className="h-5 w-5 text-red-600" />
@@ -165,15 +165,15 @@ export default async function ProfilePage() {
         </div>
 
         {/* Role permissions info */}
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
                 Vos permissions
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
