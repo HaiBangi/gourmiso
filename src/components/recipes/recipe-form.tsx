@@ -21,9 +21,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, GripVertical, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed, UserX, ImageIcon, Video } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed, UserX, ImageIcon, Video, Tag } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
+import { TagInput } from "./tag-input";
 import type { Recipe } from "@/types/recipe";
 
 const categories = [
@@ -101,15 +102,17 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
   const [rating, setRating] = useState(recipe?.rating?.toString() || "");
   const [publishAnonymously, setPublishAnonymously] = useState(false);
+  const [tags, setTags] = useState<string[]>(recipe?.tags || []);
 
   // Initialize with empty arrays, populate on mount
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
   const [steps, setSteps] = useState<StepInput[]>([]);
 
-  // Initialize ingredients and steps on client side only
+  // Initialize ingredients, steps and tags on client side only
   useEffect(() => {
     setIngredients(getInitialIngredients(recipe));
     setSteps(getInitialSteps(recipe));
+    setTags(recipe?.tags || []);
     setMounted(true);
   }, [recipe]);
 
@@ -166,6 +169,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       cookingTime: parseInt(cookingTime) || 0,
       servings: parseInt(servings) || 1,
       rating: parseInt(rating) || 0,
+      tags: tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
       ingredients: ingredients
         .filter((ing) => ing.name.trim())
         .map((ing) => ({
@@ -315,6 +319,19 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Une courte description de la recette..."
                     rows={3}
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className="sm:col-span-6 space-y-2">
+                  <Label className="text-stone-600 flex items-center gap-1.5">
+                    <Tag className="h-4 w-4 text-amber-500" />
+                    Tags / Mots-clés
+                  </Label>
+                  <TagInput
+                    value={tags}
+                    onChange={setTags}
+                    placeholder="Ex: asiatique, riz, végétarien..."
                   />
                 </div>
               </div>

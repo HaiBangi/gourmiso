@@ -33,6 +33,7 @@ export interface Recipe {
   cookingTime: number;
   rating: number;
   servings: number;
+  tags: string[];
   createdAt: Date;
   updatedAt: Date;
   ingredients: Ingredient[];
@@ -50,9 +51,9 @@ export interface RecipeCreateInput {
   cookingTime: number;
   rating?: number;
   servings: number;
+  tags?: string[];
   ingredients: Omit<Ingredient, "id">[];
   steps: Omit<Step, "id">[];
 }
 
 export interface RecipeUpdateInput extends Partial<RecipeCreateInput> {}
-

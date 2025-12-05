@@ -15,7 +15,6 @@ interface SearchParams {
   search?: string;
   sort?: string;
   maxTime?: string;
-  dietary?: string;
 }
 
 // Category sort order (priority)
@@ -31,10 +30,7 @@ const categoryOrder: Record<string, number> = {
 };
 
 async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
-  const { category, search, maxTime, dietary } = searchParams;
-
-  // Parse dietary tags
-  const dietaryTags = dietary ? dietary.split(",") : [];
+  const { category, search, maxTime } = searchParams;
 
   const recipes = await db.recipe.findMany({
     where: {
@@ -46,6 +42,7 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
                 { name: { contains: search, mode: "insensitive" } },
                 { description: { contains: search, mode: "insensitive" } },
                 { author: { contains: search, mode: "insensitive" } },
+                { tags: { hasSome: [search.toLowerCase()] } },
               ],
             }
           : {},
@@ -65,14 +62,9 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
                     { cookingTime: { lte: parseInt(maxTime) } },
                   ],
                 },
-                // Simple approach: just check if either is less than maxTime
               ],
             }
           : {},
-        // Filter by dietary tags
-        ...(dietaryTags.length > 0
-          ? dietaryTags.map((tag) => ({ dietaryTags: { has: tag } }))
-          : []),
       ],
     },
     include: {
