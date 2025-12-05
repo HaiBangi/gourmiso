@@ -257,6 +257,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
               
               <div className="grid gap-5 sm:grid-cols-6">
                 {/* Nom de la recette */}
+                {/* Nom de la recette */}
                 <div className="sm:col-span-3 space-y-2">
                   <Label htmlFor="name" className="text-stone-600">
                     Nom de la recette <span className="text-red-500">*</span>
@@ -267,13 +268,33 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Blanquette de veau"
                     required
+                    className="h-10"
                   />
+                </div>
+
+                {/* Catégorie */}
+                <div className="sm:col-span-2 space-y-2">
+                  <Label htmlFor="category" className="text-stone-600">
+                    Catégorie
+                  </Label>
+                  <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
+                    <SelectTrigger className="cursor-pointer h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value} className="cursor-pointer">
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Publier anonymement */}
                 <div className="sm:col-span-1 space-y-2">
-                  <Label className="text-stone-600 text-sm">Publication</Label>
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-stone-50">
+                  <Label className="text-stone-600 text-sm">Auteur</Label>
+                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-stone-50 cursor-pointer" onClick={() => setPublishAnonymously(!publishAnonymously)}>
                     <Checkbox
                       id="publishAnonymously"
                       checked={publishAnonymously}
@@ -287,25 +308,6 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                       Anonyme
                     </label>
                   </div>
-                </div>
-
-                {/* Catégorie */}
-                <div className="sm:col-span-2 space-y-2">
-                  <Label htmlFor="category" className="text-stone-600">
-                    Catégorie
-                  </Label>
-                  <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
-                    <SelectTrigger className="cursor-pointer">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value} className="cursor-pointer">
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {/* Description */}
