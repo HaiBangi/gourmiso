@@ -4,9 +4,11 @@ import { auth } from "@/lib/auth";
 import { RecipeList } from "@/components/recipes/recipe-list";
 import { RecipeListSkeleton } from "@/components/recipes/recipe-skeleton";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
+import { AdvancedFilters } from "@/components/recipes/advanced-filters";
 import { RecipeForm } from "@/components/recipes/recipe-form";
 import { QuickFilters } from "@/components/recipes/quick-filters";
 import { UserButton } from "@/components/auth/user-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import type { Recipe } from "@/types/recipe";
 import { ChefHat, Plus } from "lucide-react";
@@ -14,6 +16,9 @@ import { ChefHat, Plus } from "lucide-react";
 interface SearchParams {
   category?: string;
   search?: string;
+  sort?: string;
+  maxTime?: string;
+  dietary?: string;
 }
 
 // Category sort order (priority)
@@ -29,7 +34,10 @@ const categoryOrder: Record<string, number> = {
 };
 
 async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
-  const { category, search } = searchParams;
+  const { category, search, maxTime, dietary } = searchParams;
+
+  // Parse dietary tags
+  const dietaryTags = dietary ? dietary.split(",") : [];
 
   const recipes = await db.recipe.findMany({
     where: {
@@ -44,6 +52,30 @@ async function getRecipes(searchParams: SearchParams): Promise<Recipe[]> {
               ],
             }
           : {},
+        // Filter by max time (prep + cooking)
+        maxTime
+          ? {
+              OR: [
+                {
+                  AND: [
+                    { preparationTime: { lte: parseInt(maxTime) } },
+                    { cookingTime: { equals: 0 } },
+                  ],
+                },
+                {
+                  AND: [
+                    { preparationTime: { equals: 0 } },
+                    { cookingTime: { lte: parseInt(maxTime) } },
+                  ],
+                },
+                // Simple approach: just check if either is less than maxTime
+              ],
+            }
+          : {},
+        // Filter by dietary tags
+        ...(dietaryTags.length > 0
+          ? dietaryTags.map((tag) => ({ dietaryTags: { has: tag } }))
+          : []),
       ],
     },
     include: {
@@ -66,24 +98,40 @@ async function getFavoriteIds(userId?: string): Promise<Set<number>> {
   return new Set(user?.favorites.map(f => f.id) || []);
 }
 
-function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>): Recipe[] {
+function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>, sortOption?: string): Recipe[] {
   return recipes.sort((a, b) => {
-    // First: favorites come first
-    const aIsFav = favoriteIds.has(a.id);
-    const bIsFav = favoriteIds.has(b.id);
-    if (aIsFav && !bIsFav) return -1;
-    if (!aIsFav && bIsFav) return 1;
+    // First: favorites come first (unless specific sort is chosen)
+    if (!sortOption || sortOption === "default") {
+      const aIsFav = favoriteIds.has(a.id);
+      const bIsFav = favoriteIds.has(b.id);
+      if (aIsFav && !bIsFav) return -1;
+      if (!aIsFav && bIsFav) return 1;
+    }
 
-    // Second: sort by category
-    const catOrderA = categoryOrder[a.category] || 99;
-    const catOrderB = categoryOrder[b.category] || 99;
-    if (catOrderA !== catOrderB) return catOrderA - catOrderB;
-
-    // Third: sort by rating (descending)
-    if (b.rating !== a.rating) return b.rating - a.rating;
-
-    // Fourth: sort by name (alphabetically)
-    return a.name.localeCompare(b.name, "fr");
+    // Apply specific sorting
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case "oldest":
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "rating":
+        return b.rating - a.rating;
+      case "time_asc":
+        return (a.preparationTime + a.cookingTime) - (b.preparationTime + b.cookingTime);
+      case "time_desc":
+        return (b.preparationTime + b.cookingTime) - (a.preparationTime + a.cookingTime);
+      case "name_asc":
+        return a.name.localeCompare(b.name, "fr");
+      case "name_desc":
+        return b.name.localeCompare(a.name, "fr");
+      default:
+        // Default sorting: by category, then rating, then name
+        const catOrderA = categoryOrder[a.category] || 99;
+        const catOrderB = categoryOrder[b.category] || 99;
+        if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+        if (b.rating !== a.rating) return b.rating - a.rating;
+        return a.name.localeCompare(b.name, "fr");
+    }
   });
 }
 
@@ -94,7 +142,7 @@ async function RecipesContent({ searchParams }: { searchParams: SearchParams }) 
     getFavoriteIds(session?.user?.id),
   ]);
   
-  const sortedRecipes = sortRecipes(recipes, favoriteIds);
+  const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort);
   
   return <RecipeList recipes={sortedRecipes} favoriteIds={favoriteIds} />;
 }
@@ -129,6 +177,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               <RecipeForm
                 trigger={
                   <Button
@@ -155,6 +204,13 @@ export default async function RecipesPage({ searchParams }: PageProps) {
         <RecipeFilters
           currentCategory={params.category}
           currentSearch={params.search}
+        />
+
+        {/* Advanced Filters - hidden on mobile */}
+        <AdvancedFilters
+          currentSort={params.sort}
+          currentMaxTime={params.maxTime}
+          currentDietary={params.dietary?.split(",") || []}
         />
 
         <Suspense fallback={<RecipeListSkeleton />}>

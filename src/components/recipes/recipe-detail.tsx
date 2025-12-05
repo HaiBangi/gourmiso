@@ -7,6 +7,7 @@ import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import { RecipeComments } from "./recipe-comments";
+import { IngredientsCard } from "./ingredients-card";
 import { UserButton } from "@/components/auth/user-button";
 import type { Recipe } from "@/types/recipe";
 
@@ -191,36 +192,11 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
         )}
 
         <div className="grid gap-4 sm:gap-6 md:grid-cols-5">
-          {/* Ingredients */}
-          <Card className="md:col-span-2 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2">
-                <span className="text-xl sm:text-2xl">🥗</span>
-                Ingrédients
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 sm:space-y-3">
-                {recipe.ingredients.map((ingredient) => (
-                  <li
-                    key={ingredient.id}
-                    className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-stone-700"
-                  >
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0" />
-                    <span>
-                      {ingredient.quantity && (
-                        <span className="font-medium">{ingredient.quantity} </span>
-                      )}
-                      {ingredient.unit && (
-                        <span className="text-stone-500">{ingredient.unit} </span>
-                      )}
-                      {ingredient.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          {/* Ingredients with Portion Adjuster */}
+          <IngredientsCard
+            ingredients={recipe.ingredients}
+            originalServings={recipe.servings}
+          />
 
           {/* Steps */}
           <Card className="md:col-span-3 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm">

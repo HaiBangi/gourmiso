@@ -21,7 +21,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, GripVertical, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed, UserX } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import type { Recipe } from "@/types/recipe";
 
@@ -99,6 +100,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   );
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
   const [rating, setRating] = useState(recipe?.rating?.toString() || "");
+  const [publishAnonymously, setPublishAnonymously] = useState(false);
 
   // Initialize with empty arrays, populate on mount
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
@@ -157,7 +159,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       name,
       description: description || null,
       category: category as Recipe["category"],
-      author: author || "Anonyme",
+      author: publishAnonymously ? "Anonyme" : (author || undefined),
       imageUrl: imageUrl || null,
       videoUrl: videoUrl || null,
       preparationTime: parseInt(preparationTime) || 0,
@@ -271,8 +273,24 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                     id="author"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Ex: Mich"
+                    placeholder="Votre pseudo sera utilisé"
+                    disabled={publishAnonymously}
+                    className={publishAnonymously ? "opacity-50" : ""}
                   />
+                  <div className="flex items-center gap-2 mt-2">
+                    <Checkbox
+                      id="publishAnonymously"
+                      checked={publishAnonymously}
+                      onCheckedChange={(checked) => setPublishAnonymously(checked === true)}
+                    />
+                    <label
+                      htmlFor="publishAnonymously"
+                      className="text-sm text-stone-500 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <UserX className="h-4 w-4" />
+                      Publier anonymement
+                    </label>
+                  </div>
                 </div>
 
                 <div className="sm:col-span-3 space-y-2">
