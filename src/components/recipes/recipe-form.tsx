@@ -241,7 +241,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-140px)]">
-          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {error && (
               <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
                 ⚠️ {error}
@@ -250,16 +250,15 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Basic Info */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-amber-700 border-b border-amber-200 pb-2">
+              <div className="flex items-center gap-2 text-amber-700">
                 <ChefHat className="h-4 w-4 text-amber-500" />
                 <h3 className="font-medium">Informations générales</h3>
               </div>
               
-              <div className="grid gap-5 sm:grid-cols-6">
+              <div className="grid gap-4 sm:grid-cols-6">
                 {/* Nom de la recette */}
-                {/* Nom de la recette */}
-                <div className="sm:col-span-3 space-y-2">
-                  <Label htmlFor="name" className="text-stone-600">
+                <div className="sm:col-span-3 space-y-1.5">
+                  <Label htmlFor="name" className="text-stone-600 text-sm">
                     Nom de la recette <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -268,17 +267,17 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Blanquette de veau"
                     required
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
 
                 {/* Catégorie */}
-                <div className="sm:col-span-2 space-y-2">
-                  <Label htmlFor="category" className="text-stone-600">
+                <div className="sm:col-span-2 space-y-1.5">
+                  <Label htmlFor="category" className="text-stone-600 text-sm">
                     Catégorie
                   </Label>
                   <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
-                    <SelectTrigger className="cursor-pointer h-10">
+                    <SelectTrigger className="cursor-pointer h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -292,27 +291,31 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 </div>
 
                 {/* Publier anonymement */}
-                <div className="sm:col-span-1 space-y-2">
+                <div className="sm:col-span-1 space-y-1.5">
                   <Label className="text-stone-600 text-sm">Auteur</Label>
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-stone-50 cursor-pointer" onClick={() => setPublishAnonymously(!publishAnonymously)}>
+                  <div 
+                    className="flex items-center gap-2 h-9 px-2.5 border rounded-md bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors" 
+                    onClick={() => setPublishAnonymously(!publishAnonymously)}
+                  >
                     <Checkbox
                       id="publishAnonymously"
                       checked={publishAnonymously}
                       onCheckedChange={(checked) => setPublishAnonymously(checked === true)}
+                      className="h-4 w-4"
                     />
                     <label
                       htmlFor="publishAnonymously"
-                      className="text-sm text-stone-600 cursor-pointer flex items-center gap-1"
+                      className="text-xs text-stone-600 cursor-pointer flex items-center gap-1"
                     >
-                      <UserX className="h-3.5 w-3.5" />
+                      <UserX className="h-3 w-3" />
                       Anonyme
                     </label>
                   </div>
                 </div>
 
                 {/* Description */}
-                <div className="sm:col-span-6 space-y-2">
-                  <Label htmlFor="description" className="text-stone-600">
+                <div className="sm:col-span-6 space-y-1.5">
+                  <Label htmlFor="description" className="text-stone-600 text-sm">
                     Description
                   </Label>
                   <Textarea

@@ -8,6 +8,7 @@ import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import { RecipeComments } from "./recipe-comments";
 import { IngredientsCard } from "./ingredients-card";
+import { ShareButtons } from "./share-buttons";
 import { UserButton } from "@/components/auth/user-button";
 import type { Recipe } from "@/types/recipe";
 
@@ -59,6 +60,8 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
           </Button>
 
           <div className="flex gap-2 items-center">
+            <ShareButtons title={`${recipe.name} - Gourmiso`} />
+
             {recipe.videoUrl && (
               <Button
                 asChild
