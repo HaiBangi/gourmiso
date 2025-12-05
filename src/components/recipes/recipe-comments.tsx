@@ -63,14 +63,14 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
   };
 
   return (
-    <Card className="border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm">
+    <Card className="border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm pb-4">
       <CardHeader className="pb-2">
         <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-amber-500" />
           Commentaires ({comments.length})
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pb-2">
         {/* Add Comment Form */}
         {session?.user ? (
           <div className="space-y-3 pb-4 border-b border-amber-100">

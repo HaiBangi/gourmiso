@@ -9,8 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Clock, SortAsc, Leaf, X } from "lucide-react";
+import { Clock, SortAsc, X } from "lucide-react";
 import { useCallback, useTransition } from "react";
 
 const sortOptions = [
@@ -32,24 +31,14 @@ const timeOptions = [
   { value: "120", label: "< 2 heures" },
 ];
 
-const dietaryOptions = [
-  { value: "vegetarian", label: "🥬 Végétarien", color: "bg-green-100 text-green-700" },
-  { value: "vegan", label: "🌱 Vegan", color: "bg-emerald-100 text-emerald-700" },
-  { value: "gluten-free", label: "🌾 Sans gluten", color: "bg-amber-100 text-amber-700" },
-  { value: "dairy-free", label: "🥛 Sans lactose", color: "bg-blue-100 text-blue-700" },
-  { value: "low-carb", label: "🥩 Low carb", color: "bg-red-100 text-red-700" },
-];
-
 interface AdvancedFiltersProps {
   currentSort?: string;
   currentMaxTime?: string;
-  currentDietary?: string[];
 }
 
 export function AdvancedFilters({
   currentSort,
   currentMaxTime,
-  currentDietary = [],
 }: AdvancedFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,17 +61,7 @@ export function AdvancedFilters({
     [router, searchParams]
   );
 
-  const toggleDietary = (value: string) => {
-    const current = new Set(currentDietary);
-    if (current.has(value)) {
-      current.delete(value);
-    } else {
-      current.add(value);
-    }
-    updateParams({ dietary: current.size > 0 ? Array.from(current).join(",") : null });
-  };
-
-  const hasAdvancedFilters = currentSort || currentMaxTime || currentDietary.length > 0;
+  const hasAdvancedFilters = currentSort || currentMaxTime;
 
   return (
     <div className="hidden md:flex flex-wrap items-center gap-3 mb-4 p-4 rounded-xl bg-white/50 backdrop-blur-sm border border-amber-100">
@@ -93,12 +72,12 @@ export function AdvancedFilters({
           value={currentSort || "default"}
           onValueChange={(value) => updateParams({ sort: value })}
         >
-          <SelectTrigger className="w-[180px] h-9 text-sm">
+          <SelectTrigger className="w-[180px] h-9 text-sm cursor-pointer">
             <SelectValue placeholder="Trier par" />
           </SelectTrigger>
           <SelectContent>
             {sortOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value} className="cursor-pointer">
                 {opt.label}
               </SelectItem>
             ))}
@@ -113,12 +92,12 @@ export function AdvancedFilters({
           value={currentMaxTime || "all"}
           onValueChange={(value) => updateParams({ maxTime: value })}
         >
-          <SelectTrigger className="w-[140px] h-9 text-sm">
+          <SelectTrigger className="w-[140px] h-9 text-sm cursor-pointer">
             <SelectValue placeholder="Temps max" />
           </SelectTrigger>
           <SelectContent>
             {timeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value} className="cursor-pointer">
                 {opt.label}
               </SelectItem>
             ))}
@@ -126,34 +105,13 @@ export function AdvancedFilters({
         </Select>
       </div>
 
-      {/* Dietary Tags */}
-      <div className="flex items-center gap-2">
-        <Leaf className="h-4 w-4 text-stone-500" />
-        <div className="flex flex-wrap gap-1.5">
-          {dietaryOptions.map((opt) => (
-            <Badge
-              key={opt.value}
-              variant="outline"
-              className={`cursor-pointer transition-all text-xs ${
-                currentDietary.includes(opt.value)
-                  ? opt.color + " border-transparent"
-                  : "bg-transparent hover:bg-stone-100"
-              }`}
-              onClick={() => toggleDietary(opt.value)}
-            >
-              {opt.label}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
       {/* Clear Advanced Filters */}
       {hasAdvancedFilters && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => updateParams({ sort: null, maxTime: null, dietary: null })}
-          className="ml-auto"
+          onClick={() => updateParams({ sort: null, maxTime: null })}
+          className="ml-auto cursor-pointer"
         >
           <X className="h-4 w-4 mr-1" />
           Réinitialiser
@@ -162,4 +120,3 @@ export function AdvancedFilters({
     </div>
   );
 }
-

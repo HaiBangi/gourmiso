@@ -177,7 +177,6 @@ export default async function RecipesPage({ searchParams }: PageProps) {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <ThemeToggle />
               <RecipeForm
                 trigger={
                   <Button
@@ -189,6 +188,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
                   </Button>
                 }
               />
+              <ThemeToggle />
               <UserButton />
             </div>
           </div>
@@ -210,7 +210,6 @@ export default async function RecipesPage({ searchParams }: PageProps) {
         <AdvancedFilters
           currentSort={params.sort}
           currentMaxTime={params.maxTime}
-          currentDietary={params.dietary?.split(",") || []}
         />
 
         <Suspense fallback={<RecipeListSkeleton />}>

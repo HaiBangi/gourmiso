@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, GripVertical, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed, UserX } from "lucide-react";
+import { Plus, Trash2, ChefHat, Clock, Image, ListOrdered, UtensilsCrossed, UserX, ImageIcon, Video } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import type { Recipe } from "@/types/recipe";
@@ -251,8 +251,9 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 <h3 className="font-medium">Informations générales</h3>
               </div>
               
-              <div className="grid gap-5 sm:grid-cols-3">
-                <div className="sm:col-span-2 space-y-2">
+              <div className="grid gap-5 sm:grid-cols-6">
+                {/* Nom de la recette */}
+                <div className="sm:col-span-3 space-y-2">
                   <Label htmlFor="name" className="text-stone-600">
                     Nom de la recette <span className="text-red-500">*</span>
                   </Label>
@@ -265,19 +266,10 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="author" className="text-stone-600">
-                    Auteur
-                  </Label>
-                  <Input
-                    id="author"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Votre pseudo sera utilisé"
-                    disabled={publishAnonymously}
-                    className={publishAnonymously ? "opacity-50" : ""}
-                  />
-                  <div className="flex items-center gap-2 mt-2">
+                {/* Publier anonymement */}
+                <div className="sm:col-span-1 space-y-2">
+                  <Label className="text-stone-600 text-sm">Publication</Label>
+                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-stone-50">
                     <Checkbox
                       id="publishAnonymously"
                       checked={publishAnonymously}
@@ -285,25 +277,26 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                     />
                     <label
                       htmlFor="publishAnonymously"
-                      className="text-sm text-stone-500 cursor-pointer flex items-center gap-1.5"
+                      className="text-sm text-stone-600 cursor-pointer flex items-center gap-1"
                     >
-                      <UserX className="h-4 w-4" />
-                      Publier anonymement
+                      <UserX className="h-3.5 w-3.5" />
+                      Anonyme
                     </label>
                   </div>
                 </div>
 
-                <div className="sm:col-span-3 space-y-2">
+                {/* Catégorie */}
+                <div className="sm:col-span-2 space-y-2">
                   <Label htmlFor="category" className="text-stone-600">
                     Catégorie
                   </Label>
                   <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
+                        <SelectItem key={cat.value} value={cat.value} className="cursor-pointer">
                           {cat.label}
                         </SelectItem>
                       ))}
@@ -311,7 +304,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   </Select>
                 </div>
 
-                <div className="sm:col-span-3 space-y-2">
+                {/* Description */}
+                <div className="sm:col-span-6 space-y-2">
                   <Label htmlFor="description" className="text-stone-600">
                     Description
                   </Label>
@@ -399,7 +393,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
               
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl" className="text-stone-600">
+                  <Label htmlFor="imageUrl" className="text-stone-600 flex items-center gap-1.5">
+                    <ImageIcon className="h-4 w-4" />
                     URL de l&apos;image
                   </Label>
                   <Input
@@ -411,7 +406,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="videoUrl" className="text-stone-600">
+                  <Label htmlFor="videoUrl" className="text-stone-600 flex items-center gap-1.5">
+                    <Video className="h-4 w-4" />
                     URL de la vidéo
                   </Label>
                   <Input

@@ -47,8 +47,8 @@ export function UserButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-          <Avatar className="h-9 w-9">
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 cursor-pointer hover:ring-2 hover:ring-amber-300 transition-all">
+          <Avatar className="h-9 w-9 cursor-pointer">
             <AvatarImage src={user.image || ""} alt={user.name || "User"} />
             <AvatarFallback className="bg-amber-500 text-white">
               {user.name?.charAt(0).toUpperCase() || "U"}

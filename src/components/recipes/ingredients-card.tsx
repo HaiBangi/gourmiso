@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Minus, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Users } from "lucide-react";
 
 interface Ingredient {
   id: number;
@@ -35,15 +41,11 @@ export function IngredientsCard({ ingredients, originalServings }: IngredientsCa
   const [servings, setServings] = useState(originalServings);
   const multiplier = servings / originalServings;
 
-  const updateServings = (delta: number) => {
-    const newServings = servings + delta;
-    if (newServings >= 1 && newServings <= 50) {
-      setServings(newServings);
-    }
-  };
+  // Generate servings options (1-20)
+  const servingsOptions = Array.from({ length: 20 }, (_, i) => i + 1);
 
   return (
-    <Card className="md:col-span-2 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm">
+    <Card className="md:col-span-2 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm pb-4">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2">
@@ -51,39 +53,33 @@ export function IngredientsCard({ ingredients, originalServings }: IngredientsCa
             Ingrédients
           </CardTitle>
           
-          {/* Portion Adjuster */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => updateServings(-1)}
-              disabled={servings <= 1}
-            >
-              <Minus className="h-3.5 w-3.5" />
-            </Button>
-            <div className="flex items-center gap-1 min-w-[70px] justify-center">
-              <Users className="h-4 w-4 text-emerald-600" />
-              <span className="font-medium text-sm">{servings}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => updateServings(1)}
-              disabled={servings >= 50}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+          {/* Portion Adjuster Dropdown */}
+          <Select
+            value={servings.toString()}
+            onValueChange={(value) => setServings(parseInt(value))}
+          >
+            <SelectTrigger className="w-[100px] h-8 cursor-pointer">
+              <div className="flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-emerald-600" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {servingsOptions.map((num) => (
+                <SelectItem key={num} value={num.toString()} className="cursor-pointer">
+                  {num} pers.
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         {servings !== originalServings && (
-          <p className="text-xs text-amber-600 mt-1">
+          <p className="text-xs text-amber-600 mt-1 text-right">
             Quantités ajustées (×{multiplier.toFixed(1)})
           </p>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-2">
         <ul className="space-y-2 sm:space-y-3">
           {ingredients.map((ingredient) => (
             <li
@@ -109,4 +105,3 @@ export function IngredientsCard({ ingredients, originalServings }: IngredientsCa
     </Card>
   );
 }
-

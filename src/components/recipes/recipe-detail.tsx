@@ -199,14 +199,14 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
           />
 
           {/* Steps */}
-          <Card className="md:col-span-3 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm">
+          <Card className="md:col-span-3 border border-amber-100 shadow-sm bg-white/80 backdrop-blur-sm pb-4">
             <CardHeader className="pb-2">
               <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2">
                 <span className="text-xl sm:text-2xl">👨‍🍳</span>
                 Préparation
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <ol className="space-y-4 sm:space-y-6">
                 {recipe.steps.map((step) => (
                   <li key={step.id} className="flex gap-3 sm:gap-4">
