@@ -10,6 +10,7 @@ import type { Recipe } from "@/types/recipe";
 
 interface RecipeDetailProps {
   recipe: Recipe;
+  canEdit?: boolean;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -23,7 +24,7 @@ const categoryLabels: Record<string, string> = {
   SNACK: "En-cas",
 };
 
-export function RecipeDetail({ recipe }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, canEdit = false }: RecipeDetailProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -65,22 +66,26 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               </Button>
             )}
 
-            <EditRecipeButton recipe={recipe} />
+            {canEdit && (
+              <>
+                <EditRecipeButton recipe={recipe} />
 
-            <DeleteRecipeDialog
-              recipeId={recipe.id}
-              recipeName={recipe.name}
-              redirectAfterDelete
-              trigger={
-                <Button
-                  variant="ghost"
-                  className="bg-red-600/70 backdrop-blur-md hover:bg-red-600/90 text-white border border-red-400/30 cursor-pointer shadow-lg"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Supprimer
-                </Button>
-              }
-            />
+                <DeleteRecipeDialog
+                  recipeId={recipe.id}
+                  recipeName={recipe.name}
+                  redirectAfterDelete
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      className="bg-red-600/70 backdrop-blur-md hover:bg-red-600/90 text-white border border-red-400/30 cursor-pointer shadow-lg"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Supprimer
+                    </Button>
+                  }
+                />
+              </>
+            )}
           </div>
         </div>
 

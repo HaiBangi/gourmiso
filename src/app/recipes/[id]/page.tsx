@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { RecipeDetail } from "@/components/recipes/recipe-detail";
 import type { Recipe } from "@/types/recipe";
 import type { Metadata } from "next";
@@ -8,7 +9,11 @@ interface RecipePageProps {
   params: Promise<{ id: string }>;
 }
 
-async function getRecipe(id: number): Promise<Recipe | null> {
+interface RecipeWithUserId extends Recipe {
+  userId: string | null;
+}
+
+async function getRecipe(id: number): Promise<RecipeWithUserId | null> {
   const recipe = await db.recipe.findUnique({
     where: { id },
     include: {
@@ -17,7 +22,7 @@ async function getRecipe(id: number): Promise<Recipe | null> {
     },
   });
 
-  return recipe as Recipe | null;
+  return recipe as RecipeWithUserId | null;
 }
 
 export async function generateMetadata({ params }: RecipePageProps): Promise<Metadata> {
@@ -48,12 +53,20 @@ export default async function RecipePage({ params }: RecipePageProps) {
     notFound();
   }
 
-  const recipe = await getRecipe(recipeId);
+  const [recipe, session] = await Promise.all([
+    getRecipe(recipeId),
+    auth(),
+  ]);
 
   if (!recipe) {
     notFound();
   }
 
-  return <RecipeDetail recipe={recipe} />;
+  // Check if user can edit/delete this recipe
+  const isOwner = session?.user?.id === recipe.userId;
+  const isAdmin = session?.user?.role === "ADMIN";
+  const canEdit = isOwner || isAdmin;
+
+  return <RecipeDetail recipe={recipe} canEdit={canEdit} />;
 }
 
