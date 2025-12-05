@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,13 +53,38 @@ interface RecipeFormProps {
   trigger: React.ReactNode;
 }
 
+// Helper to create initial ingredients from recipe
+function getInitialIngredients(recipe?: Recipe): IngredientInput[] {
+  if (!recipe?.ingredients?.length) {
+    return [{ id: "ing-0", name: "", quantity: "", unit: "" }];
+  }
+  return recipe.ingredients.map((ing, index) => ({
+    id: `ing-${index}`,
+    name: ing.name,
+    quantity: ing.quantity?.toString() || "",
+    unit: ing.unit || "",
+  }));
+}
+
+// Helper to create initial steps from recipe
+function getInitialSteps(recipe?: Recipe): StepInput[] {
+  if (!recipe?.steps?.length) {
+    return [{ id: "step-0", text: "" }];
+  }
+  return recipe.steps.map((step, index) => ({
+    id: `step-${index}`,
+    text: step.text,
+  }));
+}
+
 export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Form state
+  // Form state - simple initial values
   const [name, setName] = useState(recipe?.name || "");
   const [description, setDescription] = useState(recipe?.description || "");
   const [category, setCategory] = useState(recipe?.category || "MAIN_DISH");
@@ -75,26 +100,21 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
   const [rating, setRating] = useState(recipe?.rating?.toString() || "");
 
-  const [ingredients, setIngredients] = useState<IngredientInput[]>(
-    recipe?.ingredients?.map((ing) => ({
-      id: crypto.randomUUID(),
-      name: ing.name,
-      quantity: ing.quantity?.toString() || "",
-      unit: ing.unit || "",
-    })) || [{ id: crypto.randomUUID(), name: "", quantity: "", unit: "" }]
-  );
+  // Initialize with empty arrays, populate on mount
+  const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
+  const [steps, setSteps] = useState<StepInput[]>([]);
 
-  const [steps, setSteps] = useState<StepInput[]>(
-    recipe?.steps?.map((step) => ({
-      id: crypto.randomUUID(),
-      text: step.text,
-    })) || [{ id: crypto.randomUUID(), text: "" }]
-  );
+  // Initialize ingredients and steps on client side only
+  useEffect(() => {
+    setIngredients(getInitialIngredients(recipe));
+    setSteps(getInitialSteps(recipe));
+    setMounted(true);
+  }, [recipe]);
 
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-      { id: crypto.randomUUID(), name: "", quantity: "", unit: "" },
+      { id: `ing-${Date.now()}`, name: "", quantity: "", unit: "" },
     ]);
   };
 
@@ -115,7 +135,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   };
 
   const addStep = () => {
-    setSteps([...steps, { id: crypto.randomUUID(), text: "" }]);
+    setSteps([...steps, { id: `step-${Date.now()}`, text: "" }]);
   };
 
   const removeStep = (id: string) => {
@@ -137,7 +157,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       name,
       description: description || null,
       category: category as Recipe["category"],
-      author,
+      author: author || "Anonyme",
       imageUrl: imageUrl || null,
       videoUrl: videoUrl || null,
       preparationTime: parseInt(preparationTime) || 0,
@@ -195,8 +215,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       setCookingTime("");
       setServings("");
       setRating("");
-      setIngredients([{ id: crypto.randomUUID(), name: "", quantity: "", unit: "" }]);
-      setSteps([{ id: crypto.randomUUID(), text: "" }]);
+      setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "" }]);
+      setSteps([{ id: "step-0", text: "" }]);
     }
     setError(null);
   };
@@ -214,11 +234,6 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
             <ChefHat className="h-6 w-6 text-amber-500" />
             {recipe ? "Modifier la recette" : "Nouvelle recette"}
           </DialogTitle>
-          <p className="text-stone-500 text-sm mt-1">
-            {recipe
-              ? "Modifiez les informations de votre recette."
-              : "Ajoutez une nouvelle recette à votre collection."}
-          </p>
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-140px)]">
@@ -231,12 +246,12 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Basic Info */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-stone-700 border-b pb-2">
+              <div className="flex items-center gap-2 text-amber-700 border-b border-amber-200 pb-2">
                 <ChefHat className="h-4 w-4 text-amber-500" />
                 <h3 className="font-medium">Informations générales</h3>
               </div>
               
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-3">
                 <div className="sm:col-span-2 space-y-2">
                   <Label htmlFor="name" className="text-stone-600">
                     Nom de la recette <span className="text-red-500">*</span>
@@ -252,22 +267,21 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="author" className="text-stone-600">
-                    Auteur <span className="text-red-500">*</span>
+                    Auteur
                   </Label>
                   <Input
                     id="author"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
                     placeholder="Ex: Mich"
-                    required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="sm:col-span-3 space-y-2">
                   <Label htmlFor="category" className="text-stone-600">
                     Catégorie
                   </Label>
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -281,7 +295,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   </Select>
                 </div>
 
-                <div className="sm:col-span-2 space-y-2">
+                <div className="sm:col-span-3 space-y-2">
                   <Label htmlFor="description" className="text-stone-600">
                     Description
                   </Label>
@@ -298,8 +312,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Times & Servings */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-stone-700 border-b pb-2">
-                <Clock className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-blue-700 border-b border-blue-200 pb-2">
+                <Clock className="h-4 w-4 text-blue-500" />
                 <h3 className="font-medium">Temps & Portions</h3>
               </div>
               
@@ -362,8 +376,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Media URLs */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-stone-700 border-b pb-2">
-                <Image className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-purple-700 border-b border-purple-200 pb-2">
+                <Image className="h-4 w-4 text-purple-500" />
                 <h3 className="font-medium">Médias</h3>
               </div>
               
@@ -397,18 +411,17 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Ingredients */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b pb-2">
-                <div className="flex items-center gap-2 text-stone-700">
-                  <UtensilsCrossed className="h-4 w-4 text-amber-500" />
-                  <h3 className="font-medium">
-                    Ingrédients <span className="text-red-500">*</span>
-                  </h3>
+              <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+                <div className="flex items-center gap-2 text-emerald-700">
+                  <UtensilsCrossed className="h-4 w-4 text-emerald-500" />
+                  <h3 className="font-medium">Ingrédients</h3>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={addIngredient}
+                  className="border-emerald-300 text-emerald-600 hover:bg-emerald-50"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Ajouter
@@ -416,7 +429,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
               </div>
               
               <div className="space-y-2">
-                {ingredients.map((ing, index) => (
+                {mounted && ingredients.map((ing, index) => (
                   <div key={ing.id} className="flex gap-2 items-center">
                     <GripVertical className="h-4 w-4 text-stone-300 flex-shrink-0" />
                     <Input
@@ -460,18 +473,17 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
             {/* Section: Steps */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b pb-2">
-                <div className="flex items-center gap-2 text-stone-700">
-                  <ListOrdered className="h-4 w-4 text-amber-500" />
-                  <h3 className="font-medium">
-                    Étapes <span className="text-red-500">*</span>
-                  </h3>
+              <div className="flex items-center justify-between border-b border-rose-200 pb-2">
+                <div className="flex items-center gap-2 text-rose-700">
+                  <ListOrdered className="h-4 w-4 text-rose-500" />
+                  <h3 className="font-medium">Étapes</h3>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={addStep}
+                  className="border-rose-300 text-rose-600 hover:bg-rose-50"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Ajouter
@@ -479,9 +491,9 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
               </div>
               
               <div className="space-y-3">
-                {steps.map((step, index) => (
+                {mounted && steps.map((step, index) => (
                   <div key={step.id} className="flex gap-3 items-start">
-                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-white text-sm font-medium">
+                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-rose-500 text-white text-sm font-medium">
                       {index + 1}
                     </span>
                     <Textarea

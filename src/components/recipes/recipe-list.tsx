@@ -8,10 +8,10 @@ interface RecipeListProps {
 export function RecipeList({ recipes }: RecipeListProps) {
   if (recipes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="rounded-full bg-stone-100 dark:bg-stone-800 p-8 mb-6">
+      <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
+        <div className="rounded-full bg-stone-100 dark:bg-stone-800 p-6 sm:p-8 mb-4 sm:mb-6">
           <svg
-            className="h-16 w-16 text-stone-400"
+            className="h-12 w-12 sm:h-16 sm:w-16 text-stone-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -24,10 +24,10 @@ export function RecipeList({ recipes }: RecipeListProps) {
             />
           </svg>
         </div>
-        <h3 className="text-xl font-medium text-stone-900 dark:text-stone-100">
+        <h3 className="text-lg sm:text-xl font-medium text-stone-900 dark:text-stone-100">
           Aucune recette
         </h3>
-        <p className="mt-2 text-base text-stone-500 dark:text-stone-400">
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-stone-500 dark:text-stone-400">
           Ajoutez votre première recette pour commencer.
         </p>
       </div>
@@ -35,7 +35,7 @@ export function RecipeList({ recipes }: RecipeListProps) {
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {recipes.map((recipe) => (
         <RecipeCard key={recipe.id} recipe={recipe} />
       ))}

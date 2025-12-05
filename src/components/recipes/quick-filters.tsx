@@ -24,7 +24,6 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
     const params = new URLSearchParams(searchParams.toString());
     
     if (currentCategory === category) {
-      // If already selected, clear the filter
       params.delete("category");
     } else {
       params.set("category", category);
@@ -36,7 +35,8 @@ export function QuickFilters({ currentCategory }: QuickFiltersProps) {
   };
 
   return (
-    <div className={`flex flex-wrap gap-3 mb-6 ${isPending ? "opacity-50" : ""}`}>
+    // Hidden on mobile, visible on md and up
+    <div className={`hidden md:flex flex-wrap gap-3 mb-6 ${isPending ? "opacity-50" : ""}`}>
       {quickCategories.map((cat) => {
         const isActive = currentCategory === cat.value;
         return (

@@ -81,21 +81,21 @@ export default async function RecipesPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
+      {/* Header - compact on mobile */}
       <header className="relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
 
-        <div className="relative mx-auto max-w-screen-2xl px-8 py-6">
+        <div className="relative mx-auto max-w-screen-2xl px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5">
-              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-                <ChefHat className="h-8 w-8 text-white" />
+            <div className="flex items-center gap-3 sm:gap-5">
+              <div className="p-2 sm:p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                <ChefHat className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-white" />
               </div>
               <div>
-                <h1 className="font-serif text-3xl font-bold text-white">
+                <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-white">
                   Gourmiso
                 </h1>
-                <p className="text-base text-white/80 hidden sm:block">
+                <p className="text-xs sm:text-sm md:text-base text-white/80 hidden sm:block">
                   Les recettes de MISO
                 </p>
               </div>
@@ -104,9 +104,9 @@ export default async function RecipesPage({ searchParams }: PageProps) {
             <RecipeForm
               trigger={
                 <Button
-                  className="bg-white text-amber-600 hover:bg-white/90 gap-2 h-11 px-5 text-base"
+                  className="bg-white text-amber-600 hover:bg-white/90 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base"
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="hidden sm:inline">Nouvelle recette</span>
                   <span className="sm:hidden">Ajouter</span>
                 </Button>
@@ -116,9 +116,9 @@ export default async function RecipesPage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      {/* Content */}
-      <section className="mx-auto max-w-screen-2xl px-8 py-8">
-        {/* Quick Category Filters */}
+      {/* Content - less padding on mobile */}
+      <section className="mx-auto max-w-screen-2xl px-3 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8">
+        {/* Quick Category Filters - hidden on mobile */}
         <QuickFilters currentCategory={params.category} />
 
         {/* Search & Category Dropdown */}

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Clock, Users, Star, ChefHat, Play, Pencil, Trash2 } from "lucide-react";
-import { RecipeForm } from "./recipe-form";
+import { ArrowLeft, Clock, Users, Star, ChefHat, Play, Trash2 } from "lucide-react";
+import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeDialog } from "./delete-recipe-dialog";
 import type { Recipe } from "@/types/recipe";
 
@@ -71,18 +71,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               </Button>
             )}
 
-            <RecipeForm
-              recipe={recipe}
-              trigger={
-                <Button
-                  variant="ghost"
-                  className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white"
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Modifier
-                </Button>
-              }
-            />
+            <EditRecipeButton recipe={recipe} />
 
             <DeleteRecipeDialog
               recipeId={recipe.id}
@@ -184,7 +173,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
 
         <div className="grid gap-8 md:grid-cols-5">
           {/* Ingredients */}
-          <Card className="md:col-span-2 border-0 shadow-lg bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
+          <Card className="md:col-span-2 border-0 shadow-lg pb-6 bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
             <CardHeader>
               <CardTitle className="font-serif text-xl flex items-center gap-2">
                 <span className="text-2xl">🥗</span>
@@ -215,7 +204,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
           </Card>
 
           {/* Steps */}
-          <Card className="md:col-span-3 border-0 shadow-lg bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
+          <Card className="md:col-span-3 border-0  pb-6 shadow-lg bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950">
             <CardHeader>
               <CardTitle className="font-serif text-xl flex items-center gap-2">
                 <span className="text-2xl">👨‍🍳</span>

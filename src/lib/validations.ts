@@ -22,23 +22,28 @@ export const stepSchema = z.object({
   text: z.string().min(1, "Step description is required"),
 });
 
+// Helper for optional URL fields - allows empty string, null, or valid URL
+const optionalUrl = z.string().transform(val => val === "" ? null : val).nullable().optional()
+  .refine(val => val === null || val === undefined || val === "" || z.string().url().safeParse(val).success, {
+    message: "Invalid URL"
+  });
+
 export const recipeCreateSchema = z.object({
-  name: z.string().min(1, "Recipe name is required").max(200),
+  name: z.string().min(1, "Le nom de la recette est requis").max(200),
   description: z.string().max(2000).nullable().optional(),
   category: categorySchema,
-  author: z.string().min(1, "Author is required").max(100),
-  imageUrl: z.string().url().nullable().optional(),
-  videoUrl: z.string().url().nullable().optional(),
-  preparationTime: z.number().int().min(0),
-  cookingTime: z.number().int().min(0),
+  author: z.string().max(100).transform(val => val || "Anonyme"),
+  imageUrl: optionalUrl,
+  videoUrl: optionalUrl,
+  preparationTime: z.number().int().min(0).optional().default(0),
+  cookingTime: z.number().int().min(0).optional().default(0),
   rating: z.number().int().min(0).max(10).optional().default(0),
-  servings: z.number().int().positive(),
-  ingredients: z.array(ingredientSchema).min(1, "At least one ingredient required"),
-  steps: z.array(stepSchema).min(1, "At least one step required"),
+  servings: z.number().int().positive().optional().default(1),
+  ingredients: z.array(ingredientSchema).optional().default([]),
+  steps: z.array(stepSchema).optional().default([]),
 });
 
 export const recipeUpdateSchema = recipeCreateSchema.partial();
 
 export type RecipeCreateInput = z.infer<typeof recipeCreateSchema>;
 export type RecipeUpdateInput = z.infer<typeof recipeUpdateSchema>;
-
