@@ -17,6 +17,10 @@ A modern, elegant recipe management application built with Next.js 16, featuring
 - **🎨 Modern UI** - Clean design with ShadCN components and Tailwind CSS
 - **⚡ Fast** - Server-side rendering with Next.js App Router
 - **🔄 Real-time Updates** - Server actions with automatic revalidation
+- **🔐 Authentication** - Google OAuth with NextAuth.js v5
+- **👥 User Roles** - Admin, Contributor, Reader with granular permissions
+- **❤️ Favorites** - Save your favorite recipes
+- **👤 User Profiles** - Personal dashboard with your recipes and favorites
 
 ## 🛠️ Tech Stack
 
@@ -24,7 +28,8 @@ A modern, elegant recipe management application built with Next.js 16, featuring
 |-------|------------|
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router) |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) |
-| **Database** | [SQLite](https://www.sqlite.org/) with [Prisma ORM](https://www.prisma.io/) |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/) + [Prisma Accelerate](https://www.prisma.io/data-platform/accelerate) |
+| **Auth** | [NextAuth.js v5](https://authjs.dev/) (Auth.js) |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
 | **Components** | [ShadCN UI](https://ui.shadcn.com/) |
 | **Validation** | [Zod](https://zod.dev/) |
@@ -213,6 +218,56 @@ Delete a recipe by ID.
 - Global styles: `src/app/globals.css`
 - Theme variables defined using CSS custom properties
 - Tailwind configuration in `tailwind.config.ts`
+
+## 🗺️ Roadmap
+
+### 🔐 Authentification & Utilisateurs
+- [x] **Connexion utilisateur** - Google OAuth pour sauvegarder ses recettes favorites ✅
+- [x] **Profils cuisinier** - Chaque auteur a sa page avec ses recettes ✅
+- [x] **Rôles** - Admin (CRUD tout) / Contributeur (ajouter) / Lecteur (voir) ✅
+
+### ⭐ Engagement & Social
+- [x] **Favoris** - Sauvegarder ses recettes préférées (❤️) ✅
+- [ ] **Commentaires** - Ajouter des avis et astuces sous chaque recette
+- [ ] **Système de votes** - Noter les recettes (pas juste l'auteur)
+- [ ] **Partage social** - Boutons Twitter, WhatsApp, Facebook, copier le lien
+- [ ] **"J'ai fait cette recette"** - Compteur de réalisations
+
+### 🔍 Recherche & Filtres avancés
+- [ ] **Recherche par ingrédient** - "Qu'est-ce que je peux faire avec du poulet ?"
+- [ ] **Filtres multiples** - Temps, difficulté, régime (végé, sans gluten...)
+- [ ] **Tri avancé** - Par popularité, date, temps de préparation
+- [ ] **Tags personnalisés** - #rapide #économique #healthy #comfort-food
+
+### 📱 Expérience mobile
+- [ ] **PWA** - Installation sur téléphone comme une vraie app
+- [ ] **Mode cuisine** - Écran qui reste allumé, navigation par étape, gros boutons
+- [ ] **Commandes vocales** - "Étape suivante" pendant la cuisine
+- [ ] **Mode hors-ligne** - Accéder aux recettes favorites sans internet
+
+### 🛒 Planification & Courses
+- [ ] **Liste de courses auto** - Générer depuis une recette
+- [ ] **Planificateur de repas** - Calendrier semaine avec drag & drop
+- [ ] **Ajustement portions** - Recalculer les quantités automatiquement
+- [ ] **Fusion listes** - Combiner les ingrédients de plusieurs recettes
+
+### 📊 Analytics & Gamification
+- [ ] **Statistiques perso** - Recettes cuisinées, catégories préférées
+- [ ] **Badges** - "Premier Bo Bun", "10 desserts réalisés", "Chef asiatique"
+- [ ] **Streak cuisine** - "Tu as cuisiné 7 jours d'affilée !"
+- [ ] **Leaderboard** - Top contributeurs du mois
+
+### 🤖 Intelligence & Automatisation
+- [ ] **Import par URL** - Coller un lien Marmiton/750g → import auto
+- [ ] **OCR photo** - Prendre en photo une recette papier → import
+- [ ] **Suggestions IA** - "Basé sur tes goûts, essaie..."
+- [ ] **Chatbot recette** - "Donne-moi une idée de plat rapide ce soir"
+
+### 🎨 Personnalisation & UX
+- [ ] **Thèmes** - Dark mode, couleurs personnalisées
+- [ ] **Collections** - Créer des dossiers (Asiatique, Rapide, Fêtes...)
+
+---
 
 ## 📝 License
 

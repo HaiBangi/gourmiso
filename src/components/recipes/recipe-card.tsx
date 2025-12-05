@@ -3,10 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star, User } from "lucide-react";
 import { RecipeImage } from "./recipe-image";
+import { FavoriteButton } from "./favorite-button";
 import type { Recipe } from "@/types/recipe";
 
 interface RecipeCardProps {
   recipe: Recipe;
+  isFavorited?: boolean;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -31,7 +33,7 @@ const categoryColors: Record<string, string> = {
   SNACK: "bg-violet-500 text-white",
 };
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe, isFavorited = false }: RecipeCardProps) {
   const totalTime = recipe.preparationTime + recipe.cookingTime;
 
   return (
@@ -52,8 +54,13 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           >
             {categoryLabels[recipe.category] || recipe.category}
           </Badge>
+          <FavoriteButton
+            recipeId={recipe.id}
+            isFavorited={isFavorited}
+            variant="card"
+          />
           {recipe.rating > 0 && (
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1 sm:gap-1.5 rounded-full bg-black/50 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 shadow-md">
+            <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex items-center gap-1 sm:gap-1.5 rounded-full bg-black/50 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 shadow-md">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
               <span className="text-xs sm:text-sm font-medium text-white">{recipe.rating}/10</span>
             </div>
