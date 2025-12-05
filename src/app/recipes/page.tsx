@@ -7,6 +7,7 @@ import { RecipeFilters } from "@/components/recipes/recipe-filters";
 import { AdvancedFilters } from "@/components/recipes/advanced-filters";
 import { QuickFilters } from "@/components/recipes/quick-filters";
 import { HeaderActions } from "@/components/recipes/header-actions";
+import { PseudoBanner } from "@/components/auth/pseudo-banner";
 import type { Recipe } from "@/types/recipe";
 import { ChefHat } from "lucide-react";
 
@@ -161,6 +162,21 @@ export default async function RecipesPage({ searchParams }: PageProps) {
   const session = await auth();
   const userId = session?.user?.id;
 
+  // Get user's pseudo if logged in
+  let userPseudo: string | null = null;
+  let userName: string | null = null;
+  if (userId) {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { pseudo: true, name: true },
+    });
+    userPseudo = user?.pseudo || null;
+    userName = user?.name || null;
+  }
+
+  // Show banner if user is logged in but has no pseudo or default "Anonyme"
+  const showPseudoBanner = userId && (!userPseudo || userPseudo === "Anonyme");
+
   // Parse selected authors from URL
   const selectedAuthors = params.myRecipes === "true" 
     ? ["mine"] 
@@ -170,6 +186,11 @@ export default async function RecipesPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen">
+      {/* Pseudo CTA Banner */}
+      {showPseudoBanner && (
+        <PseudoBanner userId={userId} userName={userName} />
+      )}
+
       {/* Header - compact on mobile */}
       <header className="relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
