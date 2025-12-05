@@ -1,13 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Users, Star, Play } from "lucide-react";
+import { Clock, Users, Star, Play, Coins } from "lucide-react";
 import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeButton } from "./delete-recipe-button";
 import { RecipeComments } from "./recipe-comments";
 import { IngredientsCard } from "./ingredients-card";
 import { ShareButtons } from "./share-buttons";
+import { ExportPdfButton } from "./export-pdf-button";
+import { PersonalNote } from "./personal-note";
+import { AddToCollection } from "./add-to-collection";
 import type { Recipe } from "@/types/recipe";
 
 interface Comment {
@@ -23,10 +26,20 @@ interface Comment {
   };
 }
 
+interface Collection {
+  id: number;
+  name: string;
+  color: string;
+  recipes: { id: number }[];
+}
+
 interface RecipeDetailProps {
   recipe: Recipe;
   canEdit?: boolean;
   comments?: Comment[];
+  userNote?: string | null;
+  collections?: Collection[];
+  isAuthenticated?: boolean;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -40,7 +53,20 @@ const categoryLabels: Record<string, string> = {
   SNACK: "En-cas",
 };
 
-export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeDetailProps) {
+const costLabels: Record<string, { label: string; emoji: string; color: string }> = {
+  CHEAP: { label: "Économique", emoji: "€", color: "text-green-600 bg-green-100" },
+  MEDIUM: { label: "Moyen", emoji: "€€", color: "text-amber-600 bg-amber-100" },
+  EXPENSIVE: { label: "Cher", emoji: "€€€", color: "text-red-600 bg-red-100" },
+};
+
+export function RecipeDetail({
+  recipe,
+  canEdit = false,
+  comments = [],
+  userNote,
+  collections = [],
+  isAuthenticated = false,
+}: RecipeDetailProps) {
   console.log("[RecipeDetail] canEdit prop received:", canEdit);
 
   return (
@@ -82,9 +108,10 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
             </div>
           )}
 
-          {/* Video/Share Buttons - Bottom Right */}
+          {/* Video/Share/PDF Buttons - Bottom Right */}
           <div className="absolute bottom-3 right-3 flex gap-2 z-10">
             <ShareButtons title={`${recipe.name} - Gourmiso`} />
+            <ExportPdfButton recipe={recipe} />
             {recipe.videoUrl && (
               <Button
                 asChild
@@ -168,7 +195,30 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
               </div>
             </div>
           )}
+          {recipe.costEstimate && costLabels[recipe.costEstimate] && (
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-full ${costLabels[recipe.costEstimate].color.split(' ')[1]}`}>
+                <Coins className={`h-5 w-5 ${costLabels[recipe.costEstimate].color.split(' ')[0]}`} />
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                  Coût
+                </p>
+                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                  {costLabels[recipe.costEstimate].emoji} {costLabels[recipe.costEstimate].label}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* User Actions (Collections, Notes) */}
+        {isAuthenticated && (
+          <div className="flex flex-wrap gap-3 mb-6">
+            <AddToCollection recipeId={recipe.id} collections={collections} />
+            <PersonalNote recipeId={recipe.id} initialNote={userNote} />
+          </div>
+        )}
 
         {/* Description */}
         {recipe.description && (
@@ -182,6 +232,7 @@ export function RecipeDetail({ recipe, canEdit = false, comments = [] }: RecipeD
           <IngredientsCard
             ingredients={recipe.ingredients}
             originalServings={recipe.servings}
+            recipeId={recipe.id}
           />
 
           {/* Steps */}

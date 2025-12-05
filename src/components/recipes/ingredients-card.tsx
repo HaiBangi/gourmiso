@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users } from "lucide-react";
+import { Users, RotateCcw } from "lucide-react";
 
 interface Ingredient {
   id: number;
@@ -21,12 +23,13 @@ interface Ingredient {
 interface IngredientsCardProps {
   ingredients: Ingredient[];
   originalServings: number;
+  recipeId?: number;
 }
 
 function formatQuantity(quantity: number | null, multiplier: number): string {
   if (quantity === null) return "";
   const adjusted = quantity * multiplier;
-  
+
   // Round to nice fractions
   if (adjusted < 0.1) return adjusted.toFixed(2);
   if (adjusted < 1) {
@@ -37,9 +40,60 @@ function formatQuantity(quantity: number | null, multiplier: number): string {
   return (Math.round(adjusted * 10) / 10).toString();
 }
 
-export function IngredientsCard({ ingredients, originalServings }: IngredientsCardProps) {
+function getStorageKey(recipeId: number | undefined): string {
+  return `gourmiso-checked-ingredients-${recipeId || 'unknown'}`;
+}
+
+export function IngredientsCard({ ingredients, originalServings, recipeId }: IngredientsCardProps) {
   const [servings, setServings] = useState(originalServings);
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const [isHydrated, setIsHydrated] = useState(false);
   const multiplier = servings / originalServings;
+
+  // Load checked state from localStorage on mount
+  useEffect(() => {
+    if (recipeId) {
+      const stored = localStorage.getItem(getStorageKey(recipeId));
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setCheckedIngredients(new Set(parsed));
+        } catch {
+          // Invalid JSON, ignore
+        }
+      }
+    }
+    setIsHydrated(true);
+  }, [recipeId]);
+
+  // Save to localStorage when checked state changes
+  useEffect(() => {
+    if (isHydrated && recipeId) {
+      localStorage.setItem(
+        getStorageKey(recipeId),
+        JSON.stringify([...checkedIngredients])
+      );
+    }
+  }, [checkedIngredients, recipeId, isHydrated]);
+
+  const toggleIngredient = useCallback((ingredientId: number) => {
+    setCheckedIngredients(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ingredientId)) {
+        newSet.delete(ingredientId);
+      } else {
+        newSet.add(ingredientId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const resetChecked = useCallback(() => {
+    setCheckedIngredients(new Set());
+  }, []);
+
+  const checkedCount = checkedIngredients.size;
+  const totalCount = ingredients.length;
 
   // Generate servings options (1-20)
   const servingsOptions = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -51,27 +105,47 @@ export function IngredientsCard({ ingredients, originalServings }: IngredientsCa
           <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2">
             <span className="text-xl sm:text-2xl">🥗</span>
             Ingrédients
+            {checkedCount > 0 && (
+              <span className="text-sm font-normal text-stone-500">
+                ({checkedCount}/{totalCount})
+              </span>
+            )}
           </CardTitle>
-          
-          {/* Portion Adjuster Dropdown */}
-          <Select
-            value={servings.toString()}
-            onValueChange={(value) => setServings(parseInt(value))}
-          >
-            <SelectTrigger className="w-[80px] h-8 cursor-pointer">
-              <div className="flex items-center gap-1.5">
-                <Users className="h-4 w-4 text-emerald-600" />
-                <span>{servings}</span>
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              {servingsOptions.map((num) => (
-                <SelectItem key={num} value={num.toString()} className="cursor-pointer">
-                  {num} pers.
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          <div className="flex items-center gap-2">
+            {/* Reset button */}
+            {checkedCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetChecked}
+                className="h-8 px-2 text-stone-500 hover:text-stone-700"
+                title="Réinitialiser"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* Portion Adjuster Dropdown */}
+            <Select
+              value={servings.toString()}
+              onValueChange={(value) => setServings(parseInt(value))}
+            >
+              <SelectTrigger className="w-[80px] h-8 cursor-pointer">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-emerald-600" />
+                  <span>{servings}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {servingsOptions.map((num) => (
+                  <SelectItem key={num} value={num.toString()} className="cursor-pointer">
+                    {num} pers.
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         {servings !== originalServings && (
           <p className="text-xs text-amber-600 mt-1 text-right">
@@ -81,25 +155,39 @@ export function IngredientsCard({ ingredients, originalServings }: IngredientsCa
       </CardHeader>
       <CardContent className="pb-2">
         <ul className="space-y-2 sm:space-y-3">
-          {ingredients.map((ingredient) => (
-            <li
-              key={ingredient.id}
-              className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-stone-700"
-            >
-              <span className="mt-1.5 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0" />
-              <span>
-                {ingredient.quantity && (
-                  <span className="font-medium">
-                    {formatQuantity(ingredient.quantity, multiplier)}{" "}
-                  </span>
-                )}
-                {ingredient.unit && (
-                  <span className="text-stone-500">{ingredient.unit} </span>
-                )}
-                {ingredient.name}
-              </span>
-            </li>
-          ))}
+          {ingredients.map((ingredient) => {
+            const isChecked = checkedIngredients.has(ingredient.id);
+            return (
+              <li
+                key={ingredient.id}
+                className={`flex items-center gap-2 sm:gap-3 text-sm sm:text-base cursor-pointer transition-all duration-200 ${
+                  isChecked
+                    ? "text-stone-400 line-through"
+                    : "text-stone-700"
+                }`}
+                onClick={() => toggleIngredient(ingredient.id)}
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => toggleIngredient(ingredient.id)}
+                  className="h-5 w-5 border-amber-300 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <span>
+                  {ingredient.quantity && (
+                    <span className={isChecked ? "font-normal" : "font-medium"}>
+                      {formatQuantity(ingredient.quantity, multiplier)}{" "}
+                    </span>
+                  )}
+                  {ingredient.unit && (
+                    <span className={isChecked ? "text-stone-400" : "text-stone-500"}>
+                      {ingredient.unit}{" "}
+                    </span>
+                  )}
+                  {ingredient.name}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </CardContent>
     </Card>

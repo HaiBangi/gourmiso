@@ -24,7 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus, Trash2, ChefHat, Clock, Image, ListOrdered,
   UtensilsCrossed, UserX, ImageIcon, Video, Tag,
-  Sparkles, Users, Star, Timer, Flame, Save, X, RotateCcw, GripVertical
+  Sparkles, Users, Star, Timer, Flame, Save, X, RotateCcw, GripVertical, Coins
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
@@ -45,6 +45,7 @@ interface DraftData {
   cookingTime: string;
   servings: string;
   rating: string;
+  costEstimate: string;
   publishAnonymously: boolean;
   tags: string[];
   ingredients: { id: string; name: string; quantity: string; unit: string }[];
@@ -61,6 +62,13 @@ const categories = [
   { value: "SALAD", label: "Salade", emoji: "🥬" },
   { value: "BEVERAGE", label: "Boisson", emoji: "🍹" },
   { value: "SNACK", label: "En-cas", emoji: "🍿" },
+];
+
+const costOptions = [
+  { value: "", label: "Non défini", emoji: "—" },
+  { value: "CHEAP", label: "Économique", emoji: "€" },
+  { value: "MEDIUM", label: "Moyen", emoji: "€€" },
+  { value: "EXPENSIVE", label: "Cher", emoji: "€€€" },
 ];
 
 interface IngredientInput {
@@ -177,6 +185,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   );
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
   const [rating, setRating] = useState(recipe?.rating?.toString() || "");
+  const [costEstimate, setCostEstimate] = useState(recipe?.costEstimate || "");
   const [publishAnonymously, setPublishAnonymously] = useState(false);
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
@@ -193,7 +202,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const saveDraft = useCallback(() => {
     // Only save drafts for new recipes, not edits
     if (recipe) return;
-    
+
     const draft: DraftData = {
       name,
       description,
@@ -204,19 +213,20 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       cookingTime,
       servings,
       rating,
+      costEstimate,
       publishAnonymously,
       tags,
       ingredients,
       steps,
       savedAt: Date.now(),
     };
-    
+
     // Only save if there's meaningful content
-    const hasContent = name.trim() || 
-      description.trim() || 
-      ingredients.some(i => i.name.trim()) || 
+    const hasContent = name.trim() ||
+      description.trim() ||
+      ingredients.some(i => i.name.trim()) ||
       steps.some(s => s.text.trim());
-    
+
     if (hasContent) {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -224,7 +234,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         console.warn("Could not save draft to localStorage");
       }
     }
-  }, [name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, publishAnonymously, tags, ingredients, steps, recipe]);
+  }, [name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, costEstimate, publishAnonymously, tags, ingredients, steps, recipe]);
 
   // Load draft from localStorage
   const loadDraft = useCallback(() => {
@@ -283,6 +293,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         cookingTime,
         servings,
         rating,
+        costEstimate,
         publishAnonymously,
         tags,
         ingredients,
@@ -304,7 +315,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       }
     }
     prevOpenRef.current = open;
-  }, [open, recipe, mounted, shouldSaveDraft, name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, publishAnonymously, tags, ingredients, steps]);
+  }, [open, recipe, mounted, shouldSaveDraft, name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, costEstimate, publishAnonymously, tags, ingredients, steps]);
 
   // Initialize form when dialog opens
   useEffect(() => {
@@ -339,6 +350,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         setCookingTime(draft.cookingTime);
         setServings(draft.servings);
         setRating(draft.rating);
+        setCostEstimate(draft.costEstimate || "");
         setPublishAnonymously(draft.publishAnonymously);
         setTags(draft.tags);
         setIngredients(draft.ingredients.length > 0 ? draft.ingredients : [{ id: "ing-0", name: "", quantity: "", unit: "" }]);
@@ -448,6 +460,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       cookingTime: parseInt(cookingTime) || 0,
       servings: parseInt(servings) || 1,
       rating: parseInt(rating) || 0,
+      costEstimate: costEstimate ? (costEstimate as "CHEAP" | "MEDIUM" | "EXPENSIVE") : null,
       tags: tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
       ingredients: ingredients
         .filter((ing) => ing.name.trim())
@@ -509,6 +522,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       setCookingTime("");
       setServings("");
       setRating("");
+      setCostEstimate("");
       setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "" }]);
       setSteps([{ id: "step-0", text: "" }]);
       setTags([]);
@@ -707,8 +721,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 </SectionCard>
 
                 {/* Time & Servings Section */}
-                <SectionCard icon={Clock} title="Temps & Portions" color="blue">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <SectionCard icon={Clock} title="Temps, Portions & Coût" color="blue">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div>
                       <Label className="text-stone-700 text-xs font-medium mb-1.5 flex items-center gap-1.5">
                         <Timer className="h-3.5 w-3.5 text-blue-500" />
@@ -774,6 +788,29 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400">/10</span>
                       </div>
+                    </div>
+                    <div>
+                      <Label className="text-stone-700 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                        <Coins className="h-3.5 w-3.5 text-green-500" />
+                        Coût
+                      </Label>
+                      <Select value={costEstimate || "none"} onValueChange={(v) => setCostEstimate(v === "none" ? "" : v)}>
+                        <SelectTrigger className="cursor-pointer h-10 bg-white border-stone-200">
+                          <SelectValue placeholder="—">
+                            {costOptions.find(c => c.value === costEstimate)?.emoji || "—"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {costOptions.map((cost) => (
+                            <SelectItem key={cost.value || "none"} value={cost.value || "none"} className="cursor-pointer">
+                              <span className="flex items-center gap-2">
+                                <span>{cost.emoji}</span>
+                                <span>{cost.label}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </SectionCard>

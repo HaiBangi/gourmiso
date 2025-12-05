@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { RecipeDetail } from "@/components/recipes/recipe-detail";
 import { RecipeProvider } from "@/components/recipes/recipe-context";
+import { getUserNote } from "@/actions/notes";
+import { getCollections } from "@/actions/collections";
 import type { Recipe } from "@/types/recipe";
 import type { Metadata } from "next";
 
@@ -80,6 +82,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const isOwner = session?.user?.id === recipe.userId;
   const isAdmin = session?.user?.role === "ADMIN";
   const canEdit = isOwner || isAdmin;
+  const isAuthenticated = !!session?.user?.id;
 
   // Debug logging
   console.log("[RecipePage] Recipe ID:", recipe.id);
@@ -87,6 +90,14 @@ export default async function RecipePage({ params }: RecipePageProps) {
   console.log("[RecipePage] Session user ID:", session?.user?.id);
   console.log("[RecipePage] Session user role:", session?.user?.role);
   console.log("[RecipePage] isOwner:", isOwner, "isAdmin:", isAdmin, "canEdit:", canEdit);
+
+  // Fetch user-specific data if authenticated
+  const [userNote, collections] = isAuthenticated
+    ? await Promise.all([
+        getUserNote(recipeId),
+        getCollections(),
+      ])
+    : [null, []];
 
   // Extract comments from recipe
   const { comments, ...recipeData } = recipe;
@@ -97,6 +108,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
         recipe={recipeData as RecipeWithUserId}
         canEdit={canEdit}
         comments={comments}
+        userNote={userNote?.note}
+        collections={collections}
+        isAuthenticated={isAuthenticated}
       />
     </RecipeProvider>
   );

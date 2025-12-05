@@ -21,6 +21,8 @@ export interface Step {
   text: string;
 }
 
+export type CostEstimate = "CHEAP" | "MEDIUM" | "EXPENSIVE" | null;
+
 export interface Recipe {
   id: number;
   name: string;
@@ -33,6 +35,7 @@ export interface Recipe {
   cookingTime: number;
   rating: number;
   servings: number;
+  costEstimate: CostEstimate;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +54,7 @@ export interface RecipeCreateInput {
   cookingTime: number;
   rating?: number;
   servings: number;
+  costEstimate?: CostEstimate;
   tags?: string[];
   ingredients: Omit<Ingredient, "id">[];
   steps: Omit<Step, "id">[];
