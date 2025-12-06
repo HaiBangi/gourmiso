@@ -616,7 +616,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] p-0 overflow-hidden gap-0 [&>button]:hidden">
+      <DialogContent className="max-w-2xl lg:max-w-5xl xl:max-w-6xl max-h-[80vh] p-0 overflow-hidden gap-0 [&>button]:hidden">
         <DialogTitle className="sr-only">
           {isDuplication ? "Dupliquer la recette" : isEdit ? "Modifier la recette" : "Nouvelle recette"}
         </DialogTitle>
@@ -647,7 +647,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
           </div>
         </div>
 
-        <ScrollArea className="max-h-[calc(92vh-140px)]">
+        <ScrollArea className="max-h-[calc(80vh-140px)]">
           <form onSubmit={handleSubmit} className="p-6">
             {/* Error message */}
             {error && (
