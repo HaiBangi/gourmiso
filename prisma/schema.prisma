@@ -11,20 +11,22 @@ datasource db {
 // ==================== AUTH MODELS ====================
 
 model User {
-  id            String    @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String?
-  pseudo        String    @default("Anonyme")
-  email         String    @unique
+  pseudo        String           @default("Anonyme")
+  email         String           @unique
   emailVerified DateTime?
   image         String?
-  role          Role      @default(READER)
+  role          Role             @default(READER)
   accounts      Account[]
   sessions      Session[]
-  recipes       Recipe[]  @relation("UserRecipes")
-  favorites     Recipe[]  @relation("UserFavorites")
+  recipes       Recipe[]         @relation("UserRecipes")
+  favorites     Recipe[]         @relation("UserFavorites")
   comments      Comment[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  collections   Collection[]
+  recipeNotes   UserRecipeNote[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model Account {
@@ -92,8 +94,10 @@ model Recipe {
   
   // Auth relations
   userId          String?
-  user            User?        @relation("UserRecipes", fields: [userId], references: [id], onDelete: SetNull)
-  favoritedBy     User[]       @relation("UserFavorites")
+  user            User?            @relation("UserRecipes", fields: [userId], references: [id], onDelete: SetNull)
+  favoritedBy     User[]           @relation("UserFavorites")
+  collections     Collection[]     @relation("CollectionRecipes")
+  userNotes       UserRecipeNote[]
 }
 
 model Comment {
@@ -124,4 +128,34 @@ model Step {
   text     String
   recipeId Int
   recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
+
+// ==================== COLLECTION & NOTES MODELS ====================
+
+model Collection {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  color       String   @default("#f59e0b")
+  icon        String   @default("folder")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipes     Recipe[] @relation("CollectionRecipes")
+
+  @@unique([userId, name])
+}
+
+model UserRecipeNote {
+  id        Int      @id @default(autoincrement())
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  Int
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
 }

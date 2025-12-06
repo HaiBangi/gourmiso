@@ -57,36 +57,33 @@ export default async function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600">
-        <div className="mx-auto max-w-screen-xl px-4 py-6 sm:px-6 sm:py-8">
-          <Link href="/recipes" className="text-white/80 hover:text-white text-sm mb-4 inline-block">
-            ← Retour aux recettes
-          </Link>
-          <div className="flex items-center gap-4 sm:gap-6">
-            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white/30">
-              <AvatarImage src={user.image || ""} alt={user.name || "User"} />
-              <AvatarFallback className="text-2xl bg-white text-amber-500">
-                {user.name?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">{user.name}</h1>
-              <p className="text-white/80">{user.email}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${role.bg} ${role.color} text-sm font-medium`}>
-                  <RoleIcon className="h-4 w-4" />
-                  {role.label}
+      {/* Profile Header Card */}
+      <section className="mx-auto max-w-screen-xl px-4 pt-6 sm:px-6 sm:pt-8">
+        <Card className="mb-6 overflow-hidden dark:bg-stone-800/90 dark:border-stone-700">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 p-4 sm:p-6">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-white/30">
+                <AvatarImage src={user.image || ""} alt={user.name || "User"} />
+                <AvatarFallback className="text-xl sm:text-2xl bg-white text-amber-500">
+                  {user.name?.charAt(0).toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">{user.name}</h1>
+                <p className="text-white/80 text-sm">{user.email}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${role.bg} ${role.color} text-xs sm:text-sm font-medium`}>
+                    <RoleIcon className="h-3.5 w-3.5" />
+                    {role.label}
+                  </div>
+                  <PseudoEditor currentPseudo={user.pseudo} />
                 </div>
-                <PseudoEditor currentPseudo={user.pseudo} />
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </Card>
 
-      {/* Stats */}
-      <section className="mx-auto max-w-screen-xl px-4 py-6 sm:px-6 sm:py-8">
+        {/* Stats */}
         <div className="grid gap-4 sm:gap-6 sm:grid-cols-3">
           <Card className="p-2 dark:bg-stone-800/90 dark:border-stone-700">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">

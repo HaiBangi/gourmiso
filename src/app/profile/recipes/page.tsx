@@ -30,22 +30,35 @@ export default async function MyRecipesPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       {/* Content */}
       <ViewProvider>
-        <section className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6">
+        <section className="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 sm:py-8">
+          {/* Page Title */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-md">
+              <ChefHat className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">Mes recettes</h1>
+              <p className="text-stone-500 dark:text-stone-400 text-sm">
+                {recipes.length} recette{recipes.length !== 1 ? "s" : ""} créée{recipes.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+
           {recipes.length === 0 ? (
-            <div className="text-center py-16">
-              <ChefHat className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-              <h2 className="text-xl font-semibold text-gray-600 mb-2">
+            <div className="text-center py-16 bg-white dark:bg-stone-800/90 rounded-xl border border-stone-200 dark:border-stone-700">
+              <ChefHat className="h-16 w-16 mx-auto text-stone-300 dark:text-stone-600 mb-4" />
+              <h2 className="text-xl font-semibold text-stone-600 dark:text-stone-300 mb-2">
                 Aucune recette pour le moment
               </h2>
-              <p className="text-gray-500 mb-6">
+              <p className="text-stone-500 dark:text-stone-400 mb-6">
                 Commencez à créer vos propres recettes !
               </p>
               <RecipeForm
                 trigger={
-                  <Button className="bg-amber-500 hover:bg-amber-600 text-white gap-2">
+                  <Button className="bg-amber-500 hover:bg-amber-600 text-white gap-2 cursor-pointer">
                     <Plus className="h-4 w-4" />
                     Créer ma première recette
                   </Button>

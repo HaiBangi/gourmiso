@@ -15,9 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, ChefHat, Shield, Heart } from "lucide-react";
 
 const roleLabels = {
-  ADMIN: { label: "Administrateur", icon: Shield, color: "text-red-500", bg: "bg-red-50" },
-  CONTRIBUTOR: { label: "Contributeur", icon: ChefHat, color: "text-amber-500", bg: "bg-amber-50" },
-  READER: { label: "Lecteur", icon: User, color: "text-blue-500", bg: "bg-blue-50" },
+  ADMIN: { label: "Administrateur", icon: Shield, color: "text-red-500 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/40" },
+  CONTRIBUTOR: { label: "Contributeur", icon: ChefHat, color: "text-amber-500 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/40" },
+  READER: { label: "Lecteur", icon: User, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/40" },
 };
 
 export function UserButton() {
@@ -56,18 +56,18 @@ export function UserButton() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
+      <DropdownMenuContent className="w-64 p-2 dark:bg-stone-800 dark:border-stone-700" align="end" forceMount>
         {/* User Info Header */}
-        <DropdownMenuLabel className="font-normal p-3 rounded-lg bg-gradient-to-r from-stone-50 to-stone-100 mb-2">
+        <DropdownMenuLabel className="font-normal p-3 rounded-lg bg-gradient-to-r from-stone-50 to-stone-100 dark:from-stone-700 dark:to-stone-700/80 mb-2">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+            <Avatar className="h-10 w-10 border-2 border-white dark:border-stone-600 shadow-sm">
               <AvatarImage src={user.image || ""} alt={user.name || "User"} />
               <AvatarFallback className="bg-amber-500 text-white font-semibold">
                 {user.name?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <p className="text-sm font-semibold leading-none">{user.name}</p>
+              <p className="text-sm font-semibold leading-none dark:text-stone-100">{user.name}</p>
               <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[150px]">
                 {user.email}
               </p>
@@ -80,21 +80,21 @@ export function UserButton() {
         </DropdownMenuLabel>
 
         {/* Navigation Links */}
-        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer">
+        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer dark:text-stone-200 dark:hover:bg-stone-700 dark:focus:bg-stone-700">
           <Link href="/profile" className="flex items-center">
-            <User className="mr-3 h-4 w-4 text-stone-500" />
+            <User className="mr-3 h-4 w-4 text-stone-500 dark:text-stone-400" />
             <span>Mon profil</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer">
+        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer dark:text-stone-200 dark:hover:bg-stone-700 dark:focus:bg-stone-700">
           <Link href="/profile/recipes" className="flex items-center">
-            <ChefHat className="mr-3 h-4 w-4 text-amber-500" />
+            <ChefHat className="mr-3 h-4 w-4 text-amber-500 dark:text-amber-400" />
             <span>Mes recettes</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer">
+        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer dark:text-stone-200 dark:hover:bg-stone-700 dark:focus:bg-stone-700">
           <Link href="/profile/favorites" className="flex items-center">
-            <Heart className="mr-3 h-4 w-4 text-pink-500" />
+            <Heart className="mr-3 h-4 w-4 text-pink-500 dark:text-pink-400" />
             <span>Mes favoris</span>
           </Link>
         </DropdownMenuItem>
@@ -102,10 +102,10 @@ export function UserButton() {
         {/* Admin Section */}
         {user.role === "ADMIN" && (
           <>
-            <DropdownMenuSeparator className="my-2" />
-            <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer bg-emerald-50 hover:bg-emerald-100 focus:bg-emerald-100">
-              <Link href="/admin" className="flex items-center text-emerald-700 focus:text-emerald-700">
-                <Shield className="mr-3 h-4 w-4 text-emerald-600" />
+            <DropdownMenuSeparator className="my-2 dark:bg-stone-700" />
+            <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 focus:bg-emerald-100 dark:focus:bg-emerald-900/50">
+              <Link href="/admin" className="flex items-center text-emerald-700 dark:text-emerald-400 focus:text-emerald-700 dark:focus:text-emerald-400">
+                <Shield className="mr-3 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="font-medium">Administration</span>
               </Link>
             </DropdownMenuItem>
@@ -113,12 +113,12 @@ export function UserButton() {
         )}
 
         {/* Logout */}
-        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuSeparator className="my-2 dark:bg-stone-700" />
         <DropdownMenuItem
-          className="py-2.5 px-3 rounded-lg cursor-pointer bg-red-50 hover:bg-red-100 focus:bg-red-100 text-red-600 focus:text-red-600"
+          className="py-2.5 px-3 rounded-lg cursor-pointer bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 focus:bg-red-100 dark:focus:bg-red-900/50 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           onClick={() => signOut({ callbackUrl: "/" })}
         >
-          <LogOut className="mr-3 h-4 w-4 text-red-500" />
+          <LogOut className="mr-3 h-4 w-4 text-red-500 dark:text-red-400" />
           <span className="font-medium">Déconnexion</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
