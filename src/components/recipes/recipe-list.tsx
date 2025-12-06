@@ -4,7 +4,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { RecipeCard } from "./recipe-card";
 import { RecipeListView } from "./recipe-list-view";
 import { ViewToggle } from "./view-toggle";
-import { RecipeCheckbox, DeletionActions } from "./deletion-mode";
+import { RecipeCheckbox } from "./deletion-mode";
 import type { Recipe } from "@/types/recipe";
 
 interface RecipeListProps {
@@ -31,17 +31,21 @@ export function useViewContext() {
 }
 
 export function ViewProvider({ children }: { children: React.ReactNode }) {
+  // Always start with "grid" for SSR consistency
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mounted, setMounted] = useState(false);
 
-  // Load view preference from localStorage only on client
+  // Load view preference from localStorage only after mount (client-side only)
   useEffect(() => {
-    const savedView = localStorage.getItem("recipe-view");
-    if (savedView === "list" || savedView === "grid") {
-      setView(savedView);
-    }
-    // Set mounted after loading view to avoid hydration issues
     setMounted(true);
+
+    // Only read localStorage after confirming we're client-side
+    if (typeof window !== 'undefined') {
+      const savedView = localStorage.getItem("recipe-view");
+      if (savedView === "list" || savedView === "grid") {
+        setView(savedView);
+      }
+    }
   }, []);
 
   // Save view preference to localStorage
@@ -52,7 +56,7 @@ export function ViewProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Always provide the same structure to avoid hydration mismatch
+  // Use "grid" until mounted to ensure SSR/client consistency
   return (
     <ViewContext.Provider value={{ view: mounted ? view : "grid", setView: handleViewChange }}>
       {children}
@@ -73,11 +77,20 @@ export function RecipeList({
   onToggleSelection
 }: RecipeListProps) {
   const { view } = useViewContext();
+  const [mounted, setMounted] = useState(false);
+
+  // Wait for client-side mount to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Always render grid view during SSR and initial client render
+  const activeView = mounted ? view : "grid";
 
   return (
     <div>
       {/* Recipes Display */}
-      {view === "grid" ? (
+      {activeView === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {recipes.map((recipe) => (
             <div key={recipe.id} className="relative">
