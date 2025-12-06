@@ -200,7 +200,7 @@ export function MobileFiltersSheet({
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="h-[75vh] p-0 rounded-t-[2rem]">
+      <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-[2rem]">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1.5 bg-stone-300 dark:bg-stone-600 rounded-full" />
