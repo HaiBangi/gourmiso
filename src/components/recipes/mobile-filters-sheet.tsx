@@ -200,7 +200,7 @@ export function MobileFiltersSheet({
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="h-[85vh] p-0">
+      <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-3xl">
         <ScrollArea className="h-full">
           <div className="p-6 pb-24">
             <SheetHeader className="mb-6">

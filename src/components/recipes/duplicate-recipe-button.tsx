@@ -12,7 +12,7 @@ const RecipeForm = dynamic(
     ssr: false,
     loading: () => (
       <Button
-        className="bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md opacity-50"
+        className="bg-white dark:bg-stone-800 text-emerald-800 dark:text-emerald-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md opacity-50"
         disabled
       >
         <Copy className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -40,7 +40,7 @@ export function DuplicateRecipeButton({ recipe }: DuplicateRecipeButtonProps) {
       recipe={recipeToDuplicate}
       trigger={
         <Button
-          className="bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md"
+          className="bg-white dark:bg-stone-800 text-emerald-800 dark:text-emerald-400 hover:bg-amber-50 dark:hover:bg-stone-700 gap-1.5 sm:gap-2 h-9 sm:h-10 md:h-11 px-3 sm:px-4 md:px-5 text-sm sm:text-base cursor-pointer shadow-md"
         >
           <Copy className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Dupliquer</span>
