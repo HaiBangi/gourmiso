@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { RecipeList } from "@/components/recipes/recipe-list";
+import { RecipeList, ViewProvider } from "@/components/recipes/recipe-list";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import type { CostEstimate, Category } from "@/types/recipe";
@@ -73,7 +73,9 @@ export default async function FavoritesPage() {
             </Link>
           </div>
         ) : (
-          <RecipeList recipes={recipesWithCostEstimate} />
+          <ViewProvider>
+            <RecipeList recipes={recipesWithCostEstimate} />
+          </ViewProvider>
         )}
       </section>
     </main>

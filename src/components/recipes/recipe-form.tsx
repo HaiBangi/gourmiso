@@ -35,6 +35,34 @@ import type { Recipe } from "@/types/recipe";
 // Key for localStorage draft
 const DRAFT_KEY = "gourmiso_recipe_draft";
 
+// Parse quantity+unit field (e.g., "150g" => {quantity: "150", unit: "g"})
+function parseQuantityUnit(input: string): { quantity: string; unit: string } {
+  if (!input.trim()) {
+    return { quantity: "", unit: "" };
+  }
+
+  // Match patterns like "150g", "1 c.à.s", "2.5 kg", etc.
+  const match = input.trim().match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+
+  if (match) {
+    return {
+      quantity: match[1].replace(",", "."), // Replace comma with dot for decimals
+      unit: match[2].trim(),
+    };
+  }
+
+  // If no number at the start, treat entire input as unit
+  return { quantity: "", unit: input.trim() };
+}
+
+// Combine quantity and unit into a single string
+function combineQuantityUnit(quantity: string, unit: string): string {
+  if (!quantity && !unit) return "";
+  if (!quantity) return unit;
+  if (!unit) return quantity;
+  return `${quantity} ${unit}`;
+}
+
 interface DraftData {
   name: string;
   description: string;
@@ -48,7 +76,7 @@ interface DraftData {
   costEstimate: string;
   publishAnonymously: boolean;
   tags: string[];
-  ingredients: { id: string; name: string; quantity: string; unit: string }[];
+  ingredients: { id: string; name: string; quantity: string; unit: string; quantityUnit: string }[];
   steps: { id: string; text: string }[];
   savedAt: number;
 }
@@ -76,6 +104,7 @@ interface IngredientInput {
   name: string;
   quantity: string;
   unit: string;
+  quantityUnit: string; // Combined field for UI
 }
 
 interface StepInput {
@@ -90,13 +119,14 @@ interface RecipeFormProps {
 
 function getInitialIngredients(recipe?: Recipe): IngredientInput[] {
   if (!recipe?.ingredients?.length) {
-    return [{ id: "ing-0", name: "", quantity: "", unit: "" }];
+    return [{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }];
   }
   return recipe.ingredients.map((ing, index) => ({
     id: `ing-${index}`,
     name: ing.name,
     quantity: ing.quantity?.toString() || "",
     unit: ing.unit || "",
+    quantityUnit: combineQuantityUnit(ing.quantity?.toString() || "", ing.unit || ""),
   }));
 }
 
@@ -353,13 +383,20 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         setCostEstimate(draft.costEstimate || "");
         setPublishAnonymously(draft.publishAnonymously);
         setTags(draft.tags);
-        setIngredients(draft.ingredients.length > 0 ? draft.ingredients : [{ id: "ing-0", name: "", quantity: "", unit: "" }]);
+        // Handle draft ingredients with backward compatibility
+        const draftIngredients = draft.ingredients.length > 0
+          ? draft.ingredients.map(ing => ({
+              ...ing,
+              quantityUnit: ing.quantityUnit || combineQuantityUnit(ing.quantity, ing.unit)
+            }))
+          : [{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }];
+        setIngredients(draftIngredients);
         setSteps(draft.steps.length > 0 ? draft.steps : [{ id: "step-0", text: "" }]);
         setDraftRestored(true);
         setMounted(true);
       } else {
         // No draft: initialize empty
-        setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "" }]);
+        setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }]);
         setSteps([{ id: "step-0", text: "" }]);
         setMounted(true);
       }
@@ -369,7 +406,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-      { id: `ing-${Date.now()}`, name: "", quantity: "", unit: "" },
+      { id: `ing-${Date.now()}`, name: "", quantity: "", unit: "", quantityUnit: "" },
     ]);
   };
 
@@ -385,7 +422,22 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
     value: string
   ) => {
     setIngredients(
-      ingredients.map((ing) => (ing.id === id ? { ...ing, [field]: value } : ing))
+      ingredients.map((ing) => {
+        if (ing.id !== id) return ing;
+
+        // If updating quantityUnit, parse it into quantity and unit
+        if (field === "quantityUnit") {
+          const parsed = parseQuantityUnit(value);
+          return {
+            ...ing,
+            quantityUnit: value,
+            quantity: parsed.quantity,
+            unit: parsed.unit,
+          };
+        }
+
+        return { ...ing, [field]: value };
+      })
     );
   };
 
@@ -523,7 +575,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       setServings("");
       setRating("");
       setCostEstimate("");
-      setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "" }]);
+      setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }]);
       setSteps([{ id: "step-0", text: "" }]);
       setTags([]);
       setPublishAnonymously(false);
@@ -883,34 +935,28 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                 >
                   <div className="space-y-2">
                     {/* Header row - aligned with the inputs below */}
-                    <div className="hidden sm:grid grid-cols-[60px_80px_1fr_32px] gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium ml-2 mr-2">
-                      <span className="text-center">Quantité</span>
-                      <span className="text-center">Unité</span>
+                    <div className="hidden sm:grid sm:grid-cols-[100px_1fr_40px] gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium ml-2 mr-2">
+                      <span className="text-center">Qté + Unité</span>
                       <span className="pl-1">Ingrédient</span>
                       <span></span>
                     </div>
                     {mounted && ingredients.map((ing, index) => (
                       <div
                         key={ing.id}
-                        className="grid grid-cols-[60px_80px_1fr_32px] gap-2 items-center px-2 py-2 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
+                        className="grid grid-cols-[90px_1fr_40px] sm:grid-cols-[100px_1fr_40px] gap-2 items-center px-2 py-2 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
                       >
                         <Input
-                          value={ing.quantity}
-                          onChange={(e) => updateIngredient(ing.id, "quantity", e.target.value)}
-                          placeholder="—"
-                          className="h-8 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-stone-300 dark:placeholder:text-stone-500 placeholder:italic"
-                        />
-                        <Input
-                          value={ing.unit}
-                          onChange={(e) => updateIngredient(ing.id, "unit", e.target.value)}
-                          placeholder="—"
-                          className="h-8 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-stone-300 dark:placeholder:text-stone-500 placeholder:italic"
+                          value={ing.quantityUnit}
+                          onChange={(e) => updateIngredient(ing.id, "quantityUnit", e.target.value)}
+                          placeholder="150g"
+                          className="h-11 !text-base text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-stone-300 dark:placeholder:text-stone-500 placeholder:italic"
+                          title="Ex: 150g, 1 c.à.s, 2 kg, etc."
                         />
                         <Input
                           value={ing.name}
                           onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
-                          placeholder={`Nom de l'ingrédient...`}
-                          className="h-8 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-stone-300 dark:placeholder:text-stone-500 placeholder:italic"
+                          placeholder="Nom de l'ingrédient..."
+                          className="h-11 !text-base border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-stone-300 dark:placeholder:text-stone-500 placeholder:italic"
                         />
                         <Button
                           type="button"
@@ -918,9 +964,9 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                           size="icon"
                           onClick={() => removeIngredient(ing.id)}
                           disabled={ingredients.length === 1}
-                          className="h-8 w-8 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
+                          className="h-10 w-10 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
