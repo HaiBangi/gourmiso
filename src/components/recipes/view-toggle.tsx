@@ -10,12 +10,12 @@ interface ViewToggleProps {
 
 export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
   return (
-    <div className="flex items-center gap-1 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-1">
+    <div className="flex items-center gap-1 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-1 h-10">
       <Button
         variant={view === "grid" ? "default" : "ghost"}
         size="sm"
         onClick={() => onViewChange("grid")}
-        className={`cursor-pointer ${
+        className={`h-8 cursor-pointer ${
           view === "grid"
             ? "bg-amber-500 hover:bg-amber-600 text-white"
             : "hover:bg-stone-100 dark:hover:bg-stone-800"
@@ -29,7 +29,7 @@ export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
         variant={view === "list" ? "default" : "ghost"}
         size="sm"
         onClick={() => onViewChange("list")}
-        className={`cursor-pointer ${
+        className={`h-8 cursor-pointer ${
           view === "list"
             ? "bg-amber-500 hover:bg-amber-600 text-white"
             : "hover:bg-stone-100 dark:hover:bg-stone-800"

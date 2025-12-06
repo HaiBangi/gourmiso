@@ -32,23 +32,29 @@ export function useViewContext() {
 
 export function ViewProvider({ children }: { children: React.ReactNode }) {
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [mounted, setMounted] = useState(false);
 
-  // Load view preference from localStorage
+  // Load view preference from localStorage only on client
   useEffect(() => {
     const savedView = localStorage.getItem("recipe-view");
     if (savedView === "list" || savedView === "grid") {
       setView(savedView);
     }
+    // Set mounted after loading view to avoid hydration issues
+    setMounted(true);
   }, []);
 
   // Save view preference to localStorage
   const handleViewChange = (newView: "grid" | "list") => {
     setView(newView);
-    localStorage.setItem("recipe-view", newView);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("recipe-view", newView);
+    }
   };
 
+  // Always provide the same structure to avoid hydration mismatch
   return (
-    <ViewContext.Provider value={{ view, setView: handleViewChange }}>
+    <ViewContext.Provider value={{ view: mounted ? view : "grid", setView: handleViewChange }}>
       {children}
     </ViewContext.Provider>
   );

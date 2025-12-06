@@ -8,11 +8,10 @@ import {
   DeletionModeToggleButton
 } from "@/components/recipes/recipe-list-with-deletion";
 import { RecipeListSkeleton } from "@/components/recipes/recipe-skeleton";
-import { RecipeFilters } from "@/components/recipes/recipe-filters";
-import { AdvancedFilters } from "@/components/recipes/advanced-filters";
-import { QuickFilters } from "@/components/recipes/quick-filters";
 import { MobileFiltersSheet } from "@/components/recipes/mobile-filters-sheet";
+import { DesktopFiltersSheet } from "@/components/recipes/desktop-filters-sheet";
 import { MobileSearchBar } from "@/components/recipes/mobile-search-bar";
+import { DesktopSearchBar } from "@/components/recipes/desktop-search-bar";
 import { PseudoBanner } from "@/components/auth/pseudo-banner";
 import type { Recipe } from "@/types/recipe";
 
@@ -268,26 +267,28 @@ export default async function RecipesPage({ searchParams }: PageProps) {
               />
             </div>
 
-            {/* Quick Category Filters - hidden on mobile */}
-            <QuickFilters currentCategory={params.category} />
+            {/* Desktop interface - redesigned */}
+            <div className="hidden sm:block mb-6">
+              <div className="flex gap-3">
+                {/* Search bar */}
+                <DesktopSearchBar currentSearch={params.search} />
 
-            {/* Search & Category Dropdown - hidden on mobile, visible on tablet+ */}
-            <div className="hidden sm:block">
-              <RecipeFilters
-                currentCategory={params.category}
-                currentSearch={params.search}
-                currentUserId={userId}
-                selectedAuthors={selectedAuthors}
-              />
+                {/* Filters & Sort Sheet */}
+                <DesktopFiltersSheet
+                  currentCategory={params.category}
+                  currentSort={params.sort}
+                  currentMaxTime={params.maxTime}
+                  currentTags={params.tags ? params.tags.split(",") : []}
+                  availableTags={popularTags}
+                />
+
+                {/* View Toggle */}
+                <RecipeViewToggle />
+
+                {/* Deletion Mode Toggle (admin only) */}
+                {isAdmin && <DeletionModeToggleButton isAdmin={isAdmin} />}
+              </div>
             </div>
-
-            {/* Advanced Filters with View Toggle and Deletion Mode - hidden on mobile */}
-            <AdvancedFilters
-              currentSort={params.sort}
-              currentMaxTime={params.maxTime}
-              viewToggle={<RecipeViewToggle />}
-              deletionModeToggle={<DeletionModeToggleButton isAdmin={isAdmin} />}
-            />
 
             <Suspense fallback={<RecipeListSkeleton />}>
               <RecipesContent searchParams={params} userId={userId} isAdmin={isAdmin} />

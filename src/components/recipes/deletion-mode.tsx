@@ -29,8 +29,10 @@ export function DeletionModeToggle({ isActive, onToggle }: DeletionModeProps) {
       onClick={onToggle}
       variant={isActive ? "destructive" : "outline"}
       className={cn(
-        "gap-2",
-        isActive && "bg-red-600 hover:bg-red-700"
+        "gap-2 h-10",
+        isActive
+          ? "bg-red-600 hover:bg-red-700"
+          : "bg-white dark:bg-stone-900"
       )}
     >
       {isActive ? (
