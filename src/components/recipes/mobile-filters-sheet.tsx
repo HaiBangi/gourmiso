@@ -246,13 +246,13 @@ export function MobileFiltersSheet({
                 <ArrowUpDown className="h-4 w-4" />
                 Trier par
               </Label>
-              <RadioGroup value={selectedSort} onValueChange={setSelectedSort} className="space-y-2">
+              <RadioGroup value={selectedSort} onValueChange={setSelectedSort} className="space-y-1.5">
                 {sortOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer transition-colors ${
+                    className={`w-full rounded-lg border-2 px-3 py-2.5 text-left text-sm flex items-center gap-2 cursor-pointer transition-colors ${
                       selectedSort === option.value
-                        ? "border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20"
+                        ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
                         : "border-stone-200 dark:border-stone-700 hover:border-stone-300"
                     }`}
                     onClick={() => setSelectedSort(option.value)}
@@ -266,7 +266,7 @@ export function MobileFiltersSheet({
                       {option.label}
                     </Label>
                     {selectedSort === option.value && (
-                      <Check className="h-5 w-5 text-emerald-700" />
+                      <Check className="h-5 w-5 text-emerald-500" />
                     )}
                   </div>
                 ))}
