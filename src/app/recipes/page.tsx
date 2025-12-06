@@ -11,6 +11,8 @@ import { RecipeListSkeleton } from "@/components/recipes/recipe-skeleton";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
 import { AdvancedFilters } from "@/components/recipes/advanced-filters";
 import { QuickFilters } from "@/components/recipes/quick-filters";
+import { MobileFiltersSheet } from "@/components/recipes/mobile-filters-sheet";
+import { MobileSearchBar } from "@/components/recipes/mobile-search-bar";
 import { PseudoBanner } from "@/components/auth/pseudo-banner";
 import type { Recipe } from "@/types/recipe";
 
@@ -21,6 +23,7 @@ interface SearchParams {
   maxTime?: string;
   authors?: string;
   myRecipes?: string;
+  tags?: string;
 }
 
 // Category sort order (priority)
@@ -36,16 +39,21 @@ const categoryOrder: Record<string, number> = {
 };
 
 async function getRecipes(searchParams: SearchParams, userId?: string): Promise<Recipe[]> {
-  const { category, search, maxTime, authors, myRecipes } = searchParams;
+  const { category, search, maxTime, authors, myRecipes, tags } = searchParams;
 
-  // Parse author filter
+  // Parse filters
   const authorIds = authors ? authors.split(",").filter(Boolean) : [];
   const filterMyRecipes = myRecipes === "true" && userId;
+  const categories = category ? category.split(",").filter(Boolean) : [];
+  const filterTags = tags ? tags.split(",").map(t => t.toLowerCase()).filter(Boolean) : [];
 
-  const recipes = await db.recipe.findMany({
+  // If we have tags to filter, we need to get all recipes and filter manually
+  // because Prisma doesn't support case-insensitive array matching
+  let recipes = await db.recipe.findMany({
     where: {
       AND: [
-        category ? { category } : {},
+        // Multiple categories
+        categories.length > 0 ? { category: { in: categories } } : {},
         search
           ? {
               OR: [
@@ -56,6 +64,7 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
               ],
             }
           : {},
+        // Note: We'll filter tags manually below for case-insensitive matching
         // Filter by max time (prep + cooking)
         maxTime
           ? {
@@ -94,6 +103,14 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
     },
   });
 
+  // Manual case-insensitive tag filtering
+  if (filterTags.length > 0) {
+    recipes = recipes.filter(recipe => {
+      const recipeTags = recipe.tags.map(t => t.toLowerCase());
+      return filterTags.some(filterTag => recipeTags.includes(filterTag));
+    });
+  }
+
   return recipes as Recipe[];
 }
 
@@ -108,6 +125,32 @@ async function getFavoriteIds(userId?: string): Promise<Set<number>> {
   return new Set(user?.favorites.map(f => f.id) || []);
 }
 
+async function getPopularTags(limit: number = 15): Promise<Array<{ value: string; label: string; count: number }>> {
+  // Get all recipes with their tags
+  const recipes = await db.recipe.findMany({
+    select: { tags: true },
+  });
+
+  // Count tag occurrences (case-insensitive)
+  const tagCounts = new Map<string, number>();
+  recipes.forEach(recipe => {
+    recipe.tags.forEach(tag => {
+      const lowerTag = tag.toLowerCase();
+      tagCounts.set(lowerTag, (tagCounts.get(lowerTag) || 0) + 1);
+    });
+  });
+
+  // Sort by count and take top N
+  return Array.from(tagCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([tag, count]) => ({
+      value: tag.toLowerCase(),
+      label: tag.charAt(0).toUpperCase() + tag.slice(1), // Capitalize first letter
+      count,
+    }));
+}
+
 function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>, sortOption?: string): Recipe[] {
   return recipes.sort((a, b) => {
     // First: favorites come first (unless specific sort is chosen)
@@ -120,16 +163,24 @@ function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>, sortOption?: s
 
     // Apply specific sorting
     switch (sortOption) {
+      case "recent":
       case "newest":
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case "rating":
         return b.rating - a.rating;
+      case "quick":
       case "time_asc":
         return (a.preparationTime + a.cookingTime) - (b.preparationTime + b.cookingTime);
       case "time_desc":
         return (b.preparationTime + b.cookingTime) - (a.preparationTime + a.cookingTime);
+      case "favorites":
+        const aIsFav = favoriteIds.has(a.id);
+        const bIsFav = favoriteIds.has(b.id);
+        if (aIsFav && !bIsFav) return -1;
+        if (!aIsFav && bIsFav) return 1;
+        return b.rating - a.rating; // Secondary sort by rating
       case "name_asc":
         return a.name.localeCompare(b.name, "fr");
       case "name_desc":
@@ -188,6 +239,9 @@ export default async function RecipesPage({ searchParams }: PageProps) {
       ? params.authors.split(",").filter(Boolean)
       : [];
 
+  // Get popular tags for filters
+  const popularTags = await getPopularTags(15);
+
   return (
     <main className="min-h-screen">
       {/* Pseudo CTA Banner */}
@@ -199,16 +253,33 @@ export default async function RecipesPage({ searchParams }: PageProps) {
       <ViewProvider>
         <DeletionModeProvider isAdmin={isAdmin}>
           <section className="mx-auto max-w-screen-2xl px-3 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8">
+            {/* Mobile-only interface */}
+            <div className="block sm:hidden space-y-3 mb-4">
+              {/* Search bar mobile */}
+              <MobileSearchBar currentSearch={params.search} />
+
+              {/* Filters & Sort button mobile */}
+              <MobileFiltersSheet
+                currentCategory={params.category}
+                currentSort={params.sort}
+                currentMaxTime={params.maxTime}
+                currentTags={params.tags ? params.tags.split(",") : []}
+                availableTags={popularTags}
+              />
+            </div>
+
             {/* Quick Category Filters - hidden on mobile */}
             <QuickFilters currentCategory={params.category} />
 
-            {/* Search & Category Dropdown */}
-            <RecipeFilters
-              currentCategory={params.category}
-              currentSearch={params.search}
-              currentUserId={userId}
-              selectedAuthors={selectedAuthors}
-            />
+            {/* Search & Category Dropdown - hidden on mobile, visible on tablet+ */}
+            <div className="hidden sm:block">
+              <RecipeFilters
+                currentCategory={params.category}
+                currentSearch={params.search}
+                currentUserId={userId}
+                selectedAuthors={selectedAuthors}
+              />
+            </div>
 
             {/* Advanced Filters with View Toggle and Deletion Mode - hidden on mobile */}
             <AdvancedFilters
