@@ -40,6 +40,9 @@ export default async function FavoritesPage() {
     costEstimate: fav.costEstimate as CostEstimate,
   }));
 
+  // Create a Set of favorite IDs (all recipes on this page are favorites)
+  const favoriteIds = new Set(favorites.map(fav => fav.id));
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       {/* Content */}
@@ -74,7 +77,7 @@ export default async function FavoritesPage() {
           </div>
         ) : (
           <ViewProvider>
-            <RecipeList recipes={recipesWithCostEstimate} />
+            <RecipeList recipes={recipesWithCostEstimate} favoriteIds={favoriteIds} />
           </ViewProvider>
         )}
       </section>
