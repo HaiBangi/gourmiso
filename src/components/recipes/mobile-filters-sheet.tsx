@@ -200,37 +200,42 @@ export function MobileFiltersSheet({
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-3xl">
-        <ScrollArea className="h-full">
-          <div className="p-6 pb-24">
-            <SheetHeader className="mb-6">
-              <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-                <SlidersHorizontal className="h-6 w-6 text-emerald-700" />
+      <SheetContent side="bottom" className="h-[75vh] p-0 rounded-t-[2rem]">
+        {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-stone-300 dark:bg-stone-600 rounded-full" />
+        </div>
+
+        <ScrollArea className="h-[calc(100%-3rem)]">
+          <div className="px-6 pb-24">
+            <SheetHeader className="mb-4">
+              <SheetTitle className="text-xl font-bold flex items-center gap-2">
+                <SlidersHorizontal className="h-5 w-5 text-emerald-500" />
                 Filtres et options
               </SheetTitle>
             </SheetHeader>
 
             {/* View Toggle */}
-            <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="mb-4">
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <Grid3x3 className="h-4 w-4" />
                 Affichage
               </Label>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant={view === "grid" ? "default" : "outline"}
-                  size="lg"
+                  size="default"
                   onClick={() => setView("grid")}
-                  className="h-12 cursor-pointer"
+                  className="h-10 cursor-pointer"
                 >
                   <Grid3x3 className="h-4 w-4 mr-2" />
                   Grille
                 </Button>
                 <Button
                   variant={view === "list" ? "default" : "outline"}
-                  size="lg"
+                  size="default"
                   onClick={() => setView("list")}
-                  className="h-12 cursor-pointer"
+                  className="h-10 cursor-pointer"
                 >
                   <List className="h-4 w-4 mr-2" />
                   Liste
@@ -238,11 +243,11 @@ export function MobileFiltersSheet({
               </div>
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-4" />
 
             {/* Sort Options */}
-            <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="mb-4">
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4" />
                 Trier par
               </Label>
@@ -250,34 +255,34 @@ export function MobileFiltersSheet({
                 {sortOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`w-full rounded-lg border-2 px-3 py-2.5 text-left text-sm flex items-center gap-2 cursor-pointer transition-colors ${
+                    className={`w-full rounded-xl border-2 px-3 py-2 text-left flex items-center gap-2 cursor-pointer transition-all ${
                       selectedSort === option.value
-                        ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                        : "border-stone-200 dark:border-stone-700 hover:border-stone-300"
+                        ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm"
+                        : "border-stone-200 dark:border-stone-700 hover:border-emerald-300 active:scale-[0.98]"
                     }`}
                     onClick={() => setSelectedSort(option.value)}
                   >
                     <RadioGroupItem value={option.value} id={`sort-${option.value}`} />
                     <Label
                       htmlFor={`sort-${option.value}`}
-                      className="flex-1 cursor-pointer flex items-center gap-2 text-base"
+                      className="flex-1 cursor-pointer flex items-center gap-2 text-sm font-medium"
                     >
-                      <span className="text-xl">{option.icon}</span>
+                      <span className="text-lg">{option.icon}</span>
                       {option.label}
                     </Label>
                     {selectedSort === option.value && (
-                      <Check className="h-5 w-5 text-emerald-500" />
+                      <Check className="h-4 w-4 text-emerald-500" />
                     )}
                   </div>
                 ))}
               </RadioGroup>
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-4" />
 
             {/* Category Filter - Multiple Selection */}
-            <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="mb-4">
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <Utensils className="h-4 w-4" />
                 Catégories {selectedCategories.length > 0 && `(${selectedCategories.length})`}
               </Label>
@@ -288,31 +293,31 @@ export function MobileFiltersSheet({
                     <Button
                       key={cat.value}
                       variant={isSelected ? "default" : "outline"}
-                      size="lg"
+                      size="default"
                       onClick={() => toggleCategory(cat.value)}
-                      className="h-auto py-3 flex-col gap-1 cursor-pointer relative"
+                      className="h-auto py-2.5 flex-col gap-1 cursor-pointer relative rounded-xl transition-all active:scale-95"
                     >
                       {isSelected && (
-                        <Check className="absolute top-1 right-1 h-4 w-4" />
+                        <Check className="absolute top-1 right-1 h-3.5 w-3.5" />
                       )}
-                      <span className="text-2xl">{cat.emoji}</span>
-                      <span className="text-xs">{cat.label}</span>
+                      <span className="text-xl">{cat.emoji}</span>
+                      <span className="text-[11px] leading-tight">{cat.label}</span>
                     </Button>
                   );
                 })}
               </div>
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-4" />
 
             {/* Food Tags Filter - Dynamic from DB */}
-            <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="mb-4">
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <Tag className="h-4 w-4" />
                 Tags populaires {selectedTags.length > 0 && `(${selectedTags.length})`}
               </Label>
               {availableTags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {availableTags.map((tag) => {
                     const isSelected = selectedTags.includes(tag.value);
                     const emoji = tagEmojiMap[tag.value.toLowerCase()] || "🏷️";
@@ -322,12 +327,12 @@ export function MobileFiltersSheet({
                         variant={isSelected ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleTag(tag.value)}
-                        className="h-9 gap-1.5 cursor-pointer"
+                        className="h-8 gap-1 cursor-pointer rounded-full transition-all active:scale-95"
                       >
-                        <span>{emoji}</span>
+                        <span className="text-sm">{emoji}</span>
                         <span className="text-xs">{tag.label}</span>
                         <span className="text-[10px] opacity-60">({tag.count})</span>
-                        {isSelected && <Check className="h-3 w-3 ml-1" />}
+                        {isSelected && <Check className="h-3 w-3 ml-0.5" />}
                       </Button>
                     );
                   })}
@@ -337,7 +342,7 @@ export function MobileFiltersSheet({
               )}
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-4" />
 
             {/* Time Filter */}
             <div className="mb-6">
@@ -381,12 +386,12 @@ export function MobileFiltersSheet({
         </ScrollArea>
 
         {/* Fixed Footer */}
-        <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 flex-row gap-2">
+        <SheetFooter className="absolute bottom-0 left-0 right-0 p-3 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 flex-row gap-2 shadow-lg">
           <Button
             variant="outline"
             size="lg"
             onClick={resetFilters}
-            className="flex-1 h-12 cursor-pointer"
+            className="flex-1 h-11 cursor-pointer rounded-xl"
           >
             <X className="h-4 w-4 mr-2" />
             Réinitialiser
@@ -394,7 +399,7 @@ export function MobileFiltersSheet({
           <Button
             size="lg"
             onClick={applyFilters}
-            className="flex-1 h-12 bg-emerald-700 hover:bg-emerald-600 cursor-pointer"
+            className="flex-1 h-11 bg-emerald-500 hover:bg-emerald-600 cursor-pointer rounded-xl"
           >
             <Check className="h-4 w-4 mr-2" />
             Appliquer
