@@ -126,7 +126,7 @@ export function AuthorFilter({ currentUserId, selectedAuthors = [] }: AuthorFilt
               placeholder="Rechercher un auteur..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-9 text-sm"
+              className="pl-8 h-10 !text-base"
             />
           </div>
         </div>

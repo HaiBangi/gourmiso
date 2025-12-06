@@ -5,8 +5,7 @@ import { db } from "@/lib/db";
 import { RecipeList } from "@/components/recipes/recipe-list";
 import { Heart } from "lucide-react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import type { Recipe } from "@/types/recipe";
+import type { CostEstimate, Category } from "@/types/recipe";
 
 export const metadata: Metadata = {
   title: "Mes favoris | Gourmiso",
@@ -33,6 +32,13 @@ export default async function FavoritesPage() {
   });
 
   const favorites = user?.favorites || [];
+
+  // Transform favorites to match Recipe type
+  const recipesWithCostEstimate = favorites.map(fav => ({
+    ...fav,
+    category: fav.category as Category,
+    costEstimate: fav.costEstimate as CostEstimate,
+  }));
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
@@ -67,7 +73,7 @@ export default async function FavoritesPage() {
             </Link>
           </div>
         ) : (
-          <RecipeList recipes={favorites as Recipe[]} />
+          <RecipeList recipes={recipesWithCostEstimate} />
         )}
       </section>
     </main>

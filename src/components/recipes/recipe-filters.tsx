@@ -83,7 +83,7 @@ export function RecipeFilters({
             placeholder="Rechercher..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 sm:pl-12 h-10 sm:h-12 text-sm sm:!text-base md:!text-base bg-white dark:bg-stone-900 placeholder:text-sm sm:placeholder:!text-base"
+            className="pl-9 sm:pl-12 h-10 sm:h-12 !text-base bg-white dark:bg-stone-900 placeholder:!text-base"
           />
         </div>
         <Button type="submit" variant="secondary" disabled={isPending} className="h-10 sm:h-12 px-3 sm:px-6 text-sm sm:text-base cursor-pointer">

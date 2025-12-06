@@ -89,7 +89,7 @@ export function UserRoleManager({ users, currentUserId }: UserRoleManagerProps) 
             placeholder="Rechercher par nom, email ou pseudo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 !text-base"
           />
         </div>
         <div className="flex items-center gap-2">
