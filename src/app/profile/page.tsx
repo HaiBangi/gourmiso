@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ChefHat, Calendar, Heart, BookOpen, Shield, User as UserIcon, Pencil } from "lucide-react";
+import { ChefHat, Calendar, Heart, BookOpen, Shield, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -70,14 +70,16 @@ export default async function ProfilePage() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-xl sm:text-2xl font-bold text-white">{user.pseudo || user.name}</h1>
-                <p className="text-white/80 text-sm">{user.email}</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white">{user.pseudo || user.name}</h1>
+                  <PseudoEditor currentPseudo={user.pseudo} />
+                </div>
+                <p className="text-white/80 text-sm mt-1">{user.email}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${role.bg} ${role.color} text-xs sm:text-sm font-medium`}>
                     <RoleIcon className="h-3.5 w-3.5" />
                     {role.label}
                   </div>
-                  <PseudoEditor currentPseudo={user.pseudo} />
                 </div>
               </div>
             </div>

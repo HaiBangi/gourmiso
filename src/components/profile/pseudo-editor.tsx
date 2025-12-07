@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Pencil, Check, X, User } from "lucide-react";
+import { Pencil, Check, X } from "lucide-react";
 import { updateUserPseudo } from "@/actions/users";
 
 interface PseudoEditorProps {
@@ -41,10 +41,8 @@ export function PseudoEditor({ currentPseudo }: PseudoEditorProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors cursor-pointer">
-          <User className="h-3.5 w-3.5" />
-          {currentPseudo}
-          <Pencil className="h-3 w-3 ml-1" />
+        <button className="ml-2 p-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer inline-flex items-center justify-center">
+          <Pencil className="h-4 w-4" />
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -93,4 +91,3 @@ export function PseudoEditor({ currentPseudo }: PseudoEditorProps) {
     </Dialog>
   );
 }
-

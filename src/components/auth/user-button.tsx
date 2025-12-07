@@ -68,7 +68,9 @@ export function UserButton() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <p className="text-sm font-semibold leading-none dark:text-stone-100">{user.name}</p>
+              <p className="text-sm font-semibold leading-none dark:text-stone-100">
+                {user.pseudo || user.name}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[150px]">
                 {user.email}
               </p>
