@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Innertube } from "youtubei.js";
+import { cache, cacheKeys } from "@/lib/cache";
 
 /**
  * Récupère la transcription d'une vidéo YouTube en utilisant youtubei.js
  */
 async function getYoutubeTranscript(videoId: string): Promise<string> {
+  // Vérifier le cache d'abord
+  const cacheKey = cacheKeys.youtubeTranscript(videoId);
+  const cached = cache.get<string>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   try {
     console.log(`[Transcript] Initialisation pour ${videoId}`);
     
@@ -56,6 +64,9 @@ async function getYoutubeTranscript(videoId: string): Promise<string> {
     }
 
     console.log(`[Transcript] ✅ Succès: ${fullText.length} caractères, ${segments.length} segments`);
+    
+    // Mettre en cache pour 24 heures
+    cache.set(cacheKey, fullText, 1000 * 60 * 60 * 24);
     
     return fullText;
   } catch (error) {

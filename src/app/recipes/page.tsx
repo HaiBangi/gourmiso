@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { normalizeString } from "@/lib/utils";
 import { ViewProvider, RecipeViewToggle } from "@/components/recipes/recipe-list";
 import {
   RecipeListWithDeletion,
@@ -45,25 +46,17 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
   const filterMyRecipes = myRecipes === "true" && userId;
   const categories = category ? category.split(",").filter(Boolean) : [];
   const filterTags = tags ? tags.split(",").map(t => t.toLowerCase()).filter(Boolean) : [];
+  
+  // Normaliser le terme de recherche pour ignorer les accents
+  const normalizedSearch = search ? normalizeString(search) : null;
 
-  // If we have tags to filter, we need to get all recipes and filter manually
-  // because Prisma doesn't support case-insensitive array matching
+  // Récupérer toutes les recettes (on filtre manuellement la recherche pour supporter les accents)
   let recipes = await db.recipe.findMany({
     where: {
       AND: [
         // Multiple categories
         categories.length > 0 ? { category: { in: categories } } : {},
-        search
-          ? {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { description: { contains: search, mode: "insensitive" } },
-                { author: { contains: search, mode: "insensitive" } },
-                { tags: { hasSome: [search.toLowerCase()] } },
-              ],
-            }
-          : {},
-        // Note: We'll filter tags manually below for case-insensitive matching
+        // Note: Recherche filtrée manuellement après pour supporter les accents
         // Filter by max time (prep + cooking)
         maxTime
           ? {
@@ -111,6 +104,23 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
       steps: { orderBy: { order: "asc" } },
     },
   });
+
+  // Filtrage manuel avec normalisation pour ignorer les accents
+  if (normalizedSearch) {
+    recipes = recipes.filter(recipe => {
+      const normalizedName = normalizeString(recipe.name || "");
+      const normalizedDescription = normalizeString(recipe.description || "");
+      const normalizedAuthor = normalizeString(recipe.author || "");
+      const normalizedTags = recipe.tags.map(t => normalizeString(t));
+      
+      return (
+        normalizedName.includes(normalizedSearch) ||
+        normalizedDescription.includes(normalizedSearch) ||
+        normalizedAuthor.includes(normalizedSearch) ||
+        normalizedTags.some(tag => tag.includes(normalizedSearch))
+      );
+    });
+  }
 
   // Manual case-insensitive tag filtering
   if (filterTags.length > 0) {

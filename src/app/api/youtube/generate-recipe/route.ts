@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import OpenAI from "openai";
 import type { Category, CostEstimate } from "@/types/recipe";
+import { cache } from "@/lib/cache";
 
 const SYSTEM_PROMPT = `Tu es un assistant culinaire expert qui convertit des transcriptions de vidéos YouTube de recettes en recettes structurées.
 
@@ -133,6 +134,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Creer une cle de cache basee sur le contenu
+    const cacheKey = `chatgpt:recipe:${title}:${transcript.substring(0, 100)}`;
+    
+    // Verifier le cache
+    const cachedRecipe = cache.get<any>(cacheKey);
+    if (cachedRecipe) {
+      console.log("[Generate Recipe] Cache hit - Recette trouvee dans le cache");
+      return NextResponse.json({ recipe: cachedRecipe });
+    }
+
     // Vérifier la clé API OpenAI
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -202,6 +213,9 @@ Analyse cette vidéo de recette et extrais toutes les informations pertinentes p
           }))
         : [],
     };
+
+    // Mettre en cache pour 24 heures
+    cache.set(cacheKey, validatedRecipe, 1000 * 60 * 60 * 24);
 
     return NextResponse.json({
       recipe: validatedRecipe,
