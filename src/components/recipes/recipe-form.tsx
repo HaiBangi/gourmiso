@@ -85,7 +85,7 @@ interface DraftData {
   costEstimate: string;
   publishAnonymously: boolean;
   tags: string[];
-  ingredients: { id: string; name: string; quantity: string; unit: string; quantityUnit: string }[];
+  ingredients: { id: string; name: string; quantity?: string; unit?: string; quantityUnit: string }[];
   steps: { id: string; text: string }[];
   savedAt: number;
 }
@@ -111,8 +111,8 @@ const costOptions = [
 interface IngredientInput {
   id: string;
   name: string;
-  quantity: string;
-  unit: string;
+  quantity?: string;
+  unit?: string;
   quantityUnit: string; // Combined field for UI
 }
 
@@ -371,7 +371,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       // For editing or duplication: load from recipe
 
       // Déterminer si on doit utiliser le mode groupes
-      const hasGroups = recipe.ingredientGroups && recipe.ingredientGroups.length > 0;
+      const hasGroups = !!(recipe.ingredientGroups && recipe.ingredientGroups.length > 0);
       setUseGroups(hasGroups);
 
       if (hasGroups) {
@@ -412,7 +412,7 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         const draftIngredients = draft.ingredients.length > 0
           ? draft.ingredients.map(ing => ({
               ...ing,
-              quantityUnit: ing.quantityUnit || combineQuantityUnit(ing.quantity, ing.unit)
+              quantityUnit: ing.quantityUnit || combineQuantityUnit(ing.quantity || "", ing.unit || "")
             }))
           : [{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }];
         setIngredients(draftIngredients);
@@ -594,7 +594,8 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
       rating: parseInt(rating) || 0,
       costEstimate: costEstimate ? (costEstimate as "CHEAP" | "MEDIUM" | "EXPENSIVE") : null,
       tags: tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
-      ...(useGroups ? { ingredientGroups: ingredientGroupsData } : { ingredients: ingredientsData }),
+      ingredients: useGroups ? [] : ingredientsData,
+      ...(useGroups && { ingredientGroups: ingredientGroupsData }),
       steps: steps
         .filter((step) => step.text.trim())
         .map((step, index) => ({
@@ -1000,31 +1001,32 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
                   color="emerald"
                   action={
                     <div className="flex items-center gap-2">
-                      {/* Toggle pour basculer entre mode simple et mode groupes */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={toggleGroupMode}
-                        className={`h-7 text-xs cursor-pointer transition-all ${
-                          useGroups 
-                            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30' 
-                            : 'text-stone-500 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                        }`}
-                        title={useGroups ? "Passer en mode simple" : "Organiser en groupes"}
-                      >
-                        {useGroups ? (
-                          <>
-                            <FolderPlus className="h-3.5 w-3.5 mr-1" />
-                            Groupes
-                          </>
-                        ) : (
-                          <>
-                            <List className="h-3.5 w-3.5 mr-1" />
-                            Simple
-                          </>
-                        )}
-                      </Button>
+                      {/* Bouton pour changer de mode */}
+                      {!useGroups ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={toggleGroupMode}
+                          className="h-7 text-xs border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 cursor-pointer transition-all"
+                          title="Organiser les ingrédients en groupes"
+                        >
+                          <FolderPlus className="h-3.5 w-3.5 mr-1.5" />
+                          Mode groupes d&apos;ingrédients
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={toggleGroupMode}
+                          className="h-7 text-xs border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700/40 cursor-pointer transition-all"
+                          title="Revenir au mode simple"
+                        >
+                          <List className="h-3.5 w-3.5 mr-1.5" />
+                          Mode ingrédients simples
+                        </Button>
+                      )}
 
                       {/* Bouton ajouter (uniquement en mode simple) */}
                       {!useGroups && (
