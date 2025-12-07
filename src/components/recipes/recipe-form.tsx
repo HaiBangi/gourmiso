@@ -606,12 +606,16 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
 
     try {
       let result;
+      let recipeId;
+      
       if (isEdit) {
         // Only update if it's an actual edit (not a duplication)
         result = await updateRecipe(recipe.id, formData);
+        recipeId = recipe.id; // Keep the same ID for redirect
       } else {
         // Create new recipe for both new recipes and duplications
         result = await createRecipe(formData);
+        recipeId = result.success ? result.data?.id : null;
       }
 
       if (result.success) {
@@ -625,7 +629,15 @@ export function RecipeForm({ recipe, trigger }: RecipeFormProps) {
         }
 
         setOpen(false);
-        router.push("/recipes");
+        
+        // Redirect to recipe detail page if editing, or to recipes list if creating
+        if (isEdit && recipeId) {
+          router.push(`/recipes/${recipeId}`);
+        } else if (recipeId) {
+          router.push(`/recipes/${recipeId}`);
+        } else {
+          router.push("/recipes");
+        }
         router.refresh();
       } else {
         setError(result.error);

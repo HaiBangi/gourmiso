@@ -146,7 +146,7 @@ export function IngredientsCard({ ingredients, ingredientGroups, originalServing
       <li
         key={ingredient.id}
         onClick={() => toggleIngredient(ingredient.id)}
-        className="flex items-center gap-3 text-sm sm:text-base px-2 py-3 -mx-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer transition-colors active:bg-emerald-100 dark:active:bg-emerald-900/30"
+        className="flex items-center gap-3 text-sm sm:text-base px-2 py-2.5 sm:py-2 -mx-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer transition-colors active:bg-emerald-100 dark:active:bg-emerald-900/30"
       >
         <Checkbox
           id={checkboxId}
