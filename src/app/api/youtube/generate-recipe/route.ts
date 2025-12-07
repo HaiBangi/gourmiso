@@ -17,9 +17,15 @@ Tu dois analyser la transcription et la description de la vidéo et extraire :
 - L'estimation du coût (CHEAP, MEDIUM, EXPENSIVE)
 - La note (sur 5)
 - Les tags/mots-clés pertinents
-- Les ingrédients avec quantités et unités
+- Les ingrédients avec quantités et unités (TOUJOURS EN FRANÇAIS - traduis si nécessaire)
 - Les groupes d'ingrédients SI ET SEULEMENT SI la recette a des parties distinctes (ex: pâte/garniture, base/sauce, etc.)
 - Les étapes de préparation numérotées
+
+IMPORTANT pour la langue :
+- TOUS les noms d'ingrédients doivent être en français
+- Si un ingrédient est en anglais ou dans une autre langue, traduis-le en français
+- Exemples : "flour" → "farine", "sugar" → "sucre", "chicken" → "poulet", "salt" → "sel"
+- Les noms de groupes d'ingrédients doivent aussi être en français
 
 IMPORTANT pour les groupes d'ingrédients :
 - N'utilise les groupes d'ingrédients QUE si la recette a vraiment des parties distinctes

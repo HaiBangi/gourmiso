@@ -125,6 +125,8 @@ interface RecipeFormProps {
   recipe?: Recipe;
   trigger?: React.ReactNode; // Optional for YouTube to Recipe mode
   isYouTubeImport?: boolean; // Flag to indicate YouTube import with red theme
+  onSuccess?: (recipeId: number) => void; // Callback when recipe is successfully saved
+  onCancel?: () => void; // Callback when dialog is closed without saving
 }
 
 function getInitialIngredients(recipe?: Recipe): IngredientInput[] {
@@ -196,7 +198,7 @@ function SectionCard({
   );
 }
 
-export function RecipeForm({ recipe, trigger, isYouTubeImport = false }: RecipeFormProps) {
+export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess, onCancel }: RecipeFormProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
@@ -640,13 +642,18 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false }: RecipeF
 
         setOpen(false);
         
-        // Redirect to recipe detail page if editing, or to recipes list if creating
-        if (isEdit && recipeId) {
-          router.push(`/recipes/${recipeId}`);
-        } else if (recipeId) {
-          router.push(`/recipes/${recipeId}`);
+        // If onSuccess callback is provided (e.g., YouTube import), call it instead of redirecting
+        if (onSuccess && recipeId) {
+          onSuccess(recipeId);
         } else {
-          router.push("/recipes");
+          // Default behavior: redirect to recipe detail page
+          if (isEdit && recipeId) {
+            router.push(`/recipes/${recipeId}`);
+          } else if (recipeId) {
+            router.push(`/recipes/${recipeId}`);
+          } else {
+            router.push("/recipes");
+          }
         }
         router.refresh();
       } else {
@@ -684,9 +691,15 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false }: RecipeF
 
   const handleDialogClose = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (!isOpen && recipe) {
-      // For edits, reset form when closing
-      resetForm();
+    if (!isOpen) {
+      if (recipe) {
+        // For edits, reset form when closing
+        resetForm();
+      }
+      // Call onCancel callback if provided (e.g., for YouTube import)
+      if (onCancel) {
+        onCancel();
+      }
     }
     // For new recipes, draft is saved by useEffect when open changes
   };

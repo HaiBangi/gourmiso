@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Youtube, Loader2, Sparkles, ChefHat, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ interface GeneratedRecipe extends RecipeCreateInput {
 }
 
 export function YoutubeToRecipeClient() {
+  const router = useRouter();
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [isLoadingTranscript, setIsLoadingTranscript] = useState(false);
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
@@ -34,6 +36,37 @@ export function YoutubeToRecipeClient() {
   const [generatedRecipe, setGeneratedRecipe] = useState<GeneratedRecipe | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showRecipeForm, setShowRecipeForm] = useState(false);
+  const [hasUnsavedRecipe, setHasUnsavedRecipe] = useState(false);
+  const [formKey, setFormKey] = useState(0); // Pour forcer le remontage du formulaire
+
+  const handleRecipeSaved = (recipeId: number) => {
+    // Clear the unsaved recipe flag
+    setHasUnsavedRecipe(false);
+    setGeneratedRecipe(null);
+    setVideoInfo(null);
+    setYoutubeUrl("");
+    setShowRecipeForm(false);
+    
+    // Redirect to the newly created recipe
+    router.push(`/recipes/${recipeId}`);
+  };
+
+  const handleRecipeCancel = () => {
+    // Le dialog a été fermé sans sauvegarder
+    setShowRecipeForm(false);
+    // On garde hasUnsavedRecipe à true pour afficher le bouton de reprise
+  };
+
+  // Debug logs
+  useEffect(() => {
+    console.log('[YouTube Client] State changed:', { 
+      showRecipeForm, 
+      hasUnsavedRecipe, 
+      hasGeneratedRecipe: !!generatedRecipe,
+      shouldShowButton: !showRecipeForm && hasUnsavedRecipe && !!generatedRecipe,
+      recipeName: generatedRecipe?.name
+    });
+  }, [showRecipeForm, hasUnsavedRecipe, generatedRecipe]);
 
   const extractVideoId = (url: string): string | null => {
     const patterns = [
@@ -120,6 +153,8 @@ export function YoutubeToRecipeClient() {
         imageUrl,
       });
       setShowRecipeForm(true);
+      setHasUnsavedRecipe(true);
+      setFormKey(prev => prev + 1); // Force le montage du formulaire
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
@@ -131,10 +166,9 @@ export function YoutubeToRecipeClient() {
     <>
       {/* Content */}
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
-        {!showRecipeForm ? (
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Input Card */}
-            <Card>
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Input Card */}
+          <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Youtube className="h-5 w-5 text-red-500" />
@@ -237,100 +271,135 @@ export function YoutubeToRecipeClient() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        ) : (
-          <div className="max-w-6xl mx-auto pb-8">
-            <Card className="mb-6 border-red-200 dark:border-red-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
-                  <Sparkles className="h-5 w-5" />
-                  Recette générée par IA
-                </CardTitle>
-                <CardDescription>
-                  La recette a été générée automatiquement. Vous pouvez la modifier avant de l&apos;enregistrer.
-                </CardDescription>
-              </CardHeader>
-            </Card>
 
-            {generatedRecipe ? (
-              <div>
-                <div className="mb-4 flex gap-2 justify-between items-center">
-                  <h3 className="text-lg font-semibold text-red-700 dark:text-red-400">
-                    Vérifiez et modifiez la recette avant de l&apos;enregistrer
-                  </h3>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowRecipeForm(false);
-                      setGeneratedRecipe(null);
-                      setVideoInfo(null);
-                      setYoutubeUrl("");
-                    }}
-                  >
-                    Annuler
-                  </Button>
-                </div>
-                <RecipeForm
-                  isYouTubeImport={true}
-                  recipe={{
-                    name: generatedRecipe.name,
-                    description: generatedRecipe.description || null,
-                    category: generatedRecipe.category,
-                    author: generatedRecipe.author || "Chef YouTube",
-                    imageUrl: generatedRecipe.imageUrl || null,
-                    videoUrl: generatedRecipe.videoUrl || null,
-                    preparationTime: generatedRecipe.preparationTime || 0,
-                    cookingTime: generatedRecipe.cookingTime || 0,
-                    rating: generatedRecipe.rating || 0,
-                    servings: generatedRecipe.servings || 4,
-                    costEstimate: generatedRecipe.costEstimate || null,
-                    tags: generatedRecipe.tags || [],
-                    id: 0,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    ingredients: (generatedRecipe.ingredients || []).map((ing, idx) => ({
-                      ...ing,
-                      id: idx + 1,
-                      recipeId: 0,
-                      order: idx,
-                    })),
-                    steps: (generatedRecipe.steps || []).map((step, idx) => ({
-                      ...step,
-                      id: idx + 1,
-                      recipeId: 0,
-                      order: step.order || idx + 1,
-                    })),
-                    ingredientGroups: generatedRecipe.ingredientGroups?.map((group, groupIdx) => ({
-                      id: groupIdx + 1,
-                      name: group.name,
-                      order: groupIdx,
-                      recipeId: 0,
-                      ingredients: group.ingredients.map((ing, ingIdx) => ({
-                        ...ing,
-                        id: ingIdx + 1,
-                        recipeId: 0,
-                        order: ingIdx,
-                        groupId: groupIdx + 1,
-                      })),
-                    })),
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="text-center py-8 text-stone-500 dark:text-stone-400">
-                <p>Erreur : La recette n&apos;a pas pu être générée.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowRecipeForm(false);
-                    setVideoInfo(null);
-                  }}
-                  className="mt-4"
-                >
-                  Retour
-                </Button>
-              </div>
+            {/* Bouton pour reprendre l'édition si une recette a été générée mais le dialog fermé */}
+            {!showRecipeForm && hasUnsavedRecipe && generatedRecipe && (
+              <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20">
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
+                        <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                          Recette non sauvegardée
+                        </h3>
+                        <p className="text-sm text-amber-600 dark:text-amber-400">
+                          Vous avez généré une recette &quot;{generatedRecipe.name}&quot; mais ne l&apos;avez pas encore enregistrée.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setGeneratedRecipe(null);
+                          setHasUnsavedRecipe(false);
+                          setVideoInfo(null);
+                          setYoutubeUrl("");
+                        }}
+                        className="text-amber-600 hover:text-amber-700 dark:text-amber-400"
+                      >
+                        Ignorer
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setShowRecipeForm(true);
+                          setFormKey(prev => prev + 1); // Force le remontage du formulaire
+                        }}
+                        className="bg-amber-600 hover:bg-amber-700 text-white"
+                      >
+                        <ChefHat className="mr-2 h-4 w-4" />
+                        Reprendre l&apos;édition
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
+
+            {/* Loading Card pendant la génération */}
+            {isGeneratingRecipe && (
+              <Card className="border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20">
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="relative">
+                      <Loader2 className="h-12 w-12 text-red-600 dark:text-red-400 animate-spin" />
+                      <Sparkles className="h-6 w-6 text-red-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <h3 className="font-semibold text-red-800 dark:text-red-300">
+                        Génération de la recette en cours...
+                      </h3>
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        ChatGPT analyse la transcription et crée une recette structurée
+                      </p>
+                      <div className="flex items-center justify-center gap-2 text-xs text-red-500 dark:text-red-500">
+                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: "0.4s" }} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+        {/* Section du formulaire - affichée seulement quand showRecipeForm est true */}
+        {showRecipeForm && generatedRecipe && (
+          <div className="max-w-6xl mx-auto pb-8">
+            <RecipeForm
+              key={`youtube-recipe-${formKey}`}
+              isYouTubeImport={true}
+              onSuccess={handleRecipeSaved}
+              onCancel={handleRecipeCancel}
+              recipe={{
+                name: generatedRecipe.name,
+                description: generatedRecipe.description || null,
+                category: generatedRecipe.category,
+                author: generatedRecipe.author || "Chef YouTube",
+                imageUrl: generatedRecipe.imageUrl || null,
+                videoUrl: generatedRecipe.videoUrl || null,
+                preparationTime: generatedRecipe.preparationTime || 0,
+                cookingTime: generatedRecipe.cookingTime || 0,
+                rating: generatedRecipe.rating || 0,
+                servings: generatedRecipe.servings || 4,
+                costEstimate: generatedRecipe.costEstimate || null,
+                tags: generatedRecipe.tags || [],
+                id: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                ingredients: (generatedRecipe.ingredients || []).map((ing, idx) => ({
+                  ...ing,
+                  id: idx + 1,
+                  recipeId: 0,
+                  order: idx,
+                })),
+                steps: (generatedRecipe.steps || []).map((step, idx) => ({
+                  ...step,
+                  id: idx + 1,
+                  recipeId: 0,
+                  order: step.order || idx + 1,
+                })),
+                ingredientGroups: generatedRecipe.ingredientGroups?.map((group, groupIdx) => ({
+                  id: groupIdx + 1,
+                  name: group.name,
+                  order: groupIdx,
+                  recipeId: 0,
+                  ingredients: group.ingredients.map((ing, ingIdx) => ({
+                    ...ing,
+                    id: ingIdx + 1,
+                    recipeId: 0,
+                    order: ingIdx,
+                    groupId: groupIdx + 1,
+                  })),
+                })),
+              }}
+            />
           </div>
         )}
       </div>
