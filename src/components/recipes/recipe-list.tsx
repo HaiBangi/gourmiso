@@ -115,19 +115,11 @@ export function RecipeList({
                   }}
                 />
               )}
-              {isDeletionMode ? (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <RecipeCard
-                    recipe={recipe}
-                    isFavorited={favoriteIds.has(recipe.id)}
-                  />
-                </div>
-              ) : (
-                <RecipeCard
-                  recipe={recipe}
-                  isFavorited={favoriteIds.has(recipe.id)}
-                />
-              )}
+              <RecipeCard
+                recipe={recipe}
+                isFavorited={favoriteIds.has(recipe.id)}
+                isDeletionMode={isDeletionMode}
+              />
             </div>
           ))}
         </div>

@@ -1,26 +1,19 @@
-/**
- * Composant pour importer rapidement une recette depuis YouTube
- * Version simplifiée qui cache les étapes intermédiaires
- */
-
 "use client";
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Youtube, Loader2, X } from "lucide-react";
-import { RecipeForm } from "./recipe-form";
 
 interface QuickYouTubeImportProps {
-  onClose?: () => void;
+  onRecipeGenerated: (recipe: any) => void;
 }
 
-export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
+export function QuickYouTubeImport({ onRecipeGenerated }: QuickYouTubeImportProps) {
+  const [showInput, setShowInput] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generatedRecipe, setGeneratedRecipe] = useState<any | null>(null);
-  const [showForm, setShowForm] = useState(false);
 
   const handleImport = async () => {
     if (!youtubeUrl.trim()) {
@@ -32,7 +25,6 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
     setError(null);
 
     try {
-      // 1. Extraire l'ID de la vidéo
       const videoIdMatch = youtubeUrl.match(
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
       );
@@ -43,7 +35,6 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
 
       const videoId = videoIdMatch[1];
 
-      // 2. Récupérer la transcription
       const transcriptRes = await fetch("/api/youtube/transcript", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +48,6 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
 
       const transcriptData = await transcriptRes.json();
 
-      // 3. Générer la recette avec ChatGPT (sans montrer la transcription)
       const recipeRes = await fetch("/api/youtube/generate-recipe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -77,9 +67,11 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
 
       const recipeData = await recipeRes.json();
 
-      // 4. Afficher directement le formulaire avec la recette
-      setGeneratedRecipe(recipeData.recipe);
-      setShowForm(true);
+      onRecipeGenerated(recipeData.recipe);
+      
+      setYoutubeUrl("");
+      setShowInput(false);
+      setError(null);
     } catch (err) {
       console.error("Erreur:", err);
       setError(err instanceof Error ? err.message : "Une erreur est survenue");
@@ -88,99 +80,9 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
     }
   };
 
-  const handleRecipeSaved = (recipeId: number) => {
-    // Rediriger vers la recette créée
-    window.location.href = `/recipes/${recipeId}`;
-  };
-
-  const handleFormCancel = () => {
-    setShowForm(false);
-    setGeneratedRecipe(null);
-    setYoutubeUrl("");
-    setError(null);
-  };
-
-  // Si le formulaire est affiché, le montrer
-  if (showForm && generatedRecipe) {
+  if (showInput) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-red-700 dark:text-red-400">
-            Recette importée depuis YouTube
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleFormCancel}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <RecipeForm
-          isYouTubeImport={true}
-          onSuccess={handleRecipeSaved}
-          onCancel={handleFormCancel}
-          recipe={{
-            name: generatedRecipe.name,
-            description: generatedRecipe.description || null,
-            category: generatedRecipe.category,
-            author: generatedRecipe.author || "Chef YouTube",
-            imageUrl: generatedRecipe.imageUrl || null,
-            videoUrl: generatedRecipe.videoUrl || null,
-            preparationTime: generatedRecipe.preparationTime || 0,
-            cookingTime: generatedRecipe.cookingTime || 0,
-            rating: 0, // Pas de note par défaut pour les imports YouTube
-            servings: generatedRecipe.servings || 4,
-            costEstimate: generatedRecipe.costEstimate || null,
-            tags: generatedRecipe.tags || [],
-            id: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            ingredients: (generatedRecipe.ingredients || []).map((ing: any, idx: number) => ({
-              ...ing,
-              id: idx + 1,
-              recipeId: 0,
-              order: idx,
-            })),
-            steps: (generatedRecipe.steps || []).map((step: any, idx: number) => ({
-              ...step,
-              id: idx + 1,
-              recipeId: 0,
-              order: step.order || idx + 1,
-            })),
-            ingredientGroups: generatedRecipe.ingredientGroups?.map((group: any, groupIdx: number) => ({
-              id: groupIdx + 1,
-              name: group.name,
-              order: groupIdx,
-              recipeId: 0,
-              ingredients: group.ingredients.map((ing: any, ingIdx: number) => ({
-                ...ing,
-                id: ingIdx + 1,
-                recipeId: 0,
-                order: ingIdx,
-                groupId: groupIdx + 1,
-              })),
-            })),
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Sinon, afficher le champ de saisie YouTube
-  return (
-    <div className="space-y-4 p-4 border-2 border-dashed border-red-200 dark:border-red-900 rounded-lg bg-red-50/50 dark:bg-red-950/20">
-      <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
-        <Youtube className="h-5 w-5" />
-        <h3 className="font-semibold">Import rapide depuis YouTube</h3>
-      </div>
-      
-      <p className="text-sm text-stone-600 dark:text-stone-400">
-        Collez un lien YouTube pour importer automatiquement une recette
-      </p>
-
-      <div className="flex gap-2">
+      <>
         <Input
           type="url"
           placeholder="https://www.youtube.com/watch?v=..."
@@ -190,40 +92,62 @@ export function QuickYouTubeImport({ onClose }: QuickYouTubeImportProps) {
             if (e.key === "Enter" && !isLoading) {
               handleImport();
             }
+            if (e.key === "Escape") {
+              setShowInput(false);
+              setYoutubeUrl("");
+              setError(null);
+            }
           }}
-          className="flex-1"
+          className="h-10 flex-1 max-w-xs"
           disabled={isLoading}
+          autoFocus
         />
         <Button
           onClick={handleImport}
           disabled={!youtubeUrl.trim() || isLoading}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="bg-red-600 hover:bg-red-700 text-white h-10"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Import...
+              <span className="hidden sm:inline">Import...</span>
             </>
           ) : (
             <>
-              <Youtube className="h-4 w-4 mr-2" />
-              Importer
+              <Youtube className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Importer</span>
             </>
           )}
         </Button>
-      </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            setShowInput(false);
+            setYoutubeUrl("");
+            setError(null);
+          }}
+          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        {error && (
+          <p className="absolute top-full left-0 mt-1 text-sm text-red-200">
+            {error}
+          </p>
+        )}
+      </>
+    );
+  }
 
-      {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
-
-      {isLoading && (
-        <p className="text-sm text-stone-600 dark:text-stone-400">
-          ⏳ Récupération de la vidéo et génération de la recette en cours...
-        </p>
-      )}
-    </div>
+  return (
+    <Button
+      onClick={() => setShowInput(true)}
+      variant="outline"
+      className="gap-2 bg-white dark:bg-stone-900 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/20 h-10"
+    >
+      <Youtube className="h-4 w-4" />
+      <span className="hidden sm:inline">Import YouTube</span>
+    </Button>
   );
 }

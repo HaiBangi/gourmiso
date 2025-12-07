@@ -30,6 +30,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import { TagInput } from "./tag-input";
 import { IngredientGroupsEditor } from "./ingredient-groups-editor";
+import { QuickYouTubeImport } from "./quick-youtube-import";
 import { getUserPseudo } from "@/actions/users";
 import {
   convertGroupToApiFormat,
@@ -236,6 +237,56 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   // États pour le système de groupes d'ingrédients
   const [useGroups, setUseGroups] = useState(false);
   const [ingredientGroups, setIngredientGroups] = useState<IngredientGroupInput[]>([]);
+
+  // Fonction pour remplir le formulaire avec une recette importée depuis YouTube
+  const handleYouTubeRecipeImport = useCallback((importedRecipe: any) => {
+    setName(importedRecipe.name || "");
+    setDescription(importedRecipe.description || "");
+    setCategory(importedRecipe.category || "MAIN_DISH");
+    setImageUrl(importedRecipe.imageUrl || "");
+    setVideoUrl(importedRecipe.videoUrl || "");
+    setPreparationTime(importedRecipe.preparationTime?.toString() || "");
+    setCookingTime(importedRecipe.cookingTime?.toString() || "");
+    setServings(importedRecipe.servings?.toString() || "4");
+    setCostEstimate(importedRecipe.costEstimate || "");
+    setTags(importedRecipe.tags || []);
+
+    if (importedRecipe.ingredientGroups && importedRecipe.ingredientGroups.length > 0) {
+      setUseGroups(true);
+      const formattedGroups = importedRecipe.ingredientGroups.map((group: any, groupIdx: number) => ({
+        id: `group-${Date.now()}-${groupIdx}`,
+        name: group.name,
+        ingredients: group.ingredients.map((ing: any, ingIdx: number) => ({
+          id: `ing-${Date.now()}-${groupIdx}-${ingIdx}`,
+          name: ing.name,
+          quantity: ing.quantity?.toString() || "",
+          unit: ing.unit || "",
+          quantityUnit: combineQuantityUnit(ing.quantity?.toString() || "", ing.unit || ""),
+        })),
+      }));
+      setIngredientGroups(formattedGroups);
+    } else if (importedRecipe.ingredients && importedRecipe.ingredients.length > 0) {
+      setUseGroups(false);
+      const formattedIngredients = importedRecipe.ingredients.map((ing: any, idx: number) => ({
+        id: `ing-${Date.now()}-${idx}`,
+        name: ing.name,
+        quantity: ing.quantity?.toString() || "",
+        unit: ing.unit || "",
+        quantityUnit: combineQuantityUnit(ing.quantity?.toString() || "", ing.unit || ""),
+      }));
+      setIngredients(formattedIngredients);
+    }
+
+    if (importedRecipe.steps && importedRecipe.steps.length > 0) {
+      const formattedSteps = importedRecipe.steps.map((step: any, idx: number) => ({
+        id: `step-${Date.now()}-${idx}`,
+        text: step.text || "",
+      }));
+      setSteps(formattedSteps);
+    }
+
+    setShouldSaveDraft(false);
+  }, []);
 
   // Fetch user pseudo when component mounts
   useEffect(() => {
@@ -729,14 +780,20 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="text-white/80 hover:text-white hover:bg-white/20 rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Import YouTube button - only for new recipes and admins/owners */}
+              {!recipe && !isYouTubeImport && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (
+                <QuickYouTubeImport onRecipeGenerated={handleYouTubeRecipeImport} />
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpen(false)}
+                className="text-white/80 hover:text-white hover:bg-white/20 rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
