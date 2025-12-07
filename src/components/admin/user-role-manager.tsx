@@ -264,26 +264,26 @@ export function UserRoleManager({ users, currentUserId }: UserRoleManagerProps) 
       <div className="mt-8 p-5 pb-6 rounded-xl bg-stone-50 dark:bg-stone-800/50 border dark:border-stone-700">
         <h4 className="font-semibold mb-4 text-sm text-stone-900 dark:text-stone-100">Légende des rôles</h4>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="flex items-start gap-2">
-            <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 border">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 border flex-shrink-0">
               <User className="h-3 w-3 mr-1" />
               Lecteur
             </Badge>
-            <p className="text-xs text-muted-foreground">Peut consulter les recettes et ajouter des favoris</p>
+            <p className="text-xs text-muted-foreground leading-tight">Peut consulter les recettes et ajouter des favoris</p>
           </div>
-          <div className="flex items-start gap-2">
-            <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 border">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 border flex-shrink-0">
               <ChefHat className="h-3 w-3 mr-1" />
               Contributeur
             </Badge>
-            <p className="text-xs text-muted-foreground">Peut créer et modifier ses propres recettes</p>
+            <p className="text-xs text-muted-foreground leading-tight">Peut créer et modifier ses propres recettes</p>
           </div>
-          <div className="flex items-start gap-2">
-            <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 border">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 border flex-shrink-0">
               <Shield className="h-3 w-3 mr-1" />
               Admin
             </Badge>
-            <p className="text-xs text-muted-foreground">Accès complet, gestion des utilisateurs</p>
+            <p className="text-xs text-muted-foreground leading-tight">Accès complet, gestion des utilisateurs</p>
           </div>
         </div>
       </div>

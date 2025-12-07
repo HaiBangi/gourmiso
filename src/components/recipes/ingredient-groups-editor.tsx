@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,8 @@ export function IngredientGroupsEditor({
 }: IngredientGroupsEditorProps) {
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editingGroupName, setEditingGroupName] = useState("");
+  const [draggedIngredient, setDraggedIngredient] = useState<{ groupId: string; ingredientId: string } | null>(null);
+  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addGroup = () => {
     const newGroup: IngredientGroupInput = {
@@ -78,6 +80,7 @@ export function IngredientGroupsEditor({
   };
 
   const addIngredientToGroup = (groupId: string) => {
+    const newIngId = `ing-${Date.now()}`;
     onChange(
       groups.map((g) =>
         g.id === groupId
@@ -86,7 +89,7 @@ export function IngredientGroupsEditor({
               ingredients: [
                 ...g.ingredients,
                 {
-                  id: `ing-${Date.now()}`,
+                  id: newIngId,
                   name: "",
                   quantityUnit: "",
                 },
@@ -95,6 +98,11 @@ export function IngredientGroupsEditor({
           : g
       )
     );
+    // Focus sur le nouveau champ après un court délai
+    setTimeout(() => {
+      const input = inputRefs.current[`${groupId}-${newIngId}-qty`];
+      if (input) input.focus();
+    }, 50);
   };
 
   const removeIngredientFromGroup = (groupId: string, ingredientId: string) => {
@@ -128,6 +136,22 @@ export function IngredientGroupsEditor({
           : g
       )
     );
+  };
+
+  // Navigation Enter entre les champs
+  const handleQuantityKeyDown = (e: React.KeyboardEvent, groupId: string, ingredientId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const nameInput = inputRefs.current[`${groupId}-${ingredientId}-name`];
+      if (nameInput) nameInput.focus();
+    }
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent, groupId: string, ingredientId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addIngredientToGroup(groupId);
+    }
   };
 
   // Drag and drop pour réorganiser les groupes
@@ -169,6 +193,72 @@ export function IngredientGroupsEditor({
 
   const handleGroupDragEnd = () => {
     setDraggedGroupId(null);
+  };
+
+  // Drag and drop pour déplacer des ingrédients entre groupes
+  const handleIngredientDragStart = (e: React.DragEvent, groupId: string, ingredientId: string) => {
+    setDraggedIngredient({ groupId, ingredientId });
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleIngredientDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleIngredientDrop = (e: React.DragEvent, targetGroupId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!draggedIngredient) return;
+
+    const { groupId: sourceGroupId, ingredientId } = draggedIngredient;
+
+    // Si on dépose dans le même groupe, ne rien faire
+    if (sourceGroupId === targetGroupId) {
+      setDraggedIngredient(null);
+      return;
+    }
+
+    // Trouver l'ingrédient à déplacer
+    const sourceGroup = groups.find(g => g.id === sourceGroupId);
+    const ingredient = sourceGroup?.ingredients.find(i => i.id === ingredientId);
+
+    if (!ingredient) {
+      setDraggedIngredient(null);
+      return;
+    }
+
+    // Retirer de l'ancien groupe et ajouter au nouveau
+    const newGroups = groups.map(g => {
+      if (g.id === sourceGroupId) {
+        return {
+          ...g,
+          ingredients: g.ingredients.filter(i => i.id !== ingredientId)
+        };
+      }
+      if (g.id === targetGroupId) {
+        return {
+          ...g,
+          ingredients: [...g.ingredients, ingredient]
+        };
+      }
+      return g;
+    });
+
+    onChange(newGroups);
+    setDraggedIngredient(null);
+  };
+
+  const handleIngredientDragEnd = () => {
+    setDraggedIngredient(null);
+  };
+
+  // Double-clic pour renommer le groupe
+  const handleGroupNameDoubleClick = (groupId: string, currentName: string) => {
+    if (!disabled) {
+      startEditingGroupName(groupId, currentName);
+    }
   };
 
   return (
@@ -254,9 +344,13 @@ export function IngredientGroupsEditor({
                   </Button>
                 </div>
               ) : (
-                // Mode affichage du nom
+                // Mode affichage du nom - Double-clic pour éditer
                 <>
-                  <h4 className="flex-1 font-semibold text-stone-800 dark:text-stone-100 text-sm">
+                  <h4 
+                    className="flex-1 font-semibold text-stone-800 dark:text-stone-100 text-sm cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                    onDoubleClick={() => handleGroupNameDoubleClick(group.id, group.name)}
+                    title="Double-cliquez pour renommer"
+                  >
                     {group.name} <span className="text-xs text-stone-500 font-normal">({group.ingredients.length})</span>
                   </h4>
                   <Button
@@ -297,11 +391,15 @@ export function IngredientGroupsEditor({
               )}
             </div>
 
-            {/* Liste des ingrédients du groupe */}
-            <div className="space-y-2 pl-8">
+            {/* Zone de drop pour les ingrédients */}
+            <div 
+              className="space-y-2 pl-8"
+              onDragOver={handleIngredientDragOver}
+              onDrop={(e) => handleIngredientDrop(e, group.id)}
+            >
               {group.ingredients.length === 0 ? (
                 <p className="text-xs text-stone-400 italic py-2">
-                  Aucun ingrédient dans ce groupe
+                  Aucun ingrédient dans ce groupe (glissez un ingrédient ici)
                 </p>
               ) : (
                 <>
@@ -315,9 +413,15 @@ export function IngredientGroupsEditor({
                   {group.ingredients.map((ingredient) => (
                     <div
                       key={ingredient.id}
-                      className="grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-700/30 border border-stone-200 dark:border-stone-600 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors"
+                      draggable={!disabled}
+                      onDragStart={(e) => handleIngredientDragStart(e, group.id, ingredient.id)}
+                      onDragEnd={handleIngredientDragEnd}
+                      className={`grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-700/30 border border-stone-200 dark:border-stone-600 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors cursor-move ${
+                        draggedIngredient?.ingredientId === ingredient.id ? 'opacity-50' : ''
+                      }`}
                     >
                       <Input
+                        ref={(el) => { inputRefs.current[`${group.id}-${ingredient.id}-qty`] = el; }}
                         value={ingredient.quantityUnit}
                         onChange={(e) =>
                           updateIngredient(
@@ -327,12 +431,14 @@ export function IngredientGroupsEditor({
                             e.target.value
                           )
                         }
+                        onKeyDown={(e) => handleQuantityKeyDown(e, group.id, ingredient.id)}
                         placeholder="150g"
                         disabled={disabled}
-                        className="h-11 text-sm text-center bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
-                        title="Ex: 150g, 1 c.à.s, 2 kg, etc."
+                        className="h-10 text-xs text-center bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                        title="Ex: 150g, 1 c.à.s, 2 kg - Appuyez sur Enter pour passer au nom"
                       />
                       <Input
+                        ref={(el) => { inputRefs.current[`${group.id}-${ingredient.id}-name`] = el; }}
                         value={ingredient.name}
                         onChange={(e) =>
                           updateIngredient(
@@ -342,9 +448,11 @@ export function IngredientGroupsEditor({
                             e.target.value
                           )
                         }
+                        onKeyDown={(e) => handleNameKeyDown(e, group.id, ingredient.id)}
                         placeholder="Nom de l'ingrédient..."
                         disabled={disabled}
-                        className="h-11 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                        className="h-10 text-xs border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                        title="Appuyez sur Enter pour ajouter un nouvel ingrédient"
                       />
                       <Button
                         type="button"
@@ -389,4 +497,3 @@ export function IngredientGroupsEditor({
     </div>
   );
 }
-
