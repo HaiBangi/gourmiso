@@ -60,9 +60,9 @@ export function RecipeCard({ recipe, isFavorited = false, isDeletionMode = false
           variant="card"
         />
         {recipe.rating > 0 && (
-          <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex items-center gap-1 sm:gap-1.5 rounded-full bg-black/50 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 shadow-md">
-            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
-            <span className="text-xs sm:text-sm font-medium text-white">{recipe.rating}/5</span>
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/80 dark:bg-stone-900/90 px-2 py-1 rounded-md backdrop-blur-sm">
+            <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+            <span className="text-xs font-medium text-white">{recipe.rating.toFixed(1)}</span>
           </div>
         )}
       </div>

@@ -48,8 +48,14 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
     if (!text.trim()) return;
     setError(null);
     
+    console.log('[handleSubmit] Current rating state:', rating);
+    console.log('[handleSubmit] Will send rating:', rating > 0 ? rating : undefined);
+    
     startTransition(async () => {
-      const result = await addComment(recipeId, text, rating > 0 ? rating : undefined);
+      const ratingToSend = rating > 0 ? rating : undefined;
+      console.log('[handleSubmit] Actually sending rating:', ratingToSend);
+      const result = await addComment(recipeId, text, ratingToSend);
+      console.log('[handleSubmit] Result:', result);
       if (result.success) {
         setText("");
         setRating(0);
@@ -123,12 +129,14 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
           <div className="space-y-3 pb-4 border-b border-amber-100 dark:border-amber-900/50">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Votre note :</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
                   <button
                     key={star}
+                    type="button"
                     onClick={() => setRating(rating === star ? 0 : star)}
-                    className="cursor-pointer"
+                    className="cursor-pointer transition-transform hover:scale-110"
+                    disabled={isPending}
                   >
                     <Star
                       className={`h-5 w-5 transition-colors ${
@@ -140,6 +148,11 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
                   </button>
                 ))}
               </div>
+              {rating > 0 && (
+                <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                  {rating}/10
+                </span>
+              )}
             </div>
             <Textarea
               value={text}
@@ -199,13 +212,14 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
                       <div className="space-y-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-sm text-muted-foreground">Note :</span>
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
                               <button
                                 key={star}
+                                type="button"
                                 onClick={() => setEditRating(editRating === star ? 0 : star)}
                                 disabled={isPending}
-                                className="cursor-pointer"
+                                className="cursor-pointer transition-transform hover:scale-110"
                               >
                                 <Star
                                   className={`h-4 w-4 transition-colors ${
@@ -217,6 +231,11 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
                               </button>
                             ))}
                           </div>
+                          {editRating > 0 && (
+                            <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
+                              {editRating}/10
+                            </span>
+                          )}
                         </div>
                         <Textarea
                           value={editText}
@@ -258,18 +277,10 @@ export function RecipeComments({ recipeId, comments }: RecipeCommentsProps) {
                           <span className="font-medium text-stone-900 dark:text-stone-100">
                             {comment.user.pseudo}
                           </span>
-                          {comment.rating && (
-                            <div className="flex">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`h-3.5 w-3.5 ${
-                                    star <= comment.rating!
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-200 dark:text-stone-600"
-                                  }`}
-                                />
-                              ))}
+                          {comment.rating && comment.rating > 0 && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-black/80 dark:bg-stone-900/90 rounded-md backdrop-blur-sm">
+                              <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                              <span className="text-xs font-medium text-white">{comment.rating}/10</span>
                             </div>
                           )}
                           <span className="text-xs text-muted-foreground">

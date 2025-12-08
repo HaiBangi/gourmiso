@@ -208,7 +208,7 @@ export function RecipeDetail({
                   Note
                 </p>
                 <p className="font-semibold text-stone-900 dark:text-stone-100">
-                  {recipe.rating}/5
+                  {recipe.rating.toFixed(1)}/10
                 </p>
               </div>
             </div>

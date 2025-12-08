@@ -83,7 +83,7 @@ model Recipe {
   videoUrl        String?
   preparationTime Int          @default(0)
   cookingTime     Int          @default(0)
-  rating          Int          @default(0) // Average rating from comments (1-5)
+  rating          Float        @default(0) // Average rating from comments (0-10 with decimals)
   servings        Int          @default(1)
   difficulty      String       @default("MEDIUM") // EASY, MEDIUM, HARD
   costEstimate    String?      // CHEAP, MEDIUM, EXPENSIVE
@@ -106,7 +106,7 @@ model Recipe {
 model Comment {
   id        Int      @id @default(autoincrement())
   text      String
-  rating    Int?     // Optional rating 1-5
+  rating    Float?   // Optional rating 0-10 with decimals
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   

@@ -1,5 +1,7 @@
 "use server";
 
+// Force reload: 2025-12-08 16:05 - FINAL FIX
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { updateRecipeRating } from "@/lib/rating-helper";
@@ -16,15 +18,15 @@ export async function addComment(recipeId: number, text: string, rating?: number
     return { success: false, error: "Commentaire invalide (1-1000 caractères)" };
   }
 
-  if (rating !== undefined && (rating < 1 || rating > 5)) {
-    return { success: false, error: "Note invalide (1-5)" };
+  if (rating !== undefined && (rating < 0 || rating > 10)) {
+    return { success: false, error: "Note invalide (0-10)" };
   }
 
   try {
     const comment = await db.comment.create({
       data: {
         text: text.trim(),
-        rating: rating || null,
+        rating: rating !== undefined ? rating : null,
         userId: session.user.id,
         recipeId,
       },
@@ -114,7 +116,7 @@ export async function updateComment(commentId: number, text: string, rating?: nu
       where: { id: commentId },
       data: {
         text: text.trim(),
-        rating: rating || null,
+        rating: rating !== undefined ? rating : null,
       },
     });
 
