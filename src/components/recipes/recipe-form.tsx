@@ -42,8 +42,9 @@ import {
 } from "@/lib/ingredient-helpers";
 import type { Recipe } from "@/types/recipe";
 
-// Key for localStorage draft
-const DRAFT_KEY = "yumiso_recipe_draft";
+// Keys for localStorage drafts
+const NEW_RECIPE_DRAFT_KEY = "yumiso_new_recipe_draft";
+const EDIT_RECIPE_DRAFT_KEY_PREFIX = "yumiso_edit_recipe_draft_";
 
 // Parse quantity+unit field (e.g., "150g" => {quantity: "150", unit: "g"})
 function parseQuantityUnit(input: string): { quantity: string; unit: string } {
@@ -214,6 +215,16 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   const isDuplication = recipe && recipe.id === 0 && !isYouTubeImport; // Not a duplication if it's from YouTube
   const isEdit = recipe && recipe.id > 0;
 
+  // Helper function to get the appropriate draft key
+  const getDraftKey = (): string => {
+    if (isEdit && recipe) {
+      // For editing, use a unique key per recipe ID
+      return `${EDIT_RECIPE_DRAFT_KEY_PREFIX}${recipe.id}`;
+    }
+    // For new recipes and duplications, use the generic new recipe key
+    return NEW_RECIPE_DRAFT_KEY;
+  };
+
   const [name, setName] = useState(recipe?.name || "");
   const [description, setDescription] = useState(recipe?.description || "");
   const [category, setCategory] = useState(recipe?.category || "MAIN_DISH");
@@ -302,11 +313,11 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
 
   // Save draft to localStorage - using refs to always get current values
   const saveDraftToStorage = () => {
-    // Only save drafts for new recipes, not edits
-    if (recipe) {
-      console.log('[RecipeForm] Not saving draft - this is an edit');
-      return;
-    }
+    // Get the appropriate draft key based on context
+    const draftKey = getDraftKey();
+    const context = isEdit ? 'edit' : isDuplication ? 'duplication' : 'new';
+    
+    console.log(`[RecipeForm] Saving draft for ${context} recipe with key:`, draftKey);
 
     // Read current state values at the time of calling
     const currentIngredients = ingredients;
@@ -333,6 +344,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     };
 
     console.log('[RecipeForm] saveDraft called with:', {
+      context,
       ingredientsCount: currentIngredients.length,
       stepsCount: currentSteps.length,
       useGroups: currentUseGroups,
@@ -349,9 +361,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       (currentIngredientGroups && currentIngredientGroups.length > 0 && currentIngredientGroups.some(g => g.ingredients.some(i => i.name.trim())));
 
     if (hasContent) {
-      console.log('[RecipeForm] Saving draft to localStorage');
+      console.log('[RecipeForm] Saving draft to localStorage with key:', draftKey);
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        localStorage.setItem(draftKey, JSON.stringify(draft));
         console.log('[RecipeForm] Draft saved successfully');
       } catch (e) {
         console.warn("Could not save draft to localStorage", e);
@@ -363,12 +375,14 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
 
   // Clear draft from localStorage
   const clearDraft = useCallback(() => {
+    const draftKey = isEdit && recipe ? `${EDIT_RECIPE_DRAFT_KEY_PREFIX}${recipe.id}` : NEW_RECIPE_DRAFT_KEY;
+    console.log('[RecipeForm] Clearing draft with key:', draftKey);
     try {
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(draftKey);
     } catch (e) {
       console.warn("Could not clear draft from localStorage");
     }
-  }, []);
+  }, [isEdit, recipe]);
 
   // Auto-save draft when form changes (debounced)
   // DISABLED: This was causing issues with stale state values
@@ -390,25 +404,87 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   useEffect(() => {
     if (!open) return;
 
-    console.log('[RecipeForm] Dialog opened, initializing form. Recipe:', !!recipe, 'Mounted:', mounted);
+    console.log('[RecipeForm] Dialog opened, initializing form. Recipe:', !!recipe, 'Mounted:', mounted, 'IsEdit:', isEdit);
 
     if (recipe) {
-      // For editing or duplication: load from recipe
+      // For editing or duplication: load from recipe first, then try to restore draft
+      const draftKey = getDraftKey();
+      
+      console.log('[RecipeForm] Loading recipe data and checking for draft with key:', draftKey);
 
       // Déterminer si on doit utiliser le mode groupes
       const hasGroups = !!(recipe.ingredientGroups && recipe.ingredientGroups.length > 0);
-      setUseGroups(hasGroups);
-
-      if (hasGroups) {
-        // Charger les groupes depuis la recette
-        setIngredientGroups(convertDbGroupsToFormGroups(recipe.ingredientGroups));
-      } else {
-        // Charger les ingrédients simples
-        setIngredients(getInitialIngredients(recipe));
+      
+      // Try to load draft for this recipe
+      let draft: DraftData | null = null;
+      try {
+        const saved = localStorage.getItem(draftKey);
+        if (saved) {
+          const parsedDraft: DraftData = JSON.parse(saved);
+          // Only restore if draft is less than 24 hours old
+          if (Date.now() - parsedDraft.savedAt < 24 * 60 * 60 * 1000) {
+            draft = parsedDraft;
+            console.log('[RecipeForm] Found draft for this recipe:', draft);
+          } else {
+            console.log('[RecipeForm] Draft expired, removing it');
+            localStorage.removeItem(draftKey);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load draft from localStorage");
       }
 
-      setSteps(getInitialSteps(recipe));
-      setTags(recipe?.tags || []);
+      // If we have a draft, restore from it; otherwise use recipe data
+      if (draft && isEdit) {
+        console.log('[RecipeForm] Restoring from draft for edit mode');
+        
+        setName(draft.name);
+        setDescription(draft.description);
+        setCategory(draft.category as typeof category);
+        setImageUrl(draft.imageUrl);
+        setVideoUrl(draft.videoUrl);
+        setPreparationTime(draft.preparationTime);
+        setCookingTime(draft.cookingTime);
+        setServings(draft.servings);
+        setCostEstimate(draft.costEstimate || "");
+        setTags(draft.tags || []);
+        
+        // Restore useGroups and ingredient groups if available
+        if (draft.useGroups && draft.ingredientGroups && draft.ingredientGroups.length > 0) {
+          setUseGroups(true);
+          setIngredientGroups(draft.ingredientGroups);
+          setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }]);
+        } else {
+          setUseGroups(false);
+          const draftIngredients = (draft.ingredients && draft.ingredients.length > 0)
+            ? draft.ingredients.map(ing => ({
+                ...ing,
+                quantityUnit: ing.quantityUnit || combineQuantityUnit(ing.quantity || "", ing.unit || "")
+              }))
+            : [{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }];
+          setIngredients(draftIngredients);
+          setIngredientGroups([]);
+        }
+        
+        const restoredSteps = (draft.steps && draft.steps.length > 0) ? draft.steps : [{ id: "step-0", text: "" }];
+        setSteps(restoredSteps);
+        setDraftRestored(true); // Show banner for restored edit draft
+      } else {
+        console.log('[RecipeForm] Loading from recipe data (no draft or duplication mode)');
+        
+        setUseGroups(hasGroups);
+
+        if (hasGroups) {
+          // Charger les groupes depuis la recette
+          setIngredientGroups(convertDbGroupsToFormGroups(recipe.ingredientGroups));
+        } else {
+          // Charger les ingrédients simples
+          setIngredients(getInitialIngredients(recipe));
+        }
+
+        setSteps(getInitialSteps(recipe));
+        setTags(recipe?.tags || []);
+      }
 
       // For duplication, reset the author to empty so it uses the current user's pseudo
       if (isDuplication) {
@@ -419,16 +495,18 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     } else {
       // For new recipe: try to restore draft first
       // Load draft directly here instead of using loadDraft callback
+      const draftKey = getDraftKey();
       let draft: DraftData | null = null;
+      
       try {
-        const saved = localStorage.getItem(DRAFT_KEY);
+        const saved = localStorage.getItem(draftKey);
         if (saved) {
           const parsedDraft: DraftData = JSON.parse(saved);
           // Only restore if draft is less than 24 hours old
           if (Date.now() - parsedDraft.savedAt < 24 * 60 * 60 * 1000) {
             draft = parsedDraft;
           } else {
-            localStorage.removeItem(DRAFT_KEY);
+            localStorage.removeItem(draftKey);
           }
         }
       } catch (e) {
@@ -748,10 +826,12 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
 
   const handleDialogClose = (isOpen: boolean) => {
     // Save draft BEFORE closing (while we still have current state values)
-    if (!isOpen && !recipe && open) {
+    // Skip saving for YouTube imports as they don't need drafts
+    if (!isOpen && open && !isYouTubeImport) {
       console.log('[RecipeForm] Dialog closing, saving draft with current state...');
       console.log('[RecipeForm] Current ingredients:', ingredients);
       console.log('[RecipeForm] Current steps:', steps);
+      console.log('[RecipeForm] IsEdit:', isEdit, 'Recipe ID:', recipe?.id);
       saveDraftToStorage();
       // Reset mounted after saving
       setMounted(false);
@@ -759,8 +839,12 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     
     setOpen(isOpen);
     if (!isOpen) {
-      if (recipe) {
-        // For edits, reset form when closing
+      if (recipe && isEdit) {
+        // For edits, we keep the draft but clear mounted state
+        // The draft will be restored on next open
+        console.log('[RecipeForm] Edit dialog closed, draft saved');
+      } else if (recipe && !isEdit) {
+        // For duplications, reset form when closing
         resetForm();
       }
       // Call onCancel callback if provided (e.g., for YouTube import)
@@ -828,15 +912,21 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
             )}
 
             {/* Draft restored message */}
-            {draftRestored && !recipe && (
-              <div className="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {draftRestored && (
+              <div className="mb-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-full flex-shrink-0">
-                    <RotateCcw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-full flex-shrink-0 animate-pulse">
+                    <RotateCcw className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div>
-                    <p className="text-blue-800 dark:text-blue-300 font-medium text-sm">Brouillon restauré</p>
-                    <p className="text-blue-600 dark:text-blue-400 text-xs">Votre travail précédent a été récupéré automatiquement</p>
+                    <p className="text-amber-800 dark:text-amber-300 font-medium text-sm">
+                      💾 {isEdit ? "Modifications restaurées" : "Brouillon restauré"}
+                    </p>
+                    <p className="text-amber-600 dark:text-amber-400 text-xs">
+                      {isEdit 
+                        ? "Vos modifications non sauvegardées ont été récupérées automatiquement"
+                        : "Votre travail précédent a été récupéré automatiquement"}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -844,12 +934,37 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    resetForm();
+                    if (isEdit && recipe) {
+                      // For edits, reload original recipe data
+                      const hasGroups = !!(recipe.ingredientGroups && recipe.ingredientGroups.length > 0);
+                      setUseGroups(hasGroups);
+                      if (hasGroups) {
+                        setIngredientGroups(convertDbGroupsToFormGroups(recipe.ingredientGroups));
+                      } else {
+                        setIngredients(getInitialIngredients(recipe));
+                      }
+                      setSteps(getInitialSteps(recipe));
+                      setName(recipe.name);
+                      setDescription(recipe.description || "");
+                      setCategory(recipe.category);
+                      setImageUrl(recipe.imageUrl || "");
+                      setVideoUrl(recipe.videoUrl || "");
+                      setPreparationTime(recipe.preparationTime?.toString() || "");
+                      setCookingTime(recipe.cookingTime?.toString() || "");
+                      setServings(recipe.servings?.toString() || "");
+                      setCostEstimate(recipe.costEstimate || "");
+                      setTags(recipe.tags || []);
+                      setAuthorField(recipe.author || "");
+                    } else {
+                      // For new recipes, clear everything
+                      resetForm();
+                    }
+                    clearDraft();
                     setDraftRestored(false);
                   }}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs cursor-pointer w-full sm:w-auto"
+                  className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-xs cursor-pointer w-full sm:w-auto whitespace-nowrap"
                 >
-                  Réinitialiser le formulaire
+                  {isEdit ? "Annuler les modifications" : "Réinitialiser"}
                 </Button>
               </div>
             )}
@@ -1147,20 +1262,20 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                       {mounted && ingredients.map((ing, index) => (
                         <div
                           key={ing.id}
-                          className="grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-2 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
+                          className="grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-1.5 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
                         >
                           <Input
                             value={ing.quantityUnit}
                             onChange={(e) => updateIngredient(ing.id, "quantityUnit", e.target.value)}
                             placeholder="150g"
-                            className="h-11 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                            className="h-8 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                             title="Ex: 150g, 1 c.à.s, 2 kg, etc."
                           />
                           <Input
                             value={ing.name}
                             onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
                             placeholder="Nom de l'ingrédient..."
-                            className="h-11 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                            className="h-8 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                           />
                           <Button
                             type="button"
@@ -1168,7 +1283,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                             size="icon"
                             onClick={() => removeIngredient(ing.id)}
                             disabled={ingredients.length === 1}
-                            className="h-10 w-10 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
+                            className="h-8 w-8 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

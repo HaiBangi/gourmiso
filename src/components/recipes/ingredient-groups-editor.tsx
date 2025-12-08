@@ -401,7 +401,7 @@ export function IngredientGroupsEditor({
                       draggable={!disabled}
                       onDragStart={(e) => handleIngredientDragStart(e, group.id, ingredient.id)}
                       onDragEnd={handleIngredientDragEnd}
-                      className={`grid grid-cols-[65px_1fr_36px] sm:grid-cols-[70px_1fr_36px] gap-1.5 items-center px-1.5 py-1.5 rounded-md bg-stone-50 dark:bg-stone-700/30 border border-stone-200 dark:border-stone-600 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors cursor-move ${
+                      className={`grid grid-cols-[65px_1fr_36px] sm:grid-cols-[70px_1fr_36px] gap-1.5 items-center px-1.5 py-1 rounded-md bg-stone-50 dark:bg-stone-700/30 border border-stone-200 dark:border-stone-600 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors cursor-move ${
                         draggedIngredient?.ingredientId === ingredient.id ? 'opacity-50' : ''
                       }`}
                     >
@@ -419,7 +419,7 @@ export function IngredientGroupsEditor({
                         onKeyDown={(e) => handleQuantityKeyDown(e, group.id, ingredient.id)}
                         placeholder="150g"
                         disabled={disabled}
-                        className="h-9 text-xs text-center bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                        className="h-8 text-xs text-center bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         title="Ex: 150g, 1 c.à.s - Enter pour passer au nom"
                       />
                       <Input
@@ -436,7 +436,7 @@ export function IngredientGroupsEditor({
                         onKeyDown={(e) => handleNameKeyDown(e, group.id, ingredient.id)}
                         placeholder="Nom..."
                         disabled={disabled}
-                        className="h-9 text-xs border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                        className="h-8 text-xs border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         title="Enter pour ajouter un nouvel ingrédient"
                       />
                       <Button
@@ -447,7 +447,7 @@ export function IngredientGroupsEditor({
                           removeIngredientFromGroup(group.id, ingredient.id)
                         }
                         disabled={disabled || group.ingredients.length === 1}
-                        className="h-9 w-9 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
+                        className="h-8 w-8 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
