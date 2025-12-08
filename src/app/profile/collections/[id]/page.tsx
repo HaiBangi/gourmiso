@@ -103,7 +103,7 @@ async function CollectionContent({ collectionId, userId }: { collectionId: numbe
             <RecipeCard
               key={recipe.id}
               recipe={recipe as any}
-              isFavorite={favoriteIds.has(recipe.id)}
+              isFavorited={favoriteIds.has(recipe.id)}
             />
           ))}
         </div>

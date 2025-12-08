@@ -154,11 +154,11 @@ export function QuickYouTubeImport({ onRecipeGenerated }: QuickYouTubeImportProp
               }}
               variant="ghost"
               size="icon"
-              className="sm:hidden bg-white/90 hover:bg-red-50 dark:bg-stone-900/90 dark:hover:bg-red-950/20 text-stone-600 hover:text-red-600 dark:text-stone-400 dark:hover:text-red-500 h-[42px] w-[42px] flex-shrink-0 border-2 border-stone-300 dark:border-stone-600"
+              className="sm:hidden bg-white/90 hover:bg-red-50 dark:bg-stone-900/90 dark:hover:bg-red-950/20 text-stone-600 hover:text-red-600 dark:text-stone-400 dark:hover:text-red-500 h-9 w-9 flex-shrink-0 border-2 border-stone-300 dark:border-stone-600 p-0"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
-
+            
             <Input
               type="url"
               placeholder={isMobile ? "youtu.be/dQw4w9WgXcQ" : "youtube.com/watch?v=dQw4w9WgXcQ"}
@@ -174,7 +174,7 @@ export function QuickYouTubeImport({ onRecipeGenerated }: QuickYouTubeImportProp
                   setError(null);
                 }
               }}
-              className={`h-[42px] flex-1 text-sm bg-white dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border-2 ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600 focus:border-red-500'}`}
+              className={`h-9 flex-1 text-sm bg-white dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border-2 px-3 py-0 ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600 focus:border-red-500'}`}
               disabled={isLoading}
               autoFocus
             />
@@ -183,12 +183,12 @@ export function QuickYouTubeImport({ onRecipeGenerated }: QuickYouTubeImportProp
               onClick={handleImport}
               disabled={!youtubeUrl.trim() || isLoading}
               size="icon"
-              className="sm:hidden bg-white hover:bg-red-50 dark:bg-stone-900 dark:hover:bg-red-950/20 text-red-600 dark:text-red-500 border-2 border-red-600 dark:border-red-500 h-[42px] w-[42px] flex-shrink-0 shadow-md"
+              className="sm:hidden bg-white hover:bg-red-50 dark:bg-stone-900 dark:hover:bg-red-950/20 text-red-600 dark:text-red-500 border-2 border-red-600 dark:border-red-500 h-9 w-9 flex-shrink-0 shadow-md p-0"
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               )}
             </Button>
             {/* Desktop: bouton avec texte blanc sur fond rouge */}
