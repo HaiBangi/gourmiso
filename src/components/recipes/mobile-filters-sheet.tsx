@@ -90,6 +90,8 @@ interface MobileFiltersSheetProps {
   currentMaxTime?: string;
   currentTags?: string[];
   availableTags?: Array<{ value: string; label: string; count: number }>;
+  currentCollection?: string;
+  userCollections?: Array<{ id: number; name: string; count: number; color: string; icon: string }>;
 }
 
 export function MobileFiltersSheet({
@@ -98,6 +100,8 @@ export function MobileFiltersSheet({
   currentMaxTime,
   currentTags = [],
   availableTags = [],
+  currentCollection,
+  userCollections = [],
 }: MobileFiltersSheetProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -111,6 +115,7 @@ export function MobileFiltersSheet({
   const [selectedSort, setSelectedSort] = useState(currentSort || "recent");
   const [maxTime, setMaxTime] = useState(currentMaxTime ? parseInt(currentMaxTime) : 120);
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
+  const [selectedCollection, setSelectedCollection] = useState<string | undefined>(currentCollection);
 
   // Count active filters
   const activeFiltersCount = [
@@ -118,6 +123,7 @@ export function MobileFiltersSheet({
     currentSort && currentSort !== "recent",
     currentMaxTime && parseInt(currentMaxTime) < 120,
     selectedTags.length > 0,
+    selectedCollection,
   ].filter(Boolean).length;
 
   const toggleCategory = (category: string) => {

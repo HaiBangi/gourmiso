@@ -37,6 +37,7 @@ function generateBreadcrumbs(pathname: string, recipeName?: string): BreadcrumbI
     recipes: "Recettes",
     profile: "Profil",
     favorites: "Favoris",
+    collections: "Collections",
     admin: "Administration",
     auth: "Authentification",
     signin: "Connexion",

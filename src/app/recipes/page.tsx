@@ -24,6 +24,7 @@ interface SearchParams {
   authors?: string;
   myRecipes?: string;
   tags?: string;
+  collection?: string;
 }
 
 // Category sort order (priority)
@@ -39,13 +40,14 @@ const categoryOrder: Record<string, number> = {
 };
 
 async function getRecipes(searchParams: SearchParams, userId?: string): Promise<Recipe[]> {
-  const { category, search, maxTime, authors, myRecipes, tags } = searchParams;
+  const { category, search, maxTime, authors, myRecipes, tags, collection } = searchParams;
 
   // Parse filters
   const authorIds = authors ? authors.split(",").filter(Boolean) : [];
   const filterMyRecipes = myRecipes === "true" && userId;
   const categories = category ? category.split(",").filter(Boolean) : [];
   const filterTags = tags ? tags.split(",").map(t => t.toLowerCase()).filter(Boolean) : [];
+  const collectionId = collection ? parseInt(collection) : null;
   
   // Normaliser le terme de recherche pour ignorer les accents
   const normalizedSearch = search ? normalizeString(search) : null;
@@ -56,6 +58,14 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
       AND: [
         // Multiple categories
         categories.length > 0 ? { category: { in: categories } } : {},
+        // Filter by collection
+        collectionId ? {
+          collections: {
+            some: {
+              id: collectionId
+            }
+          }
+        } : {},
         // Note: Recherche filtrée manuellement après pour supporter les accents
         // Filter by max time (prep + cooking)
         maxTime
@@ -144,6 +154,31 @@ async function getFavoriteIds(userId?: string): Promise<Set<number>> {
   return new Set(user?.favorites.map(f => f.id) || []);
 }
 
+async function getUserCollections(userId?: string): Promise<Array<{ id: number; name: string; count: number; color: string; icon: string }>> {
+  if (!userId) return [];
+  
+  const collections = await db.collection.findMany({
+    where: { userId },
+    include: {
+      _count: {
+        select: { recipes: true }
+      }
+    },
+    orderBy: { name: 'asc' }
+  });
+  
+  // Return only non-empty collections
+  return collections
+    .filter(c => c._count.recipes > 0)
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      count: c._count.recipes,
+      color: c.color,
+      icon: c.icon
+    }));
+}
+
 async function getPopularTags(limit: number = 15): Promise<Array<{ value: string; label: string; count: number }>> {
   // Get all recipes with their tags
   const recipes = await db.recipe.findMany({
@@ -171,6 +206,11 @@ async function getPopularTags(limit: number = 15): Promise<Array<{ value: string
 }
 
 function sortRecipes(recipes: Recipe[], favoriteIds: Set<number>, sortOption?: string): Recipe[] {
+  // Si le tri est aléatoire, mélanger les recettes
+  if (sortOption === "random") {
+    return recipes.sort(() => Math.random() - 0.5);
+  }
+
   return recipes.sort((a, b) => {
     // First: favorites come first (unless specific sort is chosen)
     if (!sortOption || sortOption === "default") {
@@ -221,7 +261,7 @@ async function RecipesContent({ searchParams, userId, isAdmin }: { searchParams:
     getFavoriteIds(userId),
   ]);
 
-  const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort || "random");
+  const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort);
 
   return <RecipeListWithDeletion recipes={sortedRecipes} favoriteIds={favoriteIds} isAdmin={isAdmin} />;
 }
@@ -260,6 +300,9 @@ export default async function RecipesPage({ searchParams }: PageProps) {
 
   // Get popular tags for filters
   const popularTags = await getPopularTags(15);
+  
+  // Get user collections (only non-empty ones)
+  const userCollections = await getUserCollections(userId);
 
   return (
     <main className="min-h-screen">
@@ -284,6 +327,8 @@ export default async function RecipesPage({ searchParams }: PageProps) {
                 currentMaxTime={params.maxTime}
                 currentTags={params.tags ? params.tags.split(",") : []}
                 availableTags={popularTags}
+                currentCollection={params.collection}
+                userCollections={userCollections}
               />
             </div>
 
@@ -300,6 +345,8 @@ export default async function RecipesPage({ searchParams }: PageProps) {
                   currentMaxTime={params.maxTime}
                   currentTags={params.tags ? params.tags.split(",") : []}
                   availableTags={popularTags}
+                  currentCollection={params.collection}
+                  userCollections={userCollections}
                 />
 
                 {/* View Toggle */}

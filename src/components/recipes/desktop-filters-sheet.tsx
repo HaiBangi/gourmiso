@@ -90,6 +90,8 @@ interface DesktopFiltersSheetProps {
   currentMaxTime?: string;
   currentTags?: string[];
   availableTags?: Array<{ value: string; label: string; count: number }>;
+  currentCollection?: string;
+  userCollections?: Array<{ id: number; name: string; count: number; color: string; icon: string }>;
 }
 
 export function DesktopFiltersSheet({
@@ -98,6 +100,8 @@ export function DesktopFiltersSheet({
   currentMaxTime,
   currentTags = [],
   availableTags = [],
+  currentCollection,
+  userCollections = [],
 }: DesktopFiltersSheetProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -111,6 +115,7 @@ export function DesktopFiltersSheet({
   const [selectedSort, setSelectedSort] = useState(currentSort || "recent");
   const [maxTime, setMaxTime] = useState(currentMaxTime ? parseInt(currentMaxTime) : 120);
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
+  const [selectedCollection, setSelectedCollection] = useState<string | undefined>(currentCollection);
 
   // Count active filters
   const activeFiltersCount = [
@@ -118,6 +123,7 @@ export function DesktopFiltersSheet({
     currentSort && currentSort !== "recent",
     currentMaxTime && parseInt(currentMaxTime) < 120,
     selectedTags.length > 0,
+    selectedCollection,
   ].filter(Boolean).length;
 
   const toggleCategory = (category: string) => {
@@ -339,6 +345,39 @@ export function DesktopFiltersSheet({
             </div>
 
             <Separator className="my-6" />
+            
+            {/* Collections Filter - Only if user has collections */}
+            {userCollections.length > 0 && (
+              <>
+                <div className="mb-6">
+                  <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    📁 Mes collections {selectedCollection && "(1)"}
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {userCollections.map((collection) => {
+                      const isSelected = selectedCollection === collection.id.toString();
+                      return (
+                        <Button
+                          key={collection.id}
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedCollection(isSelected ? undefined : collection.id.toString())}
+                          className="h-9 gap-1.5 cursor-pointer"
+                          style={isSelected ? { backgroundColor: collection.color, borderColor: collection.color } : {}}
+                        >
+                          <span>{collection.icon}</span>
+                          <span className="text-xs">{collection.name}</span>
+                          <span className="text-[10px] opacity-60">({collection.count})</span>
+                          {isSelected && <Check className="h-3 w-3 ml-1" />}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+              </>
+            )}
 
             {/* Time Filter */}
             <div className="mb-6">
