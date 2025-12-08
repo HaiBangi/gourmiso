@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { updateRecipeRating } from "@/lib/rating-helper";
 import { revalidatePath } from "next/cache";
 
 export async function addComment(recipeId: number, text: string, rating?: number) {
@@ -28,6 +29,9 @@ export async function addComment(recipeId: number, text: string, rating?: number
         recipeId,
       },
     });
+
+    // Recalculer la note moyenne de la recette
+    await updateRecipeRating(recipeId);
 
     revalidatePath(`/recipes/${recipeId}`);
     return { success: true, data: comment };
@@ -65,6 +69,9 @@ export async function deleteComment(commentId: number) {
     }
 
     await db.comment.delete({ where: { id: commentId } });
+
+    // Recalculer la note moyenne de la recette
+    await updateRecipeRating(comment.recipeId);
 
     revalidatePath(`/recipes/${comment.recipeId}`);
     return { success: true };
@@ -110,6 +117,9 @@ export async function updateComment(commentId: number, text: string, rating?: nu
         rating: rating || null,
       },
     });
+
+    // Recalculer la note moyenne de la recette
+    await updateRecipeRating(comment.recipeId);
 
     revalidatePath(`/recipes/${comment.recipeId}`);
     return { success: true, data: updatedComment };

@@ -17,10 +17,26 @@ Tu dois analyser la transcription et la description de la vidéo et extraire :
 - Le nombre de portions
 - L'estimation du coût (CHEAP, MEDIUM, EXPENSIVE)
 - La note (sur 5)
-- Les tags/mots-clés pertinents
+- Les tags/mots-clés pertinents (AU MINIMUM 3-4 tags)
 - Les ingrédients avec quantités et unités (TOUJOURS EN FRANÇAIS - traduis si nécessaire)
 - Les groupes d'ingrédients SI ET SEULEMENT SI la recette a des parties distinctes (ex: pâte/garniture, base/sauce, etc.)
 - Les étapes de préparation numérotées
+
+IMPORTANT pour les tags :
+- Choisis AU MINIMUM 3 à 4 tags pertinents parmi ces catégories :
+  * Origine : français, italien, asiatique, thaïlandais, japonais, chinois, indien, méditerranéen, moyen-oriental, américain, mexicain
+  * Régime : végétarien, vegan, sans gluten, sans lactose
+  * Ingrédient principal : poisson, fruits de mer, viande, volaille, pâtes, riz, céréales, légumes, fromage, fruits
+  * Occasion : facile, rapide, économique, festif, healthy
+- NE PAS inclure le type de plat (entrée, plat principal, dessert, etc.) dans les tags car c'est déjà dans la catégorie
+- Utilise des tags en minuscules et pertinents pour la recette
+- Exemples : ["italien", "pâtes", "végétarien"], ["asiatique", "riz", "poulet", "rapide"]
+
+IMPORTANT pour les ingrédients :
+- VÉRIFIE qu'il n'y a AUCUN doublon d'ingrédient dans la liste
+- Chaque ingrédient doit apparaître UNE SEULE FOIS sauf s'il est utilisé dans des groupes d'ingrédients DIFFÉRENTS (ex: pâte vs garniture)
+- Si tu vois le même ingrédient plusieurs fois dans le même groupe, SUPPRIME les doublons
+- Exemples de doublons à éviter : "ail en poudre" qui apparaît 6 fois → doit apparaître 1 seule fois
 
 IMPORTANT pour la langue :
 - TOUS les noms d'ingrédients doivent être en français

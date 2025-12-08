@@ -13,7 +13,7 @@ interface RecipeCardProps {
 }
 
 const categoryLabels: Record<string, string> = {
-  MAIN_DISH: "Plat principal",
+  MAIN_DISH: "Plat",
   STARTER: "Entrée",
   DESSERT: "Dessert",
   SIDE_DISH: "Accompagnement",
@@ -62,7 +62,7 @@ export function RecipeCard({ recipe, isFavorited = false, isDeletionMode = false
         {recipe.rating > 0 && (
           <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex items-center gap-1 sm:gap-1.5 rounded-full bg-black/50 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 shadow-md">
             <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
-            <span className="text-xs sm:text-sm font-medium text-white">{recipe.rating}/10</span>
+            <span className="text-xs sm:text-sm font-medium text-white">{recipe.rating}/5</span>
           </div>
         )}
       </div>

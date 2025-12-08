@@ -82,9 +82,8 @@ interface DraftData {
   preparationTime: string;
   cookingTime: string;
   servings: string;
-  rating: string;
   costEstimate: string;
-  publishAnonymously: boolean;
+  publishAnonymously?: boolean; // Optional for backward compatibility
   tags: string[];
   ingredients: { id: string; name: string; quantity?: string; unit?: string; quantityUnit: string }[];
   steps: { id: string; text: string }[];
@@ -217,7 +216,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   const [name, setName] = useState(recipe?.name || "");
   const [description, setDescription] = useState(recipe?.description || "");
   const [category, setCategory] = useState(recipe?.category || "MAIN_DISH");
-  const [author, setAuthor] = useState(recipe?.author || "");
+  const [authorField, setAuthorField] = useState(recipe?.author || "");
   const [imageUrl, setImageUrl] = useState(recipe?.imageUrl || "");
   const [videoUrl, setVideoUrl] = useState(recipe?.videoUrl || "");
   const [preparationTime, setPreparationTime] = useState(
@@ -227,9 +226,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     recipe?.cookingTime?.toString() || ""
   );
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
-  const [rating, setRating] = useState(recipe?.rating?.toString() || "");
   const [costEstimate, setCostEstimate] = useState(recipe?.costEstimate || "");
-  const [publishAnonymously, setPublishAnonymously] = useState(false);
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
   const [steps, setSteps] = useState<StepInput[]>([]);
@@ -318,9 +315,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       preparationTime,
       cookingTime,
       servings,
-      rating,
       costEstimate,
-      publishAnonymously,
       tags,
       ingredients,
       steps,
@@ -340,7 +335,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         console.warn("Could not save draft to localStorage");
       }
     }
-  }, [name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, costEstimate, publishAnonymously, tags, ingredients, steps, recipe]);
+  }, [name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings,
+      costEstimate,
+      tags, ingredients, steps, recipe]);
 
   // Load draft from localStorage
   const loadDraft = useCallback(() => {
@@ -398,10 +395,8 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         preparationTime,
         cookingTime,
         servings,
-        rating,
-        costEstimate,
-        publishAnonymously,
-        tags,
+      costEstimate,
+      tags,
         ingredients,
         steps,
         savedAt: Date.now(),
@@ -421,7 +416,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       }
     }
     prevOpenRef.current = open;
-  }, [open, recipe, mounted, shouldSaveDraft, name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings, rating, costEstimate, publishAnonymously, tags, ingredients, steps]);
+  }, [open, recipe, mounted, shouldSaveDraft, name, description, category, imageUrl, videoUrl, preparationTime, cookingTime, servings,
+      costEstimate,
+      tags, ingredients, steps]);
 
   // Initialize form when dialog opens
   useEffect(() => {
@@ -450,8 +447,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
 
       // For duplication, reset the author to empty so it uses the current user's pseudo
       if (isDuplication) {
-        setAuthor("");
-        setPublishAnonymously(false);
+        setAuthorField("");
       }
 
       setMounted(true);
@@ -467,9 +463,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         setPreparationTime(draft.preparationTime);
         setCookingTime(draft.cookingTime);
         setServings(draft.servings);
-        setRating(draft.rating);
         setCostEstimate(draft.costEstimate || "");
-        setPublishAnonymously(draft.publishAnonymously);
         setTags(draft.tags);
         // Handle draft ingredients with backward compatibility
         const draftIngredients = draft.ingredients.length > 0
@@ -648,13 +642,13 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       name,
       description: description || null,
       category: category as Recipe["category"],
-      author: publishAnonymously ? "Anonyme" : userPseudo,
+      author: authorField.trim() || "Anonyme",
       imageUrl: imageUrl || null,
       videoUrl: videoUrl || null,
       preparationTime: parseInt(preparationTime) || 0,
       cookingTime: parseInt(cookingTime) || 0,
       servings: parseInt(servings) || 1,
-      rating: parseInt(rating) || 0,
+      rating: 0, // Will be calculated from comments automatically
       costEstimate: costEstimate ? (costEstimate as "CHEAP" | "MEDIUM" | "EXPENSIVE") : null,
       tags: tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
       ingredients: useGroups ? [] : ingredientsData,
@@ -722,18 +716,16 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       setName("");
       setDescription("");
       setCategory("MAIN_DISH");
-      setAuthor("");
+      setAuthorField("");
       setImageUrl("");
       setVideoUrl("");
       setPreparationTime("");
       setCookingTime("");
       setServings("");
-      setRating("");
       setCostEstimate("");
       setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }]);
       setSteps([{ id: "step-0", text: "" }]);
       setTags([]);
-      setPublishAnonymously(false);
       clearDraft(); // Clear draft when resetting
     }
     setError(null);
@@ -889,22 +881,17 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
-                          <Label className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 block">
+                        <div className="w-full sm:w-48">
+                          <Label htmlFor="authorField" className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 block">
                             Auteur
                           </Label>
-                          <div className="flex items-center gap-2 h-10 px-3 border border-stone-200 dark:border-stone-600 rounded-md bg-white dark:bg-stone-700">
-                            <Checkbox
-                              id="publishAnonymously"
-                              checked={publishAnonymously}
-                              onCheckedChange={(checked) => setPublishAnonymously(checked === true)}
-                              className="h-4 w-4 cursor-pointer"
-                            />
-                            <label htmlFor="publishAnonymously" className="text-sm text-stone-600 dark:text-stone-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap flex-1">
-                              <UserX className="h-3.5 w-3.5" />
-                              Anonyme
-                            </label>
-                          </div>
+                          <Input
+                            id="authorField"
+                            value={authorField}
+                            onChange={(e) => setAuthorField(e.target.value)}
+                            placeholder="Anonyme"
+                            className="h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 focus:border-emerald-400 focus:ring-emerald-400/20 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                          />
                         </div>
                       </div>
                     </div>
@@ -990,27 +977,6 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                         className="h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                       />
                     </div>
-                    {/* Rating - only show when editing existing recipes */}
-                    {recipe && (
-                      <div>
-                        <Label className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 flex items-center gap-1.5">
-                          <Star className="h-3.5 w-3.5 text-yellow-500 dark:text-yellow-400" />
-                          Note
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="10"
-                            value={rating}
-                            onChange={(e) => setRating(e.target.value)}
-                            placeholder="—"
-                            className="h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 pr-10 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400">/10</span>
-                        </div>
-                      </div>
-                    )}
                     <div>
                       <Label className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 flex items-center gap-1.5">
                         <Coins className="h-3.5 w-3.5 text-green-500 dark:text-green-400" />
@@ -1069,7 +1035,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                   </div>
                   {/* Image Preview */}
                   {imageUrl && (
-                    <div className="mt-3 relative rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-700 h-32">
+                    <div className="mt-3 relative rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-700 h-48 sm:h-56">
                       <img
                         src={imageUrl}
                         alt="Aperçu"
@@ -1107,7 +1073,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                           title="Organiser les ingrédients en groupes"
                         >
                           <FolderPlus className="h-3.5 w-3.5 sm:mr-1.5" />
-                          <span className="hidden sm:inline">Mode groupes</span>
+                          <span className="hidden sm:inline">Mode groupes d&apos;ingrédients</span>
                         </Button>
                       ) : (
                         <Button
@@ -1119,7 +1085,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                           title="Revenir au mode simple"
                         >
                           <List className="h-3.5 w-3.5 sm:mr-1.5" />
-                          <span className="hidden sm:inline">Mode simple</span>
+                          <span className="hidden sm:inline">Mode ingrédients sans groupe</span>
                         </Button>
                       )}
 

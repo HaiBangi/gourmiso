@@ -221,7 +221,7 @@ async function RecipesContent({ searchParams, userId, isAdmin }: { searchParams:
     getFavoriteIds(userId),
   ]);
 
-  const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort);
+  const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort || "random");
 
   return <RecipeListWithDeletion recipes={sortedRecipes} favoriteIds={favoriteIds} isAdmin={isAdmin} />;
 }

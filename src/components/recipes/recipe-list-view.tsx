@@ -142,7 +142,7 @@ export function RecipeListView({
                     {recipe.rating > 0 && (
                       <div className="flex items-center gap-1 text-emerald-700">
                         <Star className="h-3 w-3 fill-current" />
-                        <span className="text-xs font-medium">{recipe.rating}/10</span>
+                        <span className="text-xs font-medium">{recipe.rating}/5</span>
                       </div>
                     )}
                   </div>

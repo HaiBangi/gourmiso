@@ -42,6 +42,7 @@ const categories = [
 ];
 
 const sortOptions = [
+  { value: "random", label: "Au hasard", icon: "🎲" },
   { value: "recent", label: "Plus récentes", icon: "🆕" },
   { value: "rating", label: "Mieux notées", icon: "⭐" },
   { value: "quick", label: "Plus rapides", icon: "⚡" },

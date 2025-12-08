@@ -106,7 +106,7 @@ export default async function UserProfilePage({ params }: PageProps) {
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <p className="text-white text-sm font-medium line-clamp-2">{recipe.name}</p>
                     <div className="flex items-center gap-2 mt-1 text-white/80 text-xs">
-                      {recipe.rating > 0 && <span>⭐ {recipe.rating}/10</span>}
+                      {recipe.rating > 0 && <span>⭐ {recipe.rating}/5</span>}
                       {(recipe.preparationTime > 0 || recipe.cookingTime > 0) && <span>⏱️ {recipe.preparationTime + recipe.cookingTime} min</span>}
                     </div>
                   </div>
