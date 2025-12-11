@@ -1149,6 +1149,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       setIngredients([{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }]);
       setSteps([{ id: "step-0", text: "" }]);
       setTags([]);
+      // Réinitialiser aussi les groupes d'ingrédients
+      setUseGroups(false);
+      setIngredientGroups([]);
       clearDraft(); // Clear draft when resetting
     }
     setError(null);
