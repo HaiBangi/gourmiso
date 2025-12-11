@@ -78,48 +78,62 @@ IMPORTANT pour les groupes d'ingrédients :
 - Si tu utilises "ingredientGroups", ne remplis PAS le champ "ingredients"
 
 IMPORTANT pour les ÉTAPES DE PRÉPARATION - FORMAT LISTE :
-- Chaque étape doit être DÉTAILLÉE et COMPLÈTE, extraite directement du transcript
-- RÈGLE IMPORTANTE : Utilise le format liste UNIQUEMENT quand une étape mentionne 3 ingrédients ou plus
-- Pour 1 ou 2 ingrédients, écris une phrase simple SANS liste et SANS retour à la ligne
-- Pour 3 ingrédients ou plus, FORMATE en liste avec retours à la ligne
 
-EXEMPLES DE FORMATAGE CORRECT :
+🚨 RÈGLE ABSOLUE - NE JAMAIS LISTER DES INGRÉDIENTS AVEC DES VIRGULES 🚨
+- Si une étape mentionne 3 ingrédients ou plus, tu DOIS OBLIGATOIREMENT utiliser le format liste avec tirets
+- N'utilise JAMAIS de virgules pour séparer 3 ingrédients ou plus dans une même phrase
+- C'est une ERREUR GRAVE d'écrire : "Mélanger X, Y, Z, W, V et T"
+- Tu DOIS écrire avec des tirets et des retours à la ligne
 
-* AVEC UN SEUL INGRÉDIENT (PAS DE LISTE) :
-  - BON : "Couper le bœuf perpendiculairement aux fibres et le placer dans un bol. Ajouter 1 c.à.c de bicarbonate de soude et mélanger bien."
-  - MAUVAIS : "Couper le bœuf perpendiculairement aux fibres et le placer dans un bol. Ajouter :\n- 1 c.à.c de bicarbonate de soude\n\nMélanger bien."
+RÈGLES STRICTES PAR NOMBRE D'INGRÉDIENTS :
 
-* AVEC DEUX INGRÉDIENTS (PAS DE LISTE) :
-  - BON : "Ajouter 2 c.à.s de sauce de soja et 1 c.à.s d'huile de sésame, puis mélanger."
-  - MAUVAIS : "Ajouter :\n- 2 c.à.s de sauce de soja\n- 1 c.à.s d'huile de sésame\n\nMélanger."
+1️⃣ UN SEUL INGRÉDIENT → Phrase simple, PAS de liste
+   Exemple : "Ajouter 1 c.à.c de bicarbonate de soude et mélanger bien."
 
-* AVEC TROIS INGRÉDIENTS OU PLUS (UTILISE UNE LISTE) :
-  - MAUVAIS : "Mariner la viande avec 0.25 c.à.c de sel, 2 c.à.c d'alcool de riz Shaoxing, 2 c.à.c de sauce de soja foncée, 1 c.à.s de sauce de soja claire, 1 c.à.s de sauce d'huitre, 1 c.à.s d'huile de tournesol, quelques gouttes d'huile de sésame, et 1 c.à.c de fécule de maïs. Mélanger bien."
-  
-  - BON :
+2️⃣ DEUX INGRÉDIENTS → Phrase simple avec "et", PAS de liste
+   Exemple : "Ajouter 2 c.à.s de sauce de soja et 1 c.à.s d'huile de sésame, puis mélanger."
+
+3️⃣ TROIS INGRÉDIENTS OU PLUS → FORMAT LISTE OBLIGATOIRE AVEC TIRETS
+   
+   ❌ INTERDIT (avec virgules) :
+   "Mélanger tous les ingrédients pour la sauce : 2 c.à.s d'eau, 2 c.à.s de sucre blond, 2 c.à.s de sauce soya salé, 1 c.à.s de vinaigre de riz, 1 c.à.s d'huile de sésame, 2 c.à.s de maïzéna et 0.5 c.à.c de sauce pimentée."
+   
+   ✅ OBLIGATOIRE (avec tirets) :
+   "Mélanger tous les ingrédients pour la sauce :
+- 2 c.à.s d'eau
+- 2 c.à.s de sucre blond
+- 2 c.à.s de sauce soya salé
+- 1 c.à.s de vinaigre de riz
+- 1 c.à.s d'huile de sésame
+- 2 c.à.s de maïzéna
+- 0.5 c.à.c de sauce pimentée
+
+Bien mélanger jusqu'à homogénéité."
+
+AUTRE EXEMPLE OBLIGATOIRE :
+
+❌ INTERDIT :
+"Mariner la viande avec 0.25 c.à.c de sel, 2 c.à.c d'alcool de riz, 2 c.à.c de sauce de soja foncée, 1 c.à.s de sauce de soja claire, 1 c.à.s de sauce d'huitre et 1 c.à.s d'huile."
+
+✅ OBLIGATOIRE :
 "Mariner la viande avec :
 - 0.25 c.à.c de sel
-- 2 c.à.c d'alcool de riz Shaoxing
+- 2 c.à.c d'alcool de riz
 - 2 c.à.c de sauce de soja foncée
 - 1 c.à.s de sauce de soja claire
 - 1 c.à.s de sauce d'huitre
-- 1 c.à.s d'huile de tournesol
-- quelques gouttes d'huile de sésame
-- 1 c.à.c de fécule de maïs
+- 1 c.à.s d'huile
 
-Mélanger bien pour que la marinade enrobe toute la viande."
+Mélanger pour bien enrober la viande."
 
-RÈGLES DE FORMATAGE :
-- 1-2 ingrédients : Phrase simple, tout sur une ligne, PAS de retour à la ligne
-- 3+ ingrédients : Format liste avec retours à la ligne
-- Le texte introductif (avant la liste) se termine par " :"
-- Chaque élément de la liste sur sa propre ligne précédée de "- "
-- Retour à la ligne avant et après la liste
-- Texte de conclusion optionnel après la liste
-- Ajoute un retour à la ligne avant et après la liste pour la clarté
-- Le texte introductif se termine par " :" pour introduire la liste
-- Les étapes doivent être faciles à suivre visuellement
-- Extrais les détails DIRECTEMENT DU TRANSCRIPT, ne les invente pas
+FORMAT DE LISTE REQUIS :
+- Texte introductif se terminant par " :"
+- Retour à la ligne après les ":"
+- Chaque ingrédient sur sa propre ligne avec "- " au début
+- Retour à la ligne après la liste
+- Texte de conclusion (optionnel)
+
+VÉRIFIE TOUJOURS : Si tu comptes 3 ingrédients ou plus dans une étape, TU DOIS utiliser le format liste avec tirets et retours à la ligne. C'est NON NÉGOCIABLE.
 
 Réponds UNIQUEMENT avec un JSON valide suivant ce format :
 
@@ -213,7 +227,18 @@ IMPORTANT pour les ÉTAPES DE PRÉPARATION :
 - Le temps est en minutes
 - N'invente pas d'informations qui ne sont pas dans la transcription
 - Utilise PRIORITAIREMENT les quantités de la transcription, pas la description
-- Pas de doublon d'ingrédient dans le même groupe`;
+- Pas de doublon d'ingrédient dans le même groupe
+
+🚨 RAPPEL FINAL CRITIQUE 🚨
+AVANT DE GÉNÉRER LE JSON, VÉRIFIE CHAQUE ÉTAPE :
+- Compte le nombre d'ingrédients mentionnés dans chaque étape
+- Si 3 ingrédients ou plus → UTILISE LE FORMAT LISTE AVEC TIRETS ET RETOURS À LA LIGNE (\n)
+- Si 1 ou 2 ingrédients → Phrase simple sans liste
+- NE JAMAIS écrire "X, Y, Z, W et V" pour 3+ ingrédients
+- TOUJOURS écrire "Texte :\n- X\n- Y\n- Z\n- W\n- V\n\nConclusion"
+
+Exemple de texte d'étape correct pour 7 ingrédients :
+"Mélanger tous les ingrédients pour la sauce :\n- 2 c.à.s d'eau\n- 2 c.à.s de sucre blond\n- 2 c.à.s de sauce soya salé\n- 1 c.à.s de vinaigre de riz\n- 1 c.à.s d'huile de sésame\n- 2 c.à.s de maïzéna\n- 0.5 c.à.c de sauce pimentée\n\nBien mélanger jusqu'à homogénéité."`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -240,7 +265,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, description, transcript, videoUrl, imageUrl } = await request.json();
+    const { title, description, transcript, videoUrl, imageUrl, author } = await request.json();
 
     if (!transcript) {
       return NextResponse.json(
@@ -275,6 +300,7 @@ export async function POST(request: NextRequest) {
     // Créer le prompt utilisateur
     const userPrompt = `
 Titre de la vidéo: ${title}
+Chaîne YouTube: ${author || "YouTube"}
 
 Description:
 ${description}
@@ -282,7 +308,8 @@ ${description}
 Transcription:
 ${transcript.slice(0, 8000)} ${transcript.length > 8000 ? "..." : ""}
 
-Analyse cette vidéo de recette et extrais toutes les informations pertinentes pour créer une recette structurée.`;
+Analyse cette vidéo de recette et extrais toutes les informations pertinentes pour créer une recette structurée. 
+Utilise le nom de la chaîne YouTube "${author || "YouTube"}" comme auteur de la recette.`;
 
     // Appeler ChatGPT
     const completion = await openai.chat.completions.create({
@@ -310,7 +337,7 @@ Analyse cette vidéo de recette et extrais toutes les informations pertinentes p
       name: recipe.name || "Recette sans nom",
       description: recipe.description || null,
       category: (recipe.category || "MAIN_DISH") as Category,
-      author: recipe.author || "YouTube",
+      author: author || recipe.author || "YouTube", // Priorité au nom de la chaîne YouTube
       preparationTime: Number(recipe.preparationTime) || 0,
       cookingTime: Number(recipe.cookingTime) || 0,
       servings: Number(recipe.servings) || 4,

@@ -128,9 +128,9 @@ async function getYoutubeTranscript(videoId: string): Promise<string> {
 }
 
 /**
- * Récupère les métadonnées de la vidéo (titre, description) avec youtubei.js
+ * Récupère les métadonnées de la vidéo (titre, description, auteur) avec youtubei.js
  */
-async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; description: string }> {
+async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; description: string; author: string }> {
   try {
     console.log(`[VideoInfo] Récupération des métadonnées pour ${videoId}`);
     
@@ -142,18 +142,22 @@ async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; de
     
     const title = info.basic_info.title || "Vidéo YouTube";
     const description = info.basic_info.short_description || "";
+    const author = info.basic_info.author || "YouTube";
 
     console.log(`[VideoInfo] ✅ Titre: ${title}`);
+    console.log(`[VideoInfo] ✅ Chaîne: ${author}`);
     
     return {
       title,
       description,
+      author,
     };
   } catch (error) {
     console.error("[VideoInfo] ⚠️  Erreur:", error);
     return {
       title: "Vidéo YouTube",
       description: "",
+      author: "YouTube",
     };
   }
 }

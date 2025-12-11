@@ -285,6 +285,7 @@ function YoutubeImportFormSection({
           transcript: transcriptData.transcript,
           videoUrl: youtubeUrl,
           imageUrl: thumbnailUrl,
+          author: transcriptData.author || "YouTube", // Ajouter le nom de la chaîne YouTube
         }),
       });
 
