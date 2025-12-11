@@ -1,3 +1,8 @@
+/**
+ * Formulaire de recette - Composant principal refactorisé
+ * Architecture modulaire pour une meilleure maintenabilité
+ */
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -23,10 +28,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus, Trash2, ChefHat, Clock, Image, ListOrdered,
-  UtensilsCrossed, UserX, ImageIcon, Video, Tag,
-  Sparkles, Users, Star, Timer, Flame, Save, X, RotateCcw, GripVertical, Coins, FolderPlus, List, Youtube, Loader2
+  UtensilsCrossed, ImageIcon, Video, Tag,
+  Sparkles, Users, Timer, Flame, Save, X, RotateCcw, Coins, FolderPlus, List, Youtube, Loader2
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import { TagInput } from "./tag-input";
 import { IngredientGroupsEditor } from "./ingredient-groups-editor";
@@ -34,7 +38,6 @@ import { FaTiktok } from "react-icons/fa";
 import { getUserPseudo } from "@/actions/users";
 import {
   convertGroupToApiFormat,
-  convertIngredientsToGroups,
   convertDbGroupsToFormGroups,
   flattenGroupsToIngredients,
   wrapIngredientsInDefaultGroup,
@@ -42,491 +45,28 @@ import {
 } from "@/lib/ingredient-helpers";
 import type { Recipe } from "@/types/recipe";
 
-// Keys for localStorage drafts
-const NEW_RECIPE_DRAFT_KEY = "yumiso_new_recipe_draft";
-const EDIT_RECIPE_DRAFT_KEY_PREFIX = "yumiso_edit_recipe_draft_";
+// Import des types et constantes
+import {
+  NEW_RECIPE_DRAFT_KEY,
+  EDIT_RECIPE_DRAFT_KEY_PREFIX,
+  categories,
+  costOptions,
+  parseQuantityUnit,
+  combineQuantityUnit,
+  getInitialIngredients,
+  getInitialSteps,
+  type IngredientInput,
+  type StepInput,
+  type RecipeFormProps,
+  type DraftData,
+} from "./recipe-form-types";
 
-// Parse quantity+unit field (e.g., "150g" => {quantity: "150", unit: "g"})
-function parseQuantityUnit(input: string): { quantity: string; unit: string } {
-  if (!input.trim()) {
-    return { quantity: "", unit: "" };
-  }
-
-  // Match patterns like "150g", "1 c.à.s", "2.5 kg", etc.
-  const match = input.trim().match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
-
-  if (match) {
-    return {
-      quantity: match[1].replace(",", "."), // Replace comma with dot for decimals
-      unit: match[2].trim(),
-    };
-  }
-
-  // If no number at the start, treat entire input as unit
-  return { quantity: "", unit: input.trim() };
-}
-
-// Combine quantity and unit into a single string
-function combineQuantityUnit(quantity: string, unit: string): string {
-  if (!quantity && !unit) return "";
-  if (!quantity) return unit;
-  if (!unit) return quantity;
-  return `${quantity} ${unit}`;
-}
-
-interface DraftData {
-  name: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-  videoUrl: string;
-  preparationTime: string;
-  cookingTime: string;
-  servings: string;
-  costEstimate: string;
-  publishAnonymously?: boolean; // Optional for backward compatibility
-  tags: string[];
-  ingredients: { id: string; name: string; quantity?: string; unit?: string; quantityUnit: string }[];
-  steps: { id: string; text: string }[];
-  useGroups?: boolean; // Support for ingredient groups
-  ingredientGroups?: IngredientGroupInput[]; // Ingredient groups data
-  savedAt: number;
-}
-
-const categories = [
-  // Plats principaux
-  { value: "MAIN_DISH", label: "Plat principal", emoji: "🍽️" },
-  { value: "STARTER", label: "Entrée", emoji: "🥗" },
-  { value: "DESSERT", label: "Dessert", emoji: "🍰" },
-  { value: "SIDE_DISH", label: "Accompagnement", emoji: "🥔" },
-  
-  // Soupes et salades
-  { value: "SOUP", label: "Soupe", emoji: "🍲" },
-  { value: "SALAD", label: "Salade", emoji: "🥬" },
-  
-  // Boissons et collations
-  { value: "BEVERAGE", label: "Boisson", emoji: "🍹" },
-  { value: "SNACK", label: "En-cas", emoji: "🍿" },
-  { value: "APPETIZER", label: "Apéritif", emoji: "🍢" },
-  
-  // Petit-déjeuner et brunch
-  { value: "BREAKFAST", label: "Petit-déjeuner", emoji: "🥐" },
-  { value: "BRUNCH", label: "Brunch", emoji: "🍳" },
-  
-  // Éléments de base
-  { value: "SAUCE", label: "Sauce", emoji: "🥫" },
-  { value: "MARINADE", label: "Marinade", emoji: "🧂" },
-  { value: "DRESSING", label: "Vinaigrette", emoji: "🫗" },
-  { value: "SPREAD", label: "Tartinade", emoji: "🧈" },
-  
-  // Pâtisserie et boulangerie
-  { value: "BREAD", label: "Pain", emoji: "🍞" },
-  { value: "PASTRY", label: "Pâtisserie", emoji: "🥐" },
-  { value: "CAKE", label: "Gâteau", emoji: "🎂" },
-  { value: "COOKIE", label: "Biscuit", emoji: "🍪" },
-  
-  // Autres
-  { value: "SMOOTHIE", label: "Smoothie", emoji: "🥤" },
-  { value: "COCKTAIL", label: "Cocktail", emoji: "🍸" },
-  { value: "PRESERVES", label: "Conserves", emoji: "🫙" },
-  { value: "OTHER", label: "Autre", emoji: "📦" },
-];
-
-const costOptions = [
-  { value: "", label: "Non défini", emoji: "—" },
-  { value: "CHEAP", label: "Économique", emoji: "€" },
-  { value: "MEDIUM", label: "Moyen", emoji: "€€" },
-  { value: "EXPENSIVE", label: "Cher", emoji: "€€€" },
-];
-
-interface IngredientInput {
-  id: string;
-  name: string;
-  quantity?: string;
-  unit?: string;
-  quantityUnit: string; // Combined field for UI
-}
-
-interface StepInput {
-  id: string;
-  text: string;
-}
-
-interface RecipeFormProps {
-  recipe?: Recipe;
-  trigger?: React.ReactNode; // Optional for YouTube to Recipe mode
-  isYouTubeImport?: boolean; // Flag to indicate YouTube import with red theme
-  onSuccess?: (recipeId: number) => void; // Callback when recipe is successfully saved
-  onCancel?: () => void; // Callback when dialog is closed without saving
-}
-
-function getInitialIngredients(recipe?: Recipe): IngredientInput[] {
-  if (!recipe?.ingredients?.length) {
-    return [{ id: "ing-0", name: "", quantity: "", unit: "", quantityUnit: "" }];
-  }
-  return recipe.ingredients.map((ing, index) => ({
-    id: `ing-${index}`,
-    name: ing.name,
-    quantity: ing.quantity?.toString() || "",
-    unit: ing.unit || "",
-    quantityUnit: combineQuantityUnit(ing.quantity?.toString() || "", ing.unit || ""),
-  }));
-}
-
-function getInitialSteps(recipe?: Recipe): StepInput[] {
-  if (!recipe?.steps?.length) {
-    return [{ id: "step-0", text: "" }];
-  }
-  return recipe.steps.map((step, index) => ({
-    id: `step-${index}`,
-    text: step.text,
-  }));
-}
-
-// Section Card Component
-function SectionCard({ 
-  children, 
-  icon: Icon, 
-  title, 
-  color,
-  action 
-}: { 
-  children: React.ReactNode;
-  icon: React.ElementType;
-  title: string;
-  color: "amber" | "blue" | "purple" | "emerald" | "rose";
-  action?: React.ReactNode;
-}) {
-  const colorClasses = {
-    amber: "border-l-amber-400 bg-amber-50/30 dark:bg-amber-900/20",
-    blue: "border-l-blue-400 bg-blue-50/30 dark:bg-blue-900/20",
-    purple: "border-l-purple-400 bg-purple-50/30 dark:bg-purple-900/20",
-    emerald: "border-l-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/20",
-    rose: "border-l-rose-400 bg-rose-50/30 dark:bg-rose-900/20",
-  };
-
-  const iconColors = {
-    amber: "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50",
-    blue: "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50",
-    purple: "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50",
-    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50",
-    rose: "text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/50",
-  };
-
-  return (
-    <div className={`rounded-lg border-l-4 ${colorClasses[color]} p-4`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className={`p-1.5 rounded-md ${iconColors[color]}`}>
-            <Icon className="h-4 w-4" />
-          </div>
-          <h3 className="font-semibold text-stone-800 dark:text-stone-100 text-sm">{title}</h3>
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// YouTube Import Form Section Component
-function YoutubeImportFormSection({ 
-  onClose, 
-  onRecipeGenerated 
-}: { 
-  onClose: () => void;
-  onRecipeGenerated: (recipe: any) => void;
-}) {
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleImport = async () => {
-    if (!youtubeUrl.trim()) {
-      setError("Veuillez entrer un lien YouTube");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Validation des différents formats d'URL YouTube
-      let videoId: string | null = null;
-      
-      const standardMatch = youtubeUrl.match(
-        /^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:&.*)?$/
-      );
-      
-      const shortMatch = youtubeUrl.match(
-        /^https?:\/\/youtu\.be\/([a-zA-Z0-9_-]{11})(?:\?.*)?$/
-      );
-      
-      const mobileMatch = youtubeUrl.match(
-        /^https?:\/\/m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:&.*)?$/
-      );
-
-      if (standardMatch) {
-        videoId = standardMatch[1];
-      } else if (shortMatch) {
-        videoId = shortMatch[1];
-      } else if (mobileMatch) {
-        videoId = mobileMatch[1];
-      } else {
-        throw new Error("Format d'URL invalide. Formats acceptés : youtube.com/watch?v=... ou youtu.be/...");
-      }
-
-      const fetchTranscriptWithRetry = async (retries = 2): Promise<any> => {
-        for (let attempt = 0; attempt <= retries; attempt++) {
-          try {
-            const transcriptRes = await fetch("/api/youtube/transcript", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ videoId }),
-            });
-
-            if (!transcriptRes.ok) {
-              const data = await transcriptRes.json();
-              throw new Error(data.error || "Erreur lors de la récupération de la transcription");
-            }
-
-            return await transcriptRes.json();
-          } catch (err) {
-            if (attempt < retries) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            } else {
-              throw err;
-            }
-          }
-        }
-      };
-
-      const transcriptData = await fetchTranscriptWithRetry();
-      const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-
-      const recipeRes = await fetch("/api/youtube/generate-recipe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: transcriptData.title,
-          description: transcriptData.description,
-          transcript: transcriptData.transcript,
-          videoUrl: youtubeUrl,
-          imageUrl: thumbnailUrl,
-          author: transcriptData.author || "YouTube", // Ajouter le nom de la chaîne YouTube
-        }),
-      });
-
-      if (!recipeRes.ok) {
-        const data = await recipeRes.json();
-        throw new Error(data.error || "Erreur lors de la génération de la recette");
-      }
-
-      const recipeData = await recipeRes.json();
-      onRecipeGenerated(recipeData.recipe);
-      
-      setYoutubeUrl("");
-      onClose();
-      setError(null);
-    } catch (err) {
-      console.error("Erreur:", err);
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="mt-4 pt-4 border-t border-white/20 space-y-3">
-      <div className="flex gap-2 items-center">
-        <Input
-          type="url"
-          placeholder="youtube.com/watch?v=dQw4w9WgXcQ"
-          value={youtubeUrl}
-          onChange={(e) => setYoutubeUrl(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isLoading) {
-              handleImport();
-            }
-            if (e.key === "Escape") {
-              onClose();
-            }
-          }}
-          className={`h-10 text-sm bg-white/90 dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600'}`}
-          disabled={isLoading}
-          autoFocus
-        />
-        <Button
-          onClick={handleImport}
-          disabled={!youtubeUrl.trim() || isLoading}
-          className="bg-white hover:bg-red-50 text-red-600 dark:bg-stone-900 dark:hover:bg-red-950/20 dark:text-red-500 h-10 px-4 gap-2 font-medium whitespace-nowrap"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="hidden sm:inline">Import...</span>
-            </>
-          ) : (
-            <>
-              <Youtube className="h-4 w-4" />
-              <span className="hidden sm:inline">Importer</span>
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      {error && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-red-100">
-              {error}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ==================== TIKTOK IMPORT FORM COMPONENT ====================
-function TikTokImportForm({ 
-  onClose, 
-  onRecipeGenerated 
-}: { 
-  onClose: () => void; 
-  onRecipeGenerated: (recipe: any) => void; 
-}) {
-  const [videoUrl, setVideoUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleImport = async () => {
-    if (!videoUrl.trim()) {
-      setError("Veuillez entrer un lien TikTok");
-      return;
-    }
-
-    if (!videoUrl.includes('tiktok.com')) {
-      setError("Format d'URL TikTok invalide. Utilisez un lien tiktok.com");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Étape 1 : Extraire les métadonnées TikTok
-      const extractRes = await fetch("/api/tiktok/extract", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoUrl }),
-      });
-
-      if (!extractRes.ok) {
-        const data = await extractRes.json();
-        throw new Error(data.error || "Erreur lors de l'extraction TikTok");
-      }
-
-      const extractData = await extractRes.json();
-
-      // Étape 2 : Générer la recette avec ChatGPT
-      const recipeRes = await fetch("/api/youtube/generate-recipe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: extractData.title,
-          description: extractData.description,
-          transcript: extractData.description,
-          videoUrl: videoUrl,
-          imageUrl: extractData.thumbnail,
-          author: extractData.author || "TikTok",
-        }),
-      });
-
-      if (!recipeRes.ok) {
-        const data = await recipeRes.json();
-        throw new Error(data.error || "Erreur lors de la génération de la recette");
-      }
-
-      const recipeData = await recipeRes.json();
-      onRecipeGenerated(recipeData.recipe);
-      
-      setVideoUrl("");
-      onClose();
-      setError(null);
-    } catch (err) {
-      console.error("Erreur TikTok:", err);
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="mt-4 pt-4 border-t border-white/20 space-y-3">
-      <div className="flex gap-2 items-center">
-        <Input
-          type="url"
-          placeholder="tiktok.com/@username/video/..."
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isLoading) {
-              handleImport();
-            }
-            if (e.key === "Escape") {
-              onClose();
-            }
-          }}
-          className={`h-10 text-sm bg-white/90 dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600'}`}
-          disabled={isLoading}
-          autoFocus
-        />
-        <Button
-          onClick={handleImport}
-          disabled={!videoUrl.trim() || isLoading}
-          className="bg-black hover:bg-stone-900 text-white border border-stone-700 h-10 px-4 gap-2 font-medium whitespace-nowrap"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-              <span className="hidden sm:inline">Import...</span>
-            </>
-          ) : (
-            <>
-              <FaTiktok className="h-4 w-4 text-white" />
-              <span className="hidden sm:inline">Importer</span>
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      {error && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-red-100">
-              {error}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// Import des composants
+import {
+  SectionCard,
+  YoutubeImportFormSection,
+  TikTokImportForm,
+} from "./recipe-form-components";
 
 
 export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess, onCancel }: RecipeFormProps) {
@@ -540,6 +80,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   const [userPseudo, setUserPseudo] = useState<string>("Anonyme");
   const [showYouTubeImport, setShowYouTubeImport] = useState(false);
   const [showTikTokImport, setShowTikTokImport] = useState(false);
+  const [isImporting, setIsImporting] = useState(false); // État pour le chargement global
+  const [importStep, setImportStep] = useState<string | null>(null); // Étape actuelle de l'import
+  const [importPlatform, setImportPlatform] = useState<"youtube" | "tiktok" | null>(null); // Plateforme d'import
 
   // Check if this is a duplication (recipe with id=0) or an edit (recipe with id>0)
   const isDuplication = recipe && recipe.id === 0 && !isYouTubeImport; // Not a duplication if it's from YouTube
@@ -1200,6 +743,60 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         <DialogTitle className="sr-only">
           {isYouTubeImport ? "Nouvelle recette depuis YouTube" : isDuplication ? "Dupliquer la recette" : isEdit ? "Modifier la recette" : "Nouvelle recette"}
         </DialogTitle>
+        
+        {/* Loading Overlay - Bloque toute interaction pendant l'import */}
+        {isImporting && (
+          <div className="absolute inset-0 z-50 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md flex items-center justify-center">
+            <div className="max-w-md w-full px-8">
+              <div className="text-center space-y-6">
+                {/* Icon animé selon la plateforme */}
+                <div className="relative mx-auto w-20 h-20">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full animate-ping opacity-20"></div>
+                  <div className="relative bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center shadow-lg">
+                    {importPlatform === "youtube" && (
+                      <Youtube className="h-10 w-10 text-white animate-pulse" />
+                    )}
+                    {importPlatform === "tiktok" && (
+                      <FaTiktok className="h-10 w-10 text-white animate-pulse" />
+                    )}
+                    {!importPlatform && (
+                      <Loader2 className="h-10 w-10 text-white animate-spin" />
+                    )}
+                  </div>
+                </div>
+                
+                {/* Titre */}
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+                    Import en cours...
+                  </h3>
+                  <p className="text-sm text-stone-600 dark:text-stone-400">
+                    {importStep || "Préparation de la recette..."}
+                  </p>
+                </div>
+                
+                {/* Barre de progression animée */}
+                <div className="space-y-2">
+                  <div className="h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full animate-pulse" style={{ width: "70%" }}></div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-stone-500">
+                    ✨ La magie opère, veuillez patienter...
+                  </p>
+                </div>
+                
+                {/* Message informatif */}
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
+                    <Sparkles className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <span>Notre IA analyse la vidéo et structure automatiquement la recette pour vous. Cela peut prendre quelques secondes.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Header with gradient */}
         <div className={`sticky top-0 z-20 ${isYouTubeImport ? 'bg-gradient-to-r from-red-600 via-red-500 to-red-600' : 'bg-gradient-to-r from-emerald-700 via-green-500 to-teal-500'} px-6 py-4`}>
           <div className="flex items-center justify-between">
@@ -1264,7 +861,22 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
           {showYouTubeImport && !isYouTubeImport && !recipe && (
             <YoutubeImportFormSection
               onClose={() => setShowYouTubeImport(false)}
-              onRecipeGenerated={handleYouTubeRecipeImport}
+              setIsImporting={setIsImporting}
+              setImportPlatform={setImportPlatform}
+              setImportStep={setImportStep}
+              onRecipeGenerated={(importedRecipe) => {
+                setIsImporting(true);
+                setImportPlatform("youtube");
+                setImportStep("Traitement de la recette...");
+                setTimeout(() => {
+                  handleYouTubeRecipeImport(importedRecipe);
+                  setTimeout(() => {
+                    setIsImporting(false);
+                    setImportPlatform(null);
+                    setImportStep(null);
+                  }, 800);
+                }, 500);
+              }}
             />
           )}
 
@@ -1272,7 +884,22 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
           {showTikTokImport && !recipe && (
             <TikTokImportForm
               onClose={() => setShowTikTokImport(false)}
-              onRecipeGenerated={handleYouTubeRecipeImport}
+              setIsImporting={setIsImporting}
+              setImportPlatform={setImportPlatform}
+              setImportStep={setImportStep}
+              onRecipeGenerated={(importedRecipe) => {
+                setIsImporting(true);
+                setImportPlatform("tiktok");
+                setImportStep("Traitement de la recette...");
+                setTimeout(() => {
+                  handleYouTubeRecipeImport(importedRecipe);
+                  setTimeout(() => {
+                    setIsImporting(false);
+                    setImportPlatform(null);
+                    setImportStep(null);
+                  }, 800);
+                }, 500);
+              }}
             />
           )}
 
@@ -1673,134 +1300,134 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                       disabled={false}
                     />
                   ) : (
-                    // Mode simple : liste classique d'ingrédients
-                    <div className="space-y-2">
-                      {/* Header row - aligned with the inputs below */}
-                      <div className="hidden sm:grid sm:grid-cols-[80px_1fr_40px] gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium ml-2 mr-2">
-                        <span className="text-center">Qté + Unité</span>
-                        <span className="pl-1">Ingrédient</span>
-                        <span></span>
-                      </div>
-                      {mounted && ingredients.map((ing, index) => (
-                        <div
-                          key={ing.id}
-                          className="grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-1.5 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
-                        >
-                          <Input
-                            value={ing.quantityUnit}
-                            onChange={(e) => updateIngredient(ing.id, "quantityUnit", e.target.value)}
-                            placeholder="150g"
-                            className="h-8 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
-                            title="Ex: 150g, 1 c.à.s, 2 kg, etc."
-                          />
-                          <Input
-                            value={ing.name}
-                            onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
-                            placeholder="Nom de l'ingrédient..."
-                            className="h-8 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeIngredient(ing.id)}
-                            disabled={ingredients.length === 1}
-                            className="h-8 w-8 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                      {ingredients.length === 1 && !ingredients[0].name && (
-                        <p className="text-xs text-stone-400 italic text-center py-2">
-                          Ajoutez les ingrédients de votre recette
-                        </p>
-                      )}
+                  // Mode simple : liste classique d'ingrédients
+                  <div className="space-y-2">
+                    {/* Header row - aligned with the inputs below */}
+                    <div className="hidden sm:grid sm:grid-cols-[80px_1fr_40px] gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium ml-2 mr-2">
+                      <span className="text-center">Qté + Unité</span>
+                      <span className="pl-1">Ingrédient</span>
+                      <span></span>
                     </div>
-                  )}
-                </SectionCard>
-
-                {/* Steps Section */}
-                <SectionCard
-                  icon={ListOrdered}
-                  title={`Étapes de préparation ${steps.filter(s => s.text.trim()).length > 0 ? `(${steps.filter(s => s.text.trim()).length})` : ''}`}
-                  color="rose"
-                  action={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addStep}
-                      className="h-7 text-xs border-rose-300 dark:border-rose-600 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 cursor-pointer"
-                    >
-                      <Plus className="h-3.5 w-3.5 mr-1" />
-                      Ajouter
-                    </Button>
-                  }
-                >
-                  <div className="space-y-3">
-                    {mounted && steps.map((step, index) => (
+                    {mounted && ingredients.map((ing, index) => (
                       <div
-                        key={step.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, step.id)}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, step.id)}
-                        onDragEnd={handleDragEnd}
-                        className={`flex gap-3 p-3 rounded-lg bg-white dark:bg-stone-700/50 border transition-all cursor-grab active:cursor-grabbing ${
-                          draggedStepId === step.id
-                            ? 'border-rose-400 opacity-50 scale-95 shadow-lg'
-                            : 'border-stone-100 dark:border-stone-600 hover:border-rose-300 dark:hover:border-rose-500 hover:shadow-md'
-                        }`}
-                        title="Glisser pour réorganiser les étapes"
+                        key={ing.id}
+                        className="grid grid-cols-[70px_1fr_40px] sm:grid-cols-[80px_1fr_40px] gap-2 items-center px-2 py-1.5 rounded-lg bg-white dark:bg-stone-700/50 border border-stone-100 dark:border-stone-600 hover:border-emerald-200 dark:hover:border-emerald-600 transition-colors"
                       >
-                        <div className="flex-shrink-0">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-pink-500 text-white text-sm font-bold shadow-sm">
-                            {index + 1}
-                          </span>
-                        </div>
-                        <Textarea
-                          value={step.text}
-                          onChange={(e) => {
-                            updateStep(step.id, e.target.value);
-                            // Auto-resize textarea
-                            e.target.style.height = 'auto';
-                            e.target.style.height = e.target.scrollHeight + 'px';
-                          }}
-                          onFocus={(e) => {
-                            // Ensure correct height on focus
-                            e.target.style.height = 'auto';
-                            e.target.style.height = e.target.scrollHeight + 'px';
-                          }}
-                          placeholder={`Décrivez l'étape ${index + 1}...`}
-                          className="flex-1 text-sm border-stone-200 dark:border-stone-600 resize-none bg-stone-50 dark:bg-stone-700 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-600 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500 min-h-[80px] leading-relaxed cursor-text"
-                          style={{ overflow: 'hidden' }}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onDragStart={(e) => e.stopPropagation()}
+                        <Input
+                          value={ing.quantityUnit}
+                          onChange={(e) => updateIngredient(ing.id, "quantityUnit", e.target.value)}
+                          placeholder="150g"
+                          className="h-8 text-sm text-center bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-xs placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                          title="Ex: 150g, 1 c.à.s, 2 kg, etc."
+                        />
+                        <Input
+                          value={ing.name}
+                          onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
+                          placeholder="Nom de l'ingrédient..."
+                          className="h-8 text-sm border-stone-200 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeStep(step.id)}
-                          disabled={steps.length === 1}
-                          className="h-10 w-10 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex-shrink-0 cursor-pointer disabled:opacity-30 self-start"
+                          onClick={() => removeIngredient(ing.id)}
+                          disabled={ingredients.length === 1}
+                          className="h-8 w-8 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-30"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
-                    {steps.length === 1 && !steps[0].text && (
+                    {ingredients.length === 1 && !ingredients[0].name && (
                       <p className="text-xs text-stone-400 italic text-center py-2">
-                        Décrivez les étapes de préparation
+                        Ajoutez les ingrédients de votre recette
                       </p>
                     )}
                   </div>
-                </SectionCard>
-              </div>
+                )}
+              </SectionCard>
+
+              {/* Steps Section */}
+              <SectionCard
+                icon={ListOrdered}
+                title={`Étapes de préparation ${steps.filter(s => s.text.trim()).length > 0 ? `(${steps.filter(s => s.text.trim()).length})` : ''}`}
+                color="rose"
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addStep}
+                    className="h-7 text-xs border-rose-300 dark:border-rose-600 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Ajouter
+                  </Button>
+                }
+              >
+                <div className="space-y-3">
+                  {mounted && steps.map((step, index) => (
+                    <div
+                      key={step.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, step.id)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, step.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex gap-3 p-3 rounded-lg bg-white dark:bg-stone-700/50 border transition-all cursor-grab active:cursor-grabbing ${
+                        draggedStepId === step.id
+                          ? 'border-rose-400 opacity-50 scale-95 shadow-lg'
+                          : 'border-stone-100 dark:border-stone-600 hover:border-rose-300 dark:hover:border-rose-500 hover:shadow-md'
+                      }`}
+                      title="Glisser pour réorganiser les étapes"
+                    >
+                      <div className="flex-shrink-0">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-pink-500 text-white text-sm font-bold shadow-sm">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <Textarea
+                        value={step.text}
+                        onChange={(e) => {
+                          updateStep(step.id, e.target.value);
+                          // Auto-resize textarea
+                          e.target.style.height = 'auto';
+                          e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                        onFocus={(e) => {
+                          // Ensure correct height on focus
+                          e.target.style.height = 'auto';
+                          e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                        placeholder={`Décrivez l'étape ${index + 1}...`}
+                        className="flex-1 text-sm border-stone-200 dark:border-stone-600 resize-none bg-stone-50 dark:bg-stone-700 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-600 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500 min-h-[80px] leading-relaxed cursor-text"
+                        style={{ overflow: 'hidden' }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onDragStart={(e) => e.stopPropagation()}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeStep(step.id)}
+                        disabled={steps.length === 1}
+                        className="h-10 w-10 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex-shrink-0 cursor-pointer disabled:opacity-30 self-start"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {steps.length === 1 && !steps[0].text && (
+                    <p className="text-xs text-stone-400 italic text-center py-2">
+                      Décrivez les étapes de préparation
+                    </p>
+                  )}
+                </div>
+              </SectionCard>
             </div>
-          </form>
-        </ScrollArea>
+          </div>
+        </form>
+      </ScrollArea>
 
         {/* Sticky Footer */}
         <div className="border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-6 py-4">
