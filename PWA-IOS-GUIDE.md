@@ -1,4 +1,4 @@
-# 📱 Configuration PWA iOS - Gourmich
+# 📱 Configuration PWA iOS - Yumiso
 
 ## ✅ Ce qui a été configuré
 
@@ -83,7 +83,7 @@ git init
 git add .
 git commit -m "feat: PWA configuration for iOS"
 git branch -M main
-git remote add origin https://github.com/TON_USERNAME/gourmich-v2.git
+git remote add origin https://github.com/TON_USERNAME/yumiso-v2.git
 git push -u origin main
 ```
 
@@ -124,7 +124,7 @@ vercel --prod
 ### **Étape 3 : Configuration Domaine Custom (Optionnel)**
 
 1. Dans Vercel Dashboard → Settings → Domains
-2. Ajouter ton domaine (ex: `gourmich.app`)
+2. Ajouter ton domaine (ex: `yumiso.app`)
 3. Configurer les DNS selon les instructions Vercel
 4. Attendre propagation DNS (quelques heures max)
 5. **IMPORTANT** : Mettre à jour `NEXTAUTH_URL` avec le nouveau domaine
@@ -143,7 +143,7 @@ vercel --prod
 1. Appuyer sur le bouton Partager (en bas) 📤
 2. Scroller et sélectionner "Sur l'écran d'accueil" ➕
 3. Appuyer "Ajouter"
-4. Une icône Gourmich apparaît sur l'écran d'accueil
+4. Une icône Yumiso apparaît sur l'écran d'accueil
 
 #### **Test 3 : Mode Standalone**
 1. Ouvrir l'app depuis l'icône

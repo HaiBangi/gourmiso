@@ -1,6 +1,6 @@
 {
-  "name": "Gourmich - Recettes Intelligentes",
-  "short_name": "Gourmich",
+  "name": "Yumiso - Recettes Intelligentes",
+  "short_name": "Yumiso",
   "description": "Votre assistant culinaire intelligent avec IA - Recettes, imports vidéos et dictée vocale",
   "start_url": "/",
   "display": "standalone",

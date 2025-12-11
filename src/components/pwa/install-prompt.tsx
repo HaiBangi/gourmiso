@@ -69,7 +69,7 @@ export function InstallPrompt() {
           <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
             <img 
               src="/chef-icon.png" 
-              alt="Gourmich" 
+              alt="Yumiso" 
               className="w-10 h-10"
             />
           </div>
@@ -77,10 +77,10 @@ export function InstallPrompt() {
           {/* Text */}
           <div className="flex-1 space-y-2">
             <h3 className="font-bold text-lg">
-              Installez Gourmich
+              Installez Yumiso
             </h3>
             <p className="text-sm text-white/90 leading-relaxed">
-              Ajoutez Gourmich à votre écran d&apos;accueil pour un accès rapide et une expérience optimale.
+              Ajoutez Yumiso à votre écran d&apos;accueil pour un accès rapide et une expérience optimale.
             </p>
 
             {/* Instructions */}

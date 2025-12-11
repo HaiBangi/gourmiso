@@ -2,7 +2,7 @@
 
 ## 📋 Résumé
 
-Ton application **Gourmich** est maintenant une **Progressive Web App (PWA)** complètement fonctionnelle et optimisée pour **iOS** ! 🎉
+Ton application **Yumiso** est maintenant une **Progressive Web App (PWA)** complètement fonctionnelle et optimisée pour **iOS** ! 🎉
 
 ---
 

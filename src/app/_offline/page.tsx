@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Mode Hors Ligne - Gourmich",
+  title: "Mode Hors Ligne - Yumiso",
   description: "Vous êtes actuellement hors ligne",
 };
 
@@ -68,7 +68,7 @@ export default function OfflinePage() {
         {/* Info */}
         <div className="pt-8 border-t border-stone-200 dark:border-stone-700">
           <p className="text-xs text-stone-400 dark:text-stone-600">
-            💡 Conseil : Ajoutez Gourmich à votre écran d&apos;accueil pour un accès rapide
+            💡 Conseil : Ajoutez Yumiso à votre écran d&apos;accueil pour un accès rapide
           </p>
         </div>
       </div>

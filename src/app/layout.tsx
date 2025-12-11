@@ -42,10 +42,10 @@ export default function RootLayout({
     <html lang="fr">
       <head>
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="Gourmich" />
+        <meta name="application-name" content="Yumiso" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Gourmich" />
+        <meta name="apple-mobile-web-app-title" content="Yumiso" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#10b981" />
         
