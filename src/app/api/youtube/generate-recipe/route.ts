@@ -79,6 +79,15 @@ IMPORTANT pour la langue :
 - TOUS les noms d'ingrédients doivent être en français
 - Si un ingrédient est en anglais ou dans une autre langue, traduis-le en français
 - Exemples : "flour" → "farine", "sugar" → "sucre", "chicken" → "poulet", "salt" → "sel"
+
+IMPORTANT pour les abréviations de mesure :
+- "tbsp" ou "Tbsp" = tablespoon = cuillère à soupe (c.à.s)
+- "tsp" ou "Tsp" = teaspoon = cuillère à café (c.à.c)
+- Traduis TOUJOURS ces unités correctement en français
+- Exemples : 
+  * "1 tbsp" → quantité: "1", unité: "c.à.s"
+  * "2 tsp" → quantité: "2", unité: "c.à.c"
+  * "½ tbsp" → quantité: "0.5", unité: "c.à.s"
 - Les noms de groupes d'ingrédients doivent aussi être en français
 
 IMPORTANT pour les groupes d'ingrédients :

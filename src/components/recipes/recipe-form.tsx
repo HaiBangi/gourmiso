@@ -30,7 +30,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createRecipe, updateRecipe } from "@/actions/recipes";
 import { TagInput } from "./tag-input";
 import { IngredientGroupsEditor } from "./ingredient-groups-editor";
-import { QuickYouTubeImport } from "./quick-youtube-import";
+import { FaTiktok } from "react-icons/fa";
 import { getUserPseudo } from "@/actions/users";
 import {
   convertGroupToApiFormat,
@@ -395,6 +395,140 @@ function YoutubeImportFormSection({
   );
 }
 
+// ==================== TIKTOK IMPORT FORM COMPONENT ====================
+function TikTokImportForm({ 
+  onClose, 
+  onRecipeGenerated 
+}: { 
+  onClose: () => void; 
+  onRecipeGenerated: (recipe: any) => void; 
+}) {
+  const [videoUrl, setVideoUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleImport = async () => {
+    if (!videoUrl.trim()) {
+      setError("Veuillez entrer un lien TikTok");
+      return;
+    }
+
+    if (!videoUrl.includes('tiktok.com')) {
+      setError("Format d'URL TikTok invalide. Utilisez un lien tiktok.com");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Étape 1 : Extraire les métadonnées TikTok
+      const extractRes = await fetch("/api/tiktok/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl }),
+      });
+
+      if (!extractRes.ok) {
+        const data = await extractRes.json();
+        throw new Error(data.error || "Erreur lors de l'extraction TikTok");
+      }
+
+      const extractData = await extractRes.json();
+
+      // Étape 2 : Générer la recette avec ChatGPT
+      const recipeRes = await fetch("/api/youtube/generate-recipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: extractData.title,
+          description: extractData.description,
+          transcript: extractData.description,
+          videoUrl: videoUrl,
+          imageUrl: extractData.thumbnail,
+          author: extractData.author || "TikTok",
+        }),
+      });
+
+      if (!recipeRes.ok) {
+        const data = await recipeRes.json();
+        throw new Error(data.error || "Erreur lors de la génération de la recette");
+      }
+
+      const recipeData = await recipeRes.json();
+      onRecipeGenerated(recipeData.recipe);
+      
+      setVideoUrl("");
+      onClose();
+      setError(null);
+    } catch (err) {
+      console.error("Erreur TikTok:", err);
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-white/20 space-y-3">
+      <div className="flex gap-2 items-center">
+        <Input
+          type="url"
+          placeholder="tiktok.com/@username/video/..."
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isLoading) {
+              handleImport();
+            }
+            if (e.key === "Escape") {
+              onClose();
+            }
+          }}
+          className={`h-10 text-sm bg-white/90 dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600'}`}
+          disabled={isLoading}
+          autoFocus
+        />
+        <Button
+          onClick={handleImport}
+          disabled={!videoUrl.trim() || isLoading}
+          className="bg-black hover:bg-stone-900 text-white border border-stone-700 h-10 px-4 gap-2 font-medium whitespace-nowrap"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
+              <span className="hidden sm:inline">Import...</span>
+            </>
+          ) : (
+            <>
+              <FaTiktok className="h-4 w-4 text-white" />
+              <span className="hidden sm:inline">Importer</span>
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={onClose}
+          variant="ghost"
+          size="icon"
+          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      {error && (
+        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-red-100">
+              {error}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess, onCancel }: RecipeFormProps) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -405,6 +539,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   const [draftRestored, setDraftRestored] = useState(false);
   const [userPseudo, setUserPseudo] = useState<string>("Anonyme");
   const [showYouTubeImport, setShowYouTubeImport] = useState(false);
+  const [showTikTokImport, setShowTikTokImport] = useState(false);
 
   // Check if this is a duplication (recipe with id=0) or an edit (recipe with id>0)
   const isDuplication = recipe && recipe.id === 0 && !isYouTubeImport; // Not a duplication if it's from YouTube
@@ -1079,12 +1214,37 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* Import YouTube button - only for new recipes and admins/owners */}
+              {/* Import Social buttons - only for new recipes and admins/owners */}
               {!recipe && !isYouTubeImport && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (
-                <QuickYouTubeImport 
-                  onRecipeGenerated={handleYouTubeRecipeImport}
-                  onShowChanged={setShowYouTubeImport}
-                />
+                <>
+                  {/* YouTube Import Button */}
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      setShowYouTubeImport(!showYouTubeImport);
+                      setShowTikTokImport(false);
+                    }}
+                    className="h-9 px-4 text-sm font-medium bg-red-600 hover:bg-red-700 text-white border-0 rounded-lg shadow-sm transition-all"
+                  >
+                    <Youtube className="h-4 w-4 mr-2" />
+                    Importer depuis YouTube
+                  </Button>
+                  
+                  {/* TikTok Import Button */}
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      setShowTikTokImport(!showTikTokImport);
+                      setShowYouTubeImport(false);
+                    }}
+                    className="h-9 px-4 text-sm font-medium bg-black hover:bg-stone-900 text-white border border-stone-700 rounded-lg shadow-sm transition-all"
+                  >
+                    <FaTiktok className="h-4 w-4 mr-2 text-white" />
+                    Importer depuis TikTok
+                  </Button>
+                </>
               )}
               <Button
                 variant="ghost"
@@ -1097,15 +1257,23 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
             </div>
           </div>
 
-          {/* YouTube Import Form Section - shown in header when active */}
+          {/* YouTube Import Form Section - shown when YouTube button is active */}
           {showYouTubeImport && !isYouTubeImport && !recipe && (
-            <YoutubeImportFormSection 
+            <YoutubeImportFormSection
               onClose={() => setShowYouTubeImport(false)}
               onRecipeGenerated={handleYouTubeRecipeImport}
             />
           )}
 
-          {/* YouTube Import Form Section - visible only in YouTube import mode */}
+          {/* TikTok Import Form Section - shown when TikTok button is active */}
+          {showTikTokImport && !recipe && (
+            <TikTokImportForm
+              onClose={() => setShowTikTokImport(false)}
+              onRecipeGenerated={handleYouTubeRecipeImport}
+            />
+          )}
+
+          {/* YouTube Import Form Section - visible only in YouTube import mode (legacy) */}
           {isYouTubeImport && (
             <YoutubeImportFormSection
               onClose={() => setOpen(false)}

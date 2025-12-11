@@ -83,5 +83,6 @@ export const cache = new SimpleCache();
 export const cacheKeys = {
   youtubeTranscript: (videoId: string) => `youtube:transcript:${videoId}`,
   youtubeInfo: (videoId: string) => `youtube:info:${videoId}`,
+  tiktokVideo: (videoUrl: string) => `tiktok:video:${videoUrl}`, // TikTok cache key
   chatgptRecipe: (content: string) => `chatgpt:recipe:${content.substring(0, 100)}`,
 };
