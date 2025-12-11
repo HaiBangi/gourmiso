@@ -269,13 +269,37 @@ export function VoiceToTextImport({
         </div>
       )}
 
-      {/* Message d'erreur */}
+      {/* Message d'erreur amélioré */}
       {error && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-red-100 break-words">
-              {error}
-            </p>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
+            <div className="flex-1 min-w-0 space-y-2">
+              <p className="text-xs font-medium text-red-100 break-words">
+                ⚠️ {error}
+              </p>
+              
+              {/* Instructions spécifiques selon le type d'erreur */}
+              {(error.includes('service-not-allowed') || error.includes('not-allowed') || error.includes('HTTPS')) && (
+                <div className="text-xs text-red-200 space-y-1 pt-2 border-t border-red-400/30">
+                  <p className="font-semibold">💡 Comment résoudre :</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>En <strong>développement</strong> : Utilisez <code className="bg-red-900/30 px-1 rounded">localhost</code> ou HTTPS</li>
+                    <li>En <strong>production</strong> : Le site doit être en HTTPS (✅ automatique sur Vercel)</li>
+                    <li>Dans votre <strong>navigateur</strong> : Cliquez sur 🔒 dans la barre d'adresse → Permissions → Autoriser le micro</li>
+                    <li><strong>Chrome</strong> : Paramètres → Confidentialité → Autorisations du site → Micro</li>
+                  </ul>
+                  <p className="pt-2 text-purple-200">
+                    ℹ️ En attendant, vous pouvez utiliser le <strong>mode texte</strong> en tapant votre recette.
+                  </p>
+                </div>
+              )}
+              
+              {error.includes('réseau') && (
+                <p className="text-xs text-red-200 pt-2 border-t border-red-400/30">
+                  💡 Vérifiez votre connexion internet et réessayez.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
