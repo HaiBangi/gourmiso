@@ -798,26 +798,26 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         )}
         
         {/* Header with gradient */}
-        <div className={`sticky top-0 z-20 ${isYouTubeImport ? 'bg-gradient-to-r from-red-600 via-red-500 to-red-600' : 'bg-gradient-to-r from-emerald-700 via-green-500 to-teal-500'} px-6 py-4`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-                <ChefHat className="h-6 w-6 text-white" />
+        <div className={`sticky top-0 z-20 ${isYouTubeImport ? 'bg-gradient-to-r from-red-600 via-red-500 to-red-600' : 'bg-gradient-to-r from-emerald-700 via-green-500 to-teal-500'} px-4 md:px-6 py-3 md:py-4`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+              <div className="p-1.5 md:p-2 bg-white/20 backdrop-blur-sm rounded-lg shrink-0">
+                <ChefHat className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <div>
-                <h2 className="font-serif text-xl font-semibold text-white">
+              <div className="min-w-0">
+                <h2 className="font-serif text-base md:text-xl font-semibold text-white truncate">
                   {isYouTubeImport ? "Nouvelle recette depuis YouTube" : isDuplication ? "Dupliquer la recette" : isEdit ? "Modifier la recette" : "Nouvelle recette"}
                 </h2>
-                <p className="text-white/80 text-xs mt-0.5">
+                <p className="text-white/80 text-xs mt-0.5 hidden sm:block">
                   {isYouTubeImport ? "Générée automatiquement depuis une vidéo YouTube" : isDuplication ? "Créez une copie de cette recette" : isEdit ? "Mettez à jour votre création culinaire" : "Partagez votre création culinaire"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
               {/* Import Social buttons - only for new recipes and admins/owners */}
               {!recipe && !isYouTubeImport && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (
                 <>
-                  {/* YouTube Import Button */}
+                  {/* YouTube Import Button - Responsive */}
                   <Button
                     type="button"
                     size="sm"
@@ -825,13 +825,13 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                       setShowYouTubeImport(!showYouTubeImport);
                       setShowTikTokImport(false);
                     }}
-                    className="h-9 px-4 text-sm font-medium bg-red-600 hover:bg-red-700 text-white border-0 rounded-lg shadow-sm transition-all"
+                    className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-red-600 hover:bg-red-700 text-white border-0 rounded-lg shadow-sm transition-all"
                   >
-                    <Youtube className="h-4 w-4 mr-2" />
-                    Importer depuis YouTube
+                    <Youtube className="h-3.5 w-3.5 md:h-4 md:w-4 md:mr-2" />
+                    <span className="hidden md:inline">Importer depuis YouTube</span>
                   </Button>
                   
-                  {/* TikTok Import Button */}
+                  {/* TikTok Import Button - Responsive */}
                   <Button
                     type="button"
                     size="sm"
@@ -839,10 +839,10 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                       setShowTikTokImport(!showTikTokImport);
                       setShowYouTubeImport(false);
                     }}
-                    className="h-9 px-4 text-sm font-medium bg-black hover:bg-stone-900 text-white border border-stone-700 rounded-lg shadow-sm transition-all"
+                    className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-black hover:bg-stone-900 text-white border border-stone-700 rounded-lg shadow-sm transition-all"
                   >
-                    <FaTiktok className="h-4 w-4 mr-2 text-white" />
-                    Importer depuis TikTok
+                    <FaTiktok className="h-3.5 w-3.5 md:h-4 md:w-4 md:mr-2 text-white" />
+                    <span className="hidden md:inline">Importer depuis TikTok</span>
                   </Button>
                 </>
               )}
@@ -850,9 +850,9 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                 variant="ghost"
                 size="icon"
                 onClick={() => setOpen(false)}
-                className="text-white/80 hover:text-white hover:bg-white/20 rounded-full"
+                className="text-white/80 hover:text-white hover:bg-white/20 rounded-full h-8 w-8 md:h-10 md:w-10 shrink-0"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </div>
           </div>

@@ -7,7 +7,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Youtube, Loader2, X } from "lucide-react";
+import { Youtube, Loader2 } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
 
 // ==================== SECTION CARD COMPONENT ====================
@@ -188,10 +188,11 @@ export function YoutubeImportFormSection({
 
   return (
     <div className="mt-4 pt-4 border-t border-white/20 space-y-3">
-      <div className="flex gap-2 items-center">
+      {/* Layout responsive : colonne sur mobile, ligne sur desktop */}
+      <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
         <Input
           type="url"
-          placeholder="youtube.com/watch?v=dQw4w9WgXcQ"
+          placeholder="youtube.com/watch?v=..."
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
           onKeyDown={(e) => {
@@ -209,33 +210,25 @@ export function YoutubeImportFormSection({
         <Button
           onClick={handleImport}
           disabled={!youtubeUrl.trim() || isLoading}
-          className="bg-white hover:bg-red-50 text-red-600 dark:bg-stone-900 dark:hover:bg-red-950/20 dark:text-red-500 h-10 px-4 gap-2 font-medium whitespace-nowrap"
+          className="bg-white hover:bg-red-50 text-red-600 dark:bg-stone-900 dark:hover:bg-red-950/20 dark:text-red-500 h-10 px-4 gap-2 font-medium"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="hidden sm:inline">Import...</span>
+              <span>Import...</span>
             </>
           ) : (
             <>
               <Youtube className="h-4 w-4" />
-              <span className="hidden sm:inline">Importer</span>
+              <span>Importer</span>
             </>
           )}
-        </Button>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
-        >
-          <X className="h-4 w-4" />
         </Button>
       </div>
       {error && (
         <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-red-100">
+            <p className="text-xs font-medium text-red-100 break-words">
               {error}
             </p>
           </div>
@@ -346,10 +339,11 @@ export function TikTokImportForm({
 
   return (
     <div className="mt-4 pt-4 border-t border-white/20 space-y-3">
-      <div className="flex gap-2 items-center">
+      {/* Layout responsive : colonne sur mobile, ligne sur desktop */}
+      <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
         <Input
           type="url"
-          placeholder="tiktok.com/@username/video/..."
+          placeholder="tiktok.com/@user/video/..."
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
           onKeyDown={(e) => {
@@ -367,33 +361,25 @@ export function TikTokImportForm({
         <Button
           onClick={handleImport}
           disabled={!videoUrl.trim() || isLoading}
-          className="bg-black hover:bg-stone-900 text-white border border-stone-700 h-10 px-4 gap-2 font-medium whitespace-nowrap"
+          className="bg-black hover:bg-stone-900 text-white border border-stone-700 h-10 px-4 gap-2 font-medium"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-white" />
-              <span className="hidden sm:inline">Import...</span>
+              <span>Import...</span>
             </>
           ) : (
             <>
               <FaTiktok className="h-4 w-4 text-white" />
-              <span className="hidden sm:inline">Importer</span>
+              <span>Importer</span>
             </>
           )}
-        </Button>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="text-white/80 hover:text-white hover:bg-white/20 h-10 w-10"
-        >
-          <X className="h-4 w-4" />
         </Button>
       </div>
       {error && (
         <div className="flex items-start gap-2 p-2 rounded-lg bg-red-50/20 backdrop-blur-sm border border-red-400/50">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-red-100">
+            <p className="text-xs font-medium text-red-100 break-words">
               {error}
             </p>
           </div>
