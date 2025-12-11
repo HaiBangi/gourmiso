@@ -395,7 +395,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         draft.name || 
         (draft.ingredients && draft.ingredients.some(i => i.name)) || 
         (draft.steps && draft.steps.some(s => s.text)) || 
-        (draft.ingredientGroups && draft.ingredientGroups.some(g => g.ingredients.some(i => i.name)))
+        (draft.ingredientGroups && draft.ingredientGroups.some(g => g.ingredients.some((i: any) => i.name)))
       )) {
         console.log('[RecipeForm] Restoring draft with useGroups:', draft.useGroups);
         console.log('[RecipeForm] Draft ingredientGroups:', draft.ingredientGroups);

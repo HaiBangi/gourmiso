@@ -40,6 +40,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# PWA generated files
+/public/sw.js
+/public/sw.js.map
+/public/workbox-*.js
+/public/workbox-*.js.map
+/public/worker-*.js
+/public/worker-*.js.map
+/public/fallback-*.js
+
 /src/generated/prisma
 /.idea/.gitignore
 /.idea/AugmentWebviewStateStore.xml
