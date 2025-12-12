@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useViewContext } from "@/components/recipes/recipe-list";
 import { useSortPreference } from "@/hooks/use-sort-preference";
 import {
   Sheet,
@@ -22,8 +21,6 @@ import {
   Check,
   Clock,
   ArrowUpDown,
-  Grid3x3,
-  List,
   Utensils,
   Tag,
 } from "lucide-react";
@@ -107,7 +104,6 @@ export function MobileFiltersSheet({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const { view, setView } = useViewContext();
   const { getSortPreference, saveSortPreference } = useSortPreference();
 
   // Initialiser avec la préférence sauvegardée ou currentSort ou "recent" par défaut
@@ -247,36 +243,6 @@ export function MobileFiltersSheet({
                 Filtres et options
               </SheetTitle>
             </SheetHeader>
-
-            {/* View Toggle */}
-            <div className="mb-4">
-              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <Grid3x3 className="h-4 w-4" />
-                Affichage
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={view === "grid" ? "default" : "outline"}
-                  size="default"
-                  onClick={() => setView("grid")}
-                  className="h-10 cursor-pointer"
-                >
-                  <Grid3x3 className="h-4 w-4 mr-2" />
-                  Grille
-                </Button>
-                <Button
-                  variant={view === "list" ? "default" : "outline"}
-                  size="default"
-                  onClick={() => setView("list")}
-                  className="h-10 cursor-pointer"
-                >
-                  <List className="h-4 w-4 mr-2" />
-                  Liste
-                </Button>
-              </div>
-            </div>
-
-            <Separator className="my-4" />
 
             {/* Sort Options */}
             <div className="mb-4">
@@ -474,5 +440,3 @@ export function MobileFiltersSheet({
     </Sheet>
   );
 }
-
-

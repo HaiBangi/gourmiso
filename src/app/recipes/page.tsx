@@ -144,7 +144,6 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
   console.log(`📊 [FILTER RESULT] Total recipes: ${recipes.length}`, {
     collectionFilterActive: collectionIds.length > 0,
     collectionIds: collectionIds,
-    firstRecipe: recipes[0] ? recipes[0].name : 'no recipes'
   });
 
   return recipes as Recipe[];
@@ -309,7 +308,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
   const showPseudoBanner = userId && (!userPseudo || userPseudo === "Anonyme");
 
   // Get popular tags for filters
-  const popularTags = await getPopularTags(15);
+  const popularTags = await getPopularTags(20);
   
   // Get user collections (only non-empty ones)
   const userCollections = await getUserCollections(userId);
@@ -376,6 +375,3 @@ export default async function RecipesPage({ searchParams }: PageProps) {
     </main>
   );
 }
-
-
-

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useViewContext } from "@/components/recipes/recipe-list";
 import { useSortPreference } from "@/hooks/use-sort-preference";
 import {
   Sheet,
@@ -22,8 +21,6 @@ import {
   Check,
   Clock,
   ArrowUpDown,
-  Grid3x3,
-  List,
   Utensils,
   Tag,
 } from "lucide-react";
@@ -107,7 +104,6 @@ export function DesktopFiltersSheet({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const { view, setView } = useViewContext();
   const { getSortPreference, saveSortPreference } = useSortPreference();
 
   // Initialiser avec la préférence sauvegardée ou currentSort ou "recent" par défaut
@@ -120,7 +116,7 @@ export function DesktopFiltersSheet({
   const [selectedSort, setSelectedSort] = useState(initialSort);
   const [maxTime, setMaxTime] = useState(currentMaxTime ? parseInt(currentMaxTime) : 120);
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
-  console.log("?? [INIT] currentCollection prop:", currentCollection); const [selectedCollections, setSelectedCollections] = useState<string[]>(
+  const [selectedCollections, setSelectedCollections] = useState<string[]>(
     currentCollection ? currentCollection.split(",") : []
   );
 
@@ -154,7 +150,7 @@ export function DesktopFiltersSheet({
     );
   };
 
-  const toggleCollection = (collectionId: string) => { console.log("?? [TOGGLE COLLECTION]", collectionId, "Currently selected:", selectedCollections);
+  const toggleCollection = (collectionId: string) => {
     setSelectedCollections(prev =>
       prev.includes(collectionId)
         ? prev.filter(c => c !== collectionId)
@@ -164,7 +160,6 @@ export function DesktopFiltersSheet({
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
-    console.log("🔧 [APPLY FILTERS DEBUG] selectedCollections:", selectedCollections);
 
     // Categories (multiple)
     if (selectedCategories.length > 0) {
@@ -201,7 +196,6 @@ export function DesktopFiltersSheet({
       params.delete("collection");
     }
 
-    console.log("🚀 [NAVIGATE] Final URL:", `/recipes?${params.toString()}`);
     router.push(`/recipes?${params.toString()}`);
     setOpen(false);
   };
@@ -247,47 +241,17 @@ export function DesktopFiltersSheet({
               </SheetTitle>
             </SheetHeader>
 
-            {/* View Toggle */}
+            {/* Sort Options - COMPACT */}
             <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Grid3x3 className="h-4 w-4" />
-                Affichage
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={view === "grid" ? "default" : "outline"}
-                  size="lg"
-                  onClick={() => setView("grid")}
-                  className="h-12 cursor-pointer"
-                >
-                  <Grid3x3 className="h-4 w-4 mr-2" />
-                  Grille
-                </Button>
-                <Button
-                  variant={view === "list" ? "default" : "outline"}
-                  size="lg"
-                  onClick={() => setView("list")}
-                  className="h-12 cursor-pointer"
-                >
-                  <List className="h-4 w-4 mr-2" />
-                  Liste
-                </Button>
-              </div>
-            </div>
-
-            <Separator className="my-6" />
-
-            {/* Sort Options */}
-            <div className="mb-6">
-              <Label className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4" />
                 Trier par
               </Label>
-              <RadioGroup value={selectedSort} onValueChange={setSelectedSort} className="space-y-2">
+              <RadioGroup value={selectedSort} onValueChange={setSelectedSort} className="space-y-1.5">
                 {sortOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`flex items-center space-x-3 rounded-lg border-2 p-4 transition-all cursor-pointer ${
+                    className={`flex items-center space-x-2 rounded-lg border p-2.5 transition-all cursor-pointer ${
                       selectedSort === option.value
                         ? "border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20"
                         : "border-stone-200 dark:border-stone-700 hover:border-stone-300"
@@ -297,13 +261,13 @@ export function DesktopFiltersSheet({
                     <RadioGroupItem value={option.value} id={`sort-${option.value}`} />
                     <Label
                       htmlFor={`sort-${option.value}`}
-                      className="flex-1 cursor-pointer flex items-center gap-2 text-base"
+                      className="flex-1 cursor-pointer flex items-center gap-1.5 text-sm"
                     >
-                      <span className="text-xl">{option.icon}</span>
+                      <span className="text-base">{option.icon}</span>
                       {option.label}
                     </Label>
                     {selectedSort === option.value && (
-                      <Check className="h-5 w-5 text-emerald-700" />
+                      <Check className="h-4 w-4 text-emerald-700" />
                     )}
                   </div>
                 ))}
