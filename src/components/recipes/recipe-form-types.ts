@@ -87,6 +87,7 @@ export interface DraftData {
   preparationTime: string;
   cookingTime: string;
   servings: string;
+  caloriesPerServing?: string; // Optional calories per serving
   costEstimate: string;
   publishAnonymously?: boolean; // Optional for backward compatibility
   tags: string[];

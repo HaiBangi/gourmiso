@@ -74,6 +74,7 @@ export const recipeCreateSchema = z.object({
   cookingTime: z.number().int().min(0).optional().default(0),
   rating: z.number().min(0).max(10).optional().default(0), // Calculated from comments (0-10)
   servings: z.number().int().positive().optional().default(1),
+  caloriesPerServing: z.number().int().min(0).nullable().optional(),
   costEstimate: z.enum(["CHEAP", "MEDIUM", "EXPENSIVE"]).nullable().optional(),
   tags: z.array(z.string().max(50)).optional().default([]),
   ingredients: z.array(ingredientSchema).optional().default([]),

@@ -113,6 +113,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     recipe?.cookingTime?.toString() || ""
   );
   const [servings, setServings] = useState(recipe?.servings?.toString() || "");
+  const [caloriesPerServing, setCaloriesPerServing] = useState(recipe?.caloriesPerServing?.toString() || "");
   const [costEstimate, setCostEstimate] = useState(recipe?.costEstimate || "");
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
@@ -133,6 +134,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     setPreparationTime(importedRecipe.preparationTime?.toString() || "");
     setCookingTime(importedRecipe.cookingTime?.toString() || "");
     setServings(importedRecipe.servings?.toString() || "4");
+    setCaloriesPerServing(importedRecipe.caloriesPerServing?.toString() || "");
     setCostEstimate(importedRecipe.costEstimate || "");
     setTags(importedRecipe.tags || []);
 
@@ -210,6 +212,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       preparationTime,
       cookingTime,
       servings,
+      caloriesPerServing,
       costEstimate,
       tags,
       ingredients: currentIngredients,
@@ -322,6 +325,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         setPreparationTime(draft.preparationTime);
         setCookingTime(draft.cookingTime);
         setServings(draft.servings);
+        setCaloriesPerServing(draft.caloriesPerServing || "");
         setCostEstimate(draft.costEstimate || "");
         setTags(draft.tags || []);
         
@@ -617,6 +621,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       preparationTime: parseInt(preparationTime) || 0,
       cookingTime: parseInt(cookingTime) || 0,
       servings: parseInt(servings) || 1,
+      caloriesPerServing: caloriesPerServing ? parseInt(caloriesPerServing) : null,
       rating: 0, // Will be calculated from comments automatically
       costEstimate: costEstimate ? (costEstimate as "CHEAP" | "MEDIUM" | "EXPENSIVE") : null,
       tags: tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
@@ -1204,6 +1209,20 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                         min="1"
                         value={servings}
                         onChange={(e) => setServings(e.target.value)}
+                        placeholder="—"
+                        className="h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                        <Flame className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400" />
+                        Cal/portion
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={caloriesPerServing}
+                        onChange={(e) => setCaloriesPerServing(e.target.value)}
                         placeholder="—"
                         className="h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100 placeholder:text-sm placeholder:italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                       />

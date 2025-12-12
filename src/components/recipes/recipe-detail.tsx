@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Star, Play, Coins } from "lucide-react";
+import { Clock, Users, Star, Play, Coins, Flame } from "lucide-react";
 import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeButton } from "./delete-recipe-button";
@@ -197,6 +197,21 @@ export function RecipeDetail({
               </p>
             </div>
           </div>
+          {recipe.caloriesPerServing && (
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/40">
+                <Flame className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                  Calories
+                </p>
+                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                  {recipe.caloriesPerServing} kcal/pers.
+                </p>
+              </div>
+            </div>
+          )}
           {recipe.rating > 0 && (
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/40">

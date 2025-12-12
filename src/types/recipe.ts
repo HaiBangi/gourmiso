@@ -73,6 +73,7 @@ export interface Recipe {
   cookingTime: number;
   rating: number;
   servings: number;
+  caloriesPerServing?: number | null;
   costEstimate: CostEstimate;
   tags: string[];
   createdAt: Date;
@@ -93,6 +94,7 @@ export interface RecipeCreateInput {
   cookingTime: number;
   rating?: number;
   servings: number;
+  caloriesPerServing?: number | null;
   costEstimate?: CostEstimate;
   tags?: string[];
   ingredients: Omit<Ingredient, "id">[];

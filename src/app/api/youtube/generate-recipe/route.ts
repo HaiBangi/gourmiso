@@ -370,6 +370,7 @@ Utilise le nom de la chaîne YouTube "${author || "YouTube"}" comme auteur de la
       preparationTime: Number(recipe.preparationTime) || 0,
       cookingTime: Number(recipe.cookingTime) || 0,
       servings: Number(recipe.servings) || 4,
+      caloriesPerServing: recipe.caloriesPerServing ? Number(recipe.caloriesPerServing) : null,
       costEstimate: (recipe.costEstimate || "MEDIUM") as CostEstimate,
       rating: 0, // Pas de note par défaut pour les imports YouTube
       tags: Array.isArray(recipe.tags) ? recipe.tags : [],
