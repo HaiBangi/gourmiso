@@ -1233,7 +1233,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                         Coût
                       </Label>
                       <Select value={costEstimate || "none"} onValueChange={(v) => setCostEstimate(v === "none" ? "" : v)}>
-                        <SelectTrigger className="cursor-pointer h-10 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100">
+                        <SelectTrigger className="cursor-pointer h-11 bg-white dark:bg-stone-700 border-stone-200 dark:border-stone-600 dark:text-stone-100">
                           <SelectValue placeholder="—">
                             {costOptions.find(c => c.value === costEstimate)?.emoji || "—"}
                           </SelectValue>
