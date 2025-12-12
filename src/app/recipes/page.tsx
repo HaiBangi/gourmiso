@@ -141,12 +141,6 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
     });
   }
 
-  console.log(`📊 [FILTER RESULT] Total recipes: ${recipes.length}`, {
-    collectionFilterActive: collectionIds.length > 0,
-    collectionIds: collectionIds,
-    firstRecipeCollections: recipes[0] ? recipes[0].collections : 'no recipes'
-  });
-
   return recipes as Recipe[];
 }
 
