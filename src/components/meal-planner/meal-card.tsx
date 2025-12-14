@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trash2, Eye, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeDetailDialog } from "./recipe-detail-dialog";
+import { EditMealDialog } from "./edit-meal-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface MealCardProps {
@@ -14,6 +15,7 @@ interface MealCardProps {
 
 export function MealCard({ meal, onRefresh }: MealCardProps) {
   const [showDetail, setShowDetail] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -79,8 +81,7 @@ export function MealCard({ meal, onRefresh }: MealCardProps) {
               className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: Implémenter l'édition
-                alert("Fonctionnalité d'édition à venir");
+                setShowEditDialog(true);
               }}
               title="Modifier"
             >
@@ -108,6 +109,14 @@ export function MealCard({ meal, onRefresh }: MealCardProps) {
         open={showDetail}
         onOpenChange={setShowDetail}
         meal={meal}
+      />
+
+      {/* Edit Meal Dialog */}
+      <EditMealDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        meal={meal}
+        onSuccess={onRefresh}
       />
 
       {/* Delete Confirmation Dialog */}

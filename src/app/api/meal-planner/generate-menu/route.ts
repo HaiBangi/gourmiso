@@ -122,10 +122,68 @@ ${existingRecipes.length > 0 ? `- Voici des recettes existantes que tu peux util
     // Créer tous les repas dans la base de données
     const createdMeals = [];
     for (const meal of menuData.meals) {
-      // Pour le moment, on ne lie pas aux recettes existantes pour éviter les erreurs de clé étrangère
-      // On crée juste les repas comme des recettes générées par l'IA
-      const createdMeal = await db.plannedMeal.create({
-        data: {
+      // Chercher si une recette avec le même nom existe déjà
+      let matchingRecipe = null;
+      if (useExistingRecipes) {
+        matchingRecipe = await db.recipe.findFirst({
+          where: {
+            userId: session.user.id,
+            name: {
+              equals: meal.name,
+              mode: 'insensitive', // Insensible à la casse
+            },
+          },
+          include: {
+            ingredients: true,
+            steps: { orderBy: { order: "asc" } },
+          },
+        });
+      }
+
+      let mealData;
+      
+      if (matchingRecipe) {
+        // Utiliser la recette existante
+        console.log(`✅ Recette existante trouvée: ${matchingRecipe.name}`);
+        
+        // Calculer le ratio d'ajustement des portions
+        const portionRatio = numberOfPeople / matchingRecipe.servings;
+
+        // Formater les ingrédients avec quantités ajustées
+        const ingredientsFormatted = matchingRecipe.ingredients.map((ing) => {
+          let adjustedQuantity = ing.quantity;
+          if (adjustedQuantity && portionRatio !== 1) {
+            adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
+          }
+
+          if (adjustedQuantity && ing.unit) {
+            return `${adjustedQuantity} ${ing.unit} ${ing.name}`;
+          } else if (adjustedQuantity) {
+            return `${adjustedQuantity} ${ing.name}`;
+          } else {
+            return ing.name;
+          }
+        });
+
+        mealData = {
+          weeklyMealPlanId: planId,
+          dayOfWeek: meal.dayOfWeek,
+          timeSlot: meal.timeSlot,
+          mealType: meal.mealType,
+          name: matchingRecipe.name,
+          prepTime: matchingRecipe.preparationTime,
+          cookTime: matchingRecipe.cookingTime,
+          servings: numberOfPeople,
+          calories: matchingRecipe.caloriesPerServing ? Math.round(matchingRecipe.caloriesPerServing * portionRatio) : null,
+          portionsUsed: numberOfPeople,
+          ingredients: ingredientsFormatted,
+          steps: matchingRecipe.steps.map((step) => step.text),
+          recipeId: matchingRecipe.id,
+          isUserRecipe: true,
+        };
+      } else {
+        // Utiliser les données générées par l'IA
+        mealData = {
           weeklyMealPlanId: planId,
           dayOfWeek: meal.dayOfWeek,
           timeSlot: meal.timeSlot,
@@ -138,10 +196,12 @@ ${existingRecipes.length > 0 ? `- Voici des recettes existantes que tu peux util
           portionsUsed: meal.servings || numberOfPeople,
           ingredients: meal.ingredients || [],
           steps: meal.steps || [],
-          recipeId: null, // Toujours null pour éviter les violations de contrainte
+          recipeId: null,
           isUserRecipe: false,
-        },
-      });
+        };
+      }
+
+      const createdMeal = await db.plannedMeal.create({ data: mealData });
       createdMeals.push(createdMeal);
     }
 

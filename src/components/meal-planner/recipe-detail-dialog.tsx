@@ -50,16 +50,19 @@ export function RecipeDetailDialog({ open, onOpenChange, meal }: RecipeDetailDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            {meal.name}
+          <div className="flex items-start justify-between gap-4">
+            <DialogTitle className="text-2xl font-bold">
+              {meal.name}
+            </DialogTitle>
             {meal.recipeId && (
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="outline" size="sm" className="gap-2 flex-shrink-0">
                 <Link href={`/recipes/${meal.recipeId}`} target="_blank">
                   <ExternalLink className="h-4 w-4" />
+                  Voir la recette complète
                 </Link>
               </Button>
             )}
-          </DialogTitle>
+          </div>
         </DialogHeader>
 
         {isLoading ? (
