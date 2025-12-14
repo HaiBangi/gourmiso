@@ -2,7 +2,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cache, cacheKeys } from "@/lib/cache";
-async function getTikTokVideoInfo(videoUrl: string): Promise<{ 
+
+async function getTikTokVideoInfo(videoUrl: string, fallbackAuthor: string = "Anonyme"): Promise<{ 
   title: string; 
   description: string; 
   author: string;
@@ -33,7 +34,7 @@ async function getTikTokVideoInfo(videoUrl: string): Promise<{
     const result = {
       title: videoData.title || "Video TikTok",
       description: videoData.title || "",
-      author: videoData.author?.unique_id || videoData.author?.nickname || "TikTok",
+      author: videoData.author?.unique_id || videoData.author?.nickname || fallbackAuthor,
       thumbnail: videoData.cover || videoData.origin_cover || "",
     };
     console.log('TikTok Metadonnees extraites: ' + result.author + ' - ' + result.title);
@@ -55,16 +56,24 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+    
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true },
+      select: { 
+        role: true,
+        pseudo: true,
+      },
     });
+    
     if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
       return NextResponse.json(
         { error: "Acces refuse" },
         { status: 403 }
       );
     }
+
+    const userPseudo = user.pseudo || "Anonyme";
+
     const { videoUrl } = await request.json();
     if (!videoUrl) {
       return NextResponse.json(
@@ -79,7 +88,7 @@ export async function POST(request: NextRequest) {
       );
     }
     console.log('API TikTok Traitement de ' + videoUrl);
-    const videoInfo = await getTikTokVideoInfo(videoUrl);
+    const videoInfo = await getTikTokVideoInfo(videoUrl, userPseudo);
     return NextResponse.json({
       title: videoInfo.title,
       description: videoInfo.description,

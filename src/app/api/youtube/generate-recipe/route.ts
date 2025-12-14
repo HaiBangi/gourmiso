@@ -146,10 +146,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier que l'utilisateur est admin ou owner
+    // Vérifier que l'utilisateur est admin ou owner et récupérer son pseudo
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true },
+      select: { 
+        role: true,
+        pseudo: true,
+      },
     });
 
     if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
@@ -158,6 +161,8 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    const userPseudo = user.pseudo || "Anonyme";
 
     const { title, description, transcript, videoUrl, imageUrl, author } = await request.json();
 
@@ -194,7 +199,7 @@ export async function POST(request: NextRequest) {
     // Créer le prompt utilisateur
     const userPrompt = `
 Titre de la vidéo: ${title}
-Chaîne YouTube: ${author || "YouTube"}
+Chaîne YouTube: ${author || userPseudo}
 
 Description:
 ${description}
@@ -203,7 +208,7 @@ Transcription:
 ${transcript.slice(0, 8000)} ${transcript.length > 8000 ? "..." : ""}
 
 Analyse cette vidéo de recette et extrais toutes les informations pertinentes pour créer une recette structurée. 
-Utilise le nom de la chaîne YouTube "${author || "YouTube"}" comme auteur de la recette.`;
+Utilise le nom de la chaîne YouTube "${author || userPseudo}" comme auteur de la recette.`;
 
     console.log("[Generate Recipe] Appel de l'API OpenAI avec le modèle gpt-5.1-mini...");
 
@@ -239,7 +244,7 @@ Utilise le nom de la chaîne YouTube "${author || "YouTube"}" comme auteur de la
       name: recipe.name || "Recette sans nom",
       description: recipe.description || null,
       category: (recipe.category || "MAIN_DISH") as Category,
-      author: author || recipe.author || "YouTube", // Priorité au nom de la chaîne YouTube
+      author: author || recipe.author || userPseudo, // Priorité au nom de la chaîne, sinon pseudo de l'utilisateur
       preparationTime: Number(recipe.preparationTime) || 0,
       cookingTime: Number(recipe.cookingTime) || 0,
       servings: Number(recipe.servings) || 4,

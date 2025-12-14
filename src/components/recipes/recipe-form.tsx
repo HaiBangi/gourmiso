@@ -129,6 +129,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     setName(importedRecipe.name || "");
     setDescription(importedRecipe.description || "");
     setCategory(importedRecipe.category || "MAIN_DISH");
+    setAuthorField(importedRecipe.author || ""); // Pré-remplir l'auteur avec le nom de la chaîne
     setImageUrl(importedRecipe.imageUrl || "");
     setVideoUrl(importedRecipe.videoUrl || "");
     setPreparationTime(importedRecipe.preparationTime?.toString() || "");
@@ -1046,7 +1047,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                   <div className="space-y-4">
                     {/* Name + Category + Anonymous in flex */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-[2] min-w-0">
                         <Label htmlFor="name" className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 block">
                           Nom de la recette <span className="text-red-500">*</span>
                         </Label>
@@ -1117,7 +1118,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="w-full sm:w-48">
+                        <div className="w-full sm:w-32">
                           <Label htmlFor="authorField" className="text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5 block">
                             Auteur
                           </Label>

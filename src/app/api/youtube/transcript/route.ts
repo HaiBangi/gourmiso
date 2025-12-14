@@ -130,7 +130,7 @@ async function getYoutubeTranscript(videoId: string): Promise<string> {
 /**
  * Récupère les métadonnées de la vidéo (titre, description, auteur) avec youtubei.js
  */
-async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; description: string; author: string }> {
+async function getYoutubeVideoInfo(videoId: string, fallbackAuthor: string = "Anonyme"): Promise<{ title: string; description: string; author: string }> {
   try {
     console.log(`[VideoInfo] Récupération des métadonnées pour ${videoId}`);
     
@@ -142,7 +142,7 @@ async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; de
     
     const title = info.basic_info.title || "Vidéo YouTube";
     const description = info.basic_info.short_description || "";
-    const author = info.basic_info.author || "YouTube";
+    const author = info.basic_info.author || fallbackAuthor;
 
     console.log(`[VideoInfo] ✅ Titre: ${title}`);
     console.log(`[VideoInfo] ✅ Chaîne: ${author}`);
@@ -157,7 +157,7 @@ async function getYoutubeVideoInfo(videoId: string): Promise<{ title: string; de
     return {
       title: "Vidéo YouTube",
       description: "",
-      author: "YouTube",
+      author: fallbackAuthor,
     };
   }
 }
@@ -174,10 +174,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier que l'utilisateur est admin ou owner
+    // Vérifier que l'utilisateur est admin ou owner et récupérer son pseudo
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true },
+      select: { 
+        role: true,
+        pseudo: true,
+      },
     });
 
     if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
@@ -186,6 +189,8 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    const userPseudo = user.pseudo || "Anonyme";
 
     const { videoId } = await request.json();
 
@@ -200,13 +205,14 @@ export async function POST(request: NextRequest) {
 
     // Récupérer les informations et la transcription
     const [videoInfo, transcript] = await Promise.all([
-      getYoutubeVideoInfo(videoId),
+      getYoutubeVideoInfo(videoId, userPseudo),
       getYoutubeTranscript(videoId),
     ]);
 
     return NextResponse.json({
       title: videoInfo.title,
       description: videoInfo.description,
+      author: videoInfo.author,
       transcript,
     });
   } catch (error) {
