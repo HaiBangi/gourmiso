@@ -8,6 +8,17 @@ import { MealCard } from "./meal-card";
 import { AddMealDialog } from "./add-meal-dialog";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+const DAY_COLORS: Record<string, { header: string; card: string; border: string }> = {
+  "Lundi": { header: "bg-slate-700 text-white", card: "bg-slate-50 dark:bg-slate-900/30", border: "border-slate-300 dark:border-slate-600" },
+  "Mardi": { header: "bg-indigo-700 text-white", card: "bg-indigo-50 dark:bg-indigo-900/30", border: "border-indigo-300 dark:border-indigo-600" },
+  "Mercredi": { header: "bg-violet-700 text-white", card: "bg-violet-50 dark:bg-violet-900/30", border: "border-violet-300 dark:border-violet-600" },
+  "Jeudi": { header: "bg-amber-700 text-white", card: "bg-amber-50 dark:bg-amber-900/30", border: "border-amber-300 dark:border-amber-600" },
+  "Vendredi": { header: "bg-orange-700 text-white", card: "bg-orange-50 dark:bg-orange-900/30", border: "border-orange-300 dark:border-orange-600" },
+  "Samedi": { header: "bg-emerald-700 text-white", card: "bg-emerald-50 dark:bg-emerald-900/30", border: "border-emerald-300 dark:border-emerald-600" },
+  "Dimanche": { header: "bg-rose-700 text-white", card: "bg-rose-50 dark:bg-rose-900/30", border: "border-rose-300 dark:border-rose-600" },
+};
+
 const TIME_SLOTS = [
   { time: "08:00", label: "Petit-déjeuner", type: "Petit-déjeuner" },
   { time: "12:00", label: "Déjeuner", type: "Déjeuner" },
@@ -46,8 +57,8 @@ export function WeeklyCalendar({ plan, onRefresh }: WeeklyCalendarProps) {
               key={slot.time}
               className="h-32 flex flex-col items-center justify-center border rounded-lg bg-stone-50 dark:bg-stone-900 p-2"
             >
-              <div className="text-lg font-bold text-emerald-600">{slot.time}</div>
-              <div className="text-xs text-stone-600 dark:text-stone-400 text-center mt-1">
+              <div className="text-2xl font-bold text-stone-700 dark:text-stone-300">{slot.time}</div>
+              <div className="text-sm text-stone-600 dark:text-stone-400 text-center mt-1 font-medium">
                 {slot.label}
               </div>
             </div>
@@ -55,41 +66,44 @@ export function WeeklyCalendar({ plan, onRefresh }: WeeklyCalendarProps) {
         </div>
 
         {/* Days Columns */}
-        {DAYS.map((day) => (
-          <div key={day} className="flex flex-col gap-2">
-            {/* Day Header */}
-            <div className="h-12 flex items-center justify-center font-bold text-stone-900 dark:text-stone-100 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-sm">
-              {day}
-            </div>
+        {DAYS.map((day) => {
+          const colors = DAY_COLORS[day];
+          return (
+            <div key={day} className="flex flex-col gap-2">
+              {/* Day Header */}
+              <div className={`h-12 flex items-center justify-center font-bold rounded-lg shadow-sm ${colors.header}`}>
+                {day}
+              </div>
 
-            {/* Time Slots */}
-            {TIME_SLOTS.map((slot) => {
-              const meal = getMealForSlot(day, slot.time);
-              
-              return (
-                <div
-                  key={`${day}-${slot.time}`}
-                  className="h-32 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all relative group"
-                >
-                  {meal ? (
-                    <MealCard 
-                      meal={meal} 
-                      planId={plan.id}
-                      onRefresh={onRefresh}
-                    />
-                  ) : (
-                    <button
-                      onClick={() => handleAddMeal(day, slot.time, slot.type)}
-                      className="w-full h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Plus className="h-6 w-6 text-stone-400" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+              {/* Time Slots */}
+              {TIME_SLOTS.map((slot) => {
+                const meal = getMealForSlot(day, slot.time);
+                
+                return (
+                  <div
+                    key={`${day}-${slot.time}`}
+                    className={`h-32 border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} rounded-lg ${meal ? colors.card : ''} hover:border-emerald-300 dark:hover:border-emerald-600 transition-all relative group`}
+                  >
+                    {meal ? (
+                      <MealCard 
+                        meal={meal} 
+                        planId={plan.id}
+                        onRefresh={onRefresh}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => handleAddMeal(day, slot.time, slot.type)}
+                        className="w-full h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Plus className="h-6 w-6 text-stone-400" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* Add Meal Dialog */}

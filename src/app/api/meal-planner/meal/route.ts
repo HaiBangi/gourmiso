@@ -26,6 +26,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Recette non trouvée" }, { status: 404 });
       }
 
+      // Calculer le ratio d'ajustement des portions
+      const portionRatio = (portionsUsed || 1) / recipe.servings;
+
+      // Formater les ingrédients avec quantités ajustées
+      const ingredientsFormatted = recipe.ingredients.map((ing) => {
+        let adjustedQuantity = ing.quantity;
+        if (adjustedQuantity && portionRatio !== 1) {
+          adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
+        }
+
+        if (adjustedQuantity && ing.unit) {
+          return `${adjustedQuantity} ${ing.unit} ${ing.name}`;
+        } else if (adjustedQuantity) {
+          return `${adjustedQuantity} ${ing.name}`;
+        } else {
+          return ing.name;
+        }
+      });
+
       const meal = await db.plannedMeal.create({
         data: {
           weeklyMealPlanId: planId,
@@ -35,14 +54,10 @@ export async function POST(request: Request) {
           name: recipe.name,
           prepTime: recipe.preparationTime,
           cookTime: recipe.cookingTime,
-          servings: recipe.servings,
-          calories: recipe.caloriesPerServing,
+          servings: portionsUsed || recipe.servings,
+          calories: recipe.caloriesPerServing ? Math.round(recipe.caloriesPerServing * portionRatio) : null,
           portionsUsed: portionsUsed || 1,
-          ingredients: recipe.ingredients.map((ing) => ({
-            name: ing.name,
-            quantity: ing.quantity,
-            unit: ing.unit,
-          })),
+          ingredients: ingredientsFormatted,
           steps: recipe.steps.map((step) => step.text),
           recipeId: recipe.id,
           isUserRecipe: true,

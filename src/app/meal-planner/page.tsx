@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart } from "lucide-react";
 import { WeeklyCalendar } from "@/components/meal-planner/weekly-calendar";
 import { MealPlannerDialog } from "@/components/meal-planner/meal-planner-dialog-new";
 import { EditPlanDialog } from "@/components/meal-planner/edit-plan-dialog";
+import { ShoppingListDialog } from "@/components/meal-planner/shopping-list-dialog";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
@@ -18,6 +19,7 @@ export default function MealPlannerPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showShoppingList, setShowShoppingList] = useState(false);
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
 
@@ -94,15 +96,30 @@ export default function MealPlannerPage() {
             <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100">
               Planificateur de Menus
             </h1>
+            <p className="text-stone-600 dark:text-stone-400 mt-1">
+              Organisez vos repas de la semaine
+            </p>
           </div>
           
-          <Button 
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau Menu
-          </Button>
+          <div className="flex gap-2">
+            {selectedPlan && (
+              <Button 
+                onClick={() => setShowShoppingList(true)}
+                variant="outline"
+                className="gap-2"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Liste de Courses
+              </Button>
+            )}
+            <Button 
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Menu
+            </Button>
+          </div>
         </div>
 
         {/* Plans List */}
@@ -178,12 +195,20 @@ export default function MealPlannerPage() {
       />
       
       {selectedPlan && (
-        <EditPlanDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          plan={selectedPlan}
-          onUpdate={handleUpdatePlanName}
-        />
+        <>
+          <EditPlanDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            plan={selectedPlan}
+            onUpdate={handleUpdatePlanName}
+          />
+          
+          <ShoppingListDialog
+            open={showShoppingList}
+            onOpenChange={setShowShoppingList}
+            plan={selectedPlan}
+          />
+        </>
       )}
     </div>
   );

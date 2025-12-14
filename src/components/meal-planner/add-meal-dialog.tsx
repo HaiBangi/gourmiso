@@ -37,7 +37,7 @@ export function AddMealDialog({
   const [recipes, setRecipes] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
-  const [portionsToUse, setPortionsToUse] = useState(1);
+  const [portionsDesired, setPortionsDesired] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
   const [generatePrompt, setGeneratePrompt] = useState("");
 
@@ -59,9 +59,27 @@ export function AddMealDialog({
     }
   };
 
-  const filteredRecipes = recipes.filter((r) =>
-    r.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fonction de normalisation de texte (enlève accents, casse, etc.)
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Enlève les accents
+      .replace(/œ/g, "oe") // œ -> oe
+      .replace(/æ/g, "ae"); // æ -> ae
+  };
+
+  // Filtre intelligent de recettes
+  const filteredRecipes = recipes.filter((r) => {
+    if (!searchTerm.trim()) return true;
+    
+    const normalizedSearch = normalizeText(searchTerm);
+    const normalizedName = normalizeText(r.name);
+    
+    // Recherche par mots séparés (ex: "sauce nem" trouve "Sauce pour nems")
+    const searchWords = normalizedSearch.split(/\s+/);
+    return searchWords.every(word => normalizedName.includes(word));
+  });
 
   const handleAddExistingRecipe = async () => {
     if (!selectedRecipe) return;
@@ -77,17 +95,23 @@ export function AddMealDialog({
           timeSlot,
           mealType,
           recipeId: selectedRecipe.id,
-          portionsUsed: portionsToUse,
+          portionsUsed: portionsDesired,
         }),
       });
 
-      if (res.ok) {
-        onSuccess();
-        onOpenChange(false);
-        resetForm();
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ Erreur serveur:", errorData);
+        alert(`Erreur: ${errorData.error || "Erreur inconnue"}`);
+        return;
       }
+
+      onSuccess();
+      onOpenChange(false);
+      resetForm();
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("❌ Erreur:", error);
+      alert("Erreur lors de l'ajout");
     } finally {
       setIsLoading(false);
     }
@@ -135,9 +159,9 @@ export function AddMealDialog({
 
   const resetForm = () => {
     setSelectedRecipe(null);
-    setPortionsToUse(1);
     setGeneratePrompt("");
     setSearchTerm("");
+    setPortionsDesired(2);
   };
 
   return (
@@ -196,27 +220,34 @@ export function AddMealDialog({
             </div>
 
             {/* Portions Selector */}
-            {selectedRecipe && (
-              <div className="space-y-2">
-                <Label>Combien de portions utiliser ?</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={selectedRecipe.servings}
-                    value={portionsToUse}
-                    onChange={(e) => setPortionsToUse(parseInt(e.target.value) || 1)}
-                    className="w-24"
-                  />
-                  <span className="text-sm text-stone-500">
-                    sur {selectedRecipe.servings} portions disponibles
-                  </span>
-                </div>
-                <p className="text-xs text-stone-500">
-                  💡 Les portions non utilisées peuvent être assignées à un autre repas
-                </p>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap">Portions désirées:</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPortionsDesired((prev) => Math.max(1, prev - 1))}
+                disabled={isLoading}
+                className="h-8 px-3"
+              >
+                -
+              </Button>
+              <Input
+                type="number"
+                value={portionsDesired}
+                onChange={(e) => setPortionsDesired(Math.max(1, Number(e.target.value)))}
+                className="w-16 h-8 text-center"
+                disabled={isLoading}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPortionsDesired((prev) => prev + 1)}
+                disabled={isLoading}
+                className="h-8 px-3"
+              >
+                +
+              </Button>
+            </div>
 
             <Button
               onClick={handleAddExistingRecipe}

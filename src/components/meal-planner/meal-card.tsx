@@ -39,38 +39,28 @@ export function MealCard({ meal, planId, onRefresh }: MealCardProps) {
     <>
       <div
         onClick={() => setShowDetail(true)}
-        className="w-full h-full p-2 bg-gradient-to-br from-white to-emerald-50 dark:from-stone-800 dark:to-emerald-900/20 rounded-lg cursor-pointer hover:shadow-md transition-all group relative overflow-hidden"
+        className="w-full h-full p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
-        {/* Background pattern */}
-        <div className="absolute inset-0 bg-emerald-500/5 dark:bg-emerald-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-        
         <div className="relative h-full flex flex-col">
           {/* Meal Name */}
-          <h4 className="text-xs font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-1">
+          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-1">
             {meal.name}
           </h4>
           
-          {/* Portions info */}
-          {meal.portionsUsed && meal.servings && (
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mb-1">
-              {meal.portionsUsed}/{meal.servings} portions
-            </p>
-          )}
-          
           {/* Time info */}
-          <p className="text-[10px] text-stone-500 dark:text-stone-400">
+          <p className="text-xs text-stone-500 dark:text-stone-400">
             ⏱ {meal.prepTime + meal.cookTime} min
           </p>
           
           {/* Calories */}
           {meal.calories && (
-            <p className="text-[10px] text-stone-500 dark:text-stone-400">
+            <p className="text-xs text-stone-500 dark:text-stone-400">
               🔥 {meal.calories} kcal
             </p>
           )}
           
           {/* Actions */}
-          <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
             <Button
               size="sm"
               variant="ghost"
