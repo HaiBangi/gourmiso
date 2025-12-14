@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, ChefHat, Shield, Heart, Rocket, FolderOpen, Lightbulb, CalendarDays } from "lucide-react";
-import { MealPlanner } from "@/components/meal-planner/meal-planner-dialog";
 
 const roleLabels = {
   OWNER: { label: "Propriétaire", icon: Shield, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-900/40" },

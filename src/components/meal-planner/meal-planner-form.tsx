@@ -313,17 +313,17 @@ export function MealPlannerForm({ onSuccess }: MealPlannerFormProps = {}) {
                                     return (
                                       <div 
                                         key={lineIdx} 
-                                        className="flex items-center gap-2 my-1"
+                                        className="flex items-start gap-2 my-1 leading-relaxed"
                                         style={{ marginLeft: indentLevel > 0 ? `${indentLevel * 1.5}rem` : '0' }}
                                       >
-                                        <span className={`flex-shrink-0 ${
+                                        <span className={`flex-shrink-0 mt-[0.65em] leading-[0] ${
                                           indentLevel > 0 ? 'h-1 w-1' : 'h-1.5 w-1.5'
                                         } rounded-full ${
                                           indentLevel > 0 
                                             ? 'bg-emerald-300 dark:bg-emerald-700' 
                                             : 'bg-emerald-400 dark:bg-emerald-600'
                                         }`} />
-                                        <span className="flex-1">{trimmedLine.replace(/^-\s*/, '')}</span>
+                                        <span className="flex-1 leading-relaxed">{trimmedLine.replace(/^-\s*/, '')}</span>
                                       </div>
                                     );
                                   })}

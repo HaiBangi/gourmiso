@@ -114,8 +114,8 @@ export function RecipeSteps({ steps }: RecipeStepsProps) {
                                 className="block my-1"
                                 style={{ marginLeft }}
                               >
-                                <span className="flex items-center gap-2">
-                                  <span className={`flex-shrink-0 ${
+                                <span className="flex items-start gap-2 leading-relaxed">
+                                  <span className={`flex-shrink-0 mt-[0.65em] leading-[0] ${
                                     indentLevel > 0 
                                       ? 'h-1 w-1 rounded-full' 
                                       : 'h-1.5 w-1.5 rounded-full'
