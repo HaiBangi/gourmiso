@@ -230,12 +230,14 @@ model WeeklyMealPlan {
 model PlannedMeal {
   id             Int      @id @default(autoincrement())
   dayOfWeek      String   // "Lundi", "Mardi", etc.
-  mealType       String   // "Déjeuner", "Dîner", etc.
+  mealType       String   // "Petit-déjeuner", "Déjeuner", "Collation", "Dîner"
+  timeSlot       String   @default("12:00") // "08:00", "12:00", "16:00", "19:00"
   name           String   // Nom du plat
   prepTime       Int
   cookTime       Int
   servings       Int
   calories       Int?
+  portionsUsed   Int      @default(1) // Combien de portions utilisées (sur servings total)
   
   // Données de la recette
   ingredients    Json     // ["ingrédient 1", "ingrédient 2"]
