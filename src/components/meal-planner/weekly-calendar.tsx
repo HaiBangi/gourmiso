@@ -33,6 +33,7 @@ interface WeeklyCalendarProps {
 
 export function WeeklyCalendar({ plan, onRefresh }: WeeklyCalendarProps) {
   const [selectedSlot, setSelectedSlot] = useState<{ day: string; time: string; type: string } | null>(null);
+  const [draggedMeal, setDraggedMeal] = useState<any>(null);
 
   const getMealForSlot = (day: string, timeSlot: string) => {
     return plan.meals?.find(
@@ -42,6 +43,59 @@ export function WeeklyCalendar({ plan, onRefresh }: WeeklyCalendarProps) {
 
   const handleAddMeal = (day: string, time: string, type: string) => {
     setSelectedSlot({ day, time, type });
+  };
+
+  const handleDragStart = (e: React.DragEvent, meal: any) => {
+    setDraggedMeal(meal);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetDay: string, targetTime: string) => {
+    e.preventDefault();
+    
+    if (!draggedMeal) return;
+    
+    // Ne rien faire si on dépose au même endroit
+    if (draggedMeal.dayOfWeek === targetDay && draggedMeal.timeSlot === targetTime) {
+      setDraggedMeal(null);
+      return;
+    }
+
+    // Vérifier si le créneau cible est déjà occupé
+    const targetMeal = getMealForSlot(targetDay, targetTime);
+    if (targetMeal) {
+      alert("Ce créneau est déjà occupé !");
+      setDraggedMeal(null);
+      return;
+    }
+
+    try {
+      // Mettre à jour le repas avec le nouveau créneau
+      const res = await fetch(`/api/meal-planner/meal/${draggedMeal.id}/move`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dayOfWeek: targetDay,
+          timeSlot: targetTime,
+        }),
+      });
+
+      if (res.ok) {
+        onRefresh();
+      } else {
+        alert("Erreur lors du déplacement du repas");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Erreur lors du déplacement du repas");
+    } finally {
+      setDraggedMeal(null);
+    }
   };
 
   return (
@@ -82,14 +136,22 @@ export function WeeklyCalendar({ plan, onRefresh }: WeeklyCalendarProps) {
                 return (
                   <div
                     key={`${day}-${slot.time}`}
-                    className={`h-32 border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} rounded-lg ${meal ? colors.card : ''} hover:border-emerald-300 dark:hover:border-emerald-600 transition-all relative group`}
+                    className={`h-32 border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} rounded-lg ${meal ? colors.card : ''} ${draggedMeal && !meal ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300' : ''} hover:border-emerald-300 dark:hover:border-emerald-600 transition-all relative group`}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, day, slot.time)}
                   >
                     {meal ? (
-                      <MealCard 
-                        meal={meal} 
-                        planId={plan.id}
-                        onRefresh={onRefresh}
-                      />
+                      <div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, meal)}
+                        className="w-full h-full cursor-move"
+                      >
+                        <MealCard 
+                          meal={meal} 
+                          planId={plan.id}
+                          onRefresh={onRefresh}
+                        />
+                      </div>
                     ) : (
                       <button
                         onClick={() => handleAddMeal(day, slot.time, slot.type)}

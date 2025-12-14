@@ -4,11 +4,22 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart, Sparkles } from "lucide-react";
 import { WeeklyCalendar } from "@/components/meal-planner/weekly-calendar";
 import { MealPlannerDialog } from "@/components/meal-planner/meal-planner-dialog-new";
 import { EditPlanDialog } from "@/components/meal-planner/edit-plan-dialog";
 import { ShoppingListDialog } from "@/components/meal-planner/shopping-list-dialog";
+import { GenerateMenuDialog } from "@/components/meal-planner/generate-menu-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
@@ -20,6 +31,9 @@ export default function MealPlannerPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showShoppingList, setShowShoppingList] = useState(false);
+  const [showGenerateMenu, setShowGenerateMenu] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
 
@@ -44,22 +58,26 @@ export default function MealPlannerPage() {
     }
   };
 
-  const handleDeletePlan = async (planId: number) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce menu ?")) return;
+  const handleDeletePlan = async () => {
+    if (!planToDelete) return;
     
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/meal-planner/plan/${planId}`, {
+      const res = await fetch(`/api/meal-planner/plan/${planToDelete}`, {
         method: "DELETE",
       });
       
       if (res.ok) {
         await fetchPlans();
-        if (selectedPlanId === planId) {
+        if (selectedPlanId === planToDelete) {
           setSelectedPlanId(plans[0]?.id || null);
         }
       }
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
+    } finally {
+      setIsDeleting(false);
+      setPlanToDelete(null);
     }
   };
 
@@ -101,16 +119,26 @@ export default function MealPlannerPage() {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {selectedPlan && (
-              <Button 
-                onClick={() => setShowShoppingList(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Liste de Courses
-              </Button>
+              <>
+                <Button 
+                  onClick={() => setShowGenerateMenu(true)}
+                  variant="outline"
+                  className="gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Générer Menu
+                </Button>
+                <Button 
+                  onClick={() => setShowShoppingList(true)}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Liste de Courses
+                </Button>
+              </>
             )}
             <Button 
               onClick={() => setIsCreateDialogOpen(true)}
@@ -154,7 +182,7 @@ export default function MealPlannerPage() {
                   className="h-6 w-6 p-0 text-red-600"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDeletePlan(plan.id);
+                    setPlanToDelete(plan.id);
                   }}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -208,8 +236,38 @@ export default function MealPlannerPage() {
             onOpenChange={setShowShoppingList}
             plan={selectedPlan}
           />
+          
+          <GenerateMenuDialog
+            open={showGenerateMenu}
+            onOpenChange={setShowGenerateMenu}
+            planId={selectedPlan.id}
+            onSuccess={fetchPlans}
+          />
         </>
       )}
+
+      {/* Delete Plan Confirmation Dialog */}
+      <AlertDialog open={!!planToDelete} onOpenChange={(open) => !open && setPlanToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce menu ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{plans.find(p => p.id === planToDelete)?.name}</strong> ?
+              Tous les repas planifiés seront également supprimés. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePlan}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

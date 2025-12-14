@@ -86,11 +86,6 @@ export function RecipeDetailDialog({ open, onOpenChange, meal }: RecipeDetailDia
                   <span>{meal.calories} kcal</span>
                 </div>
               )}
-              {meal.portionsUsed && (
-                <div className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-emerald-700 dark:text-emerald-400">
-                  {meal.portionsUsed}/{meal.servings} portions utilisées
-                </div>
-              )}
             </div>
 
             {/* Ingredients */}

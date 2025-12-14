@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeDetailDialog } from "./recipe-detail-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MealCardProps {
   meal: any;
@@ -11,14 +21,12 @@ interface MealCardProps {
   onRefresh: () => void;
 }
 
-export function MealCard({ meal, planId, onRefresh }: MealCardProps) {
+export function MealCard({ meal, onRefresh }: MealCardProps) {
   const [showDetail, setShowDetail] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Supprimer ce repas ?")) return;
-    
+  const handleDelete = async () => {
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/meal-planner/meal/${meal.id}`, {
@@ -32,6 +40,7 @@ export function MealCard({ meal, planId, onRefresh }: MealCardProps) {
       console.error("Erreur lors de la suppression:", error);
     } finally {
       setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -64,22 +73,40 @@ export function MealCard({ meal, planId, onRefresh }: MealCardProps) {
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-emerald-600"
+              className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowDetail(true);
               }}
+              title="Voir les détails"
             >
-              <Eye className="h-3 w-3" />
+              <Eye className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-red-600"
-              onClick={handleDelete}
-              disabled={isDeleting}
+              className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: Implémenter l'édition
+                alert("Fonctionnalité d'édition à venir");
+              }}
+              title="Modifier"
             >
-              <Trash2 className="h-3 w-3" />
+              <Edit2 className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteDialog(true);
+              }}
+              disabled={isDeleting}
+              title="Supprimer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -91,6 +118,29 @@ export function MealCard({ meal, planId, onRefresh }: MealCardProps) {
         onOpenChange={setShowDetail}
         meal={meal}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce repas ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{meal.name}</strong> de votre planning ?
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
