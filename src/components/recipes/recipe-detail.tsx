@@ -157,86 +157,86 @@ export function RecipeDetail({
       {/* Content */}
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats Bar */}
-        <div className="flex flex-wrap gap-4 sm:gap-6 mb-6 sm:mb-8 p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
-          <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-              <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                 Préparation
               </p>
-              <p className="font-semibold text-stone-900 dark:text-stone-100">
+              <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                 {recipe.preparationTime} min
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/40">
-              <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                 Cuisson
               </p>
-              <p className="font-semibold text-stone-900 dark:text-stone-100">
+              <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                 {recipe.cookingTime} min
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-              <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                 Personnes
               </p>
-              <p className="font-semibold text-stone-900 dark:text-stone-100">
+              <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                 {recipe.servings} pers.
               </p>
             </div>
           </div>
           {recipe.costEstimate && costLabels[recipe.costEstimate] && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 rounded-full ${costLabels[recipe.costEstimate].color.split(' ').slice(1).join(' ')}`}>
-                <Coins className={`h-5 w-5 ${costLabels[recipe.costEstimate].color.split(' ')[0]} ${costLabels[recipe.costEstimate].color.split(' ')[1] || ''}`} />
+                <Coins className={`h-4 w-4 sm:h-5 sm:w-5 ${costLabels[recipe.costEstimate].color.split(' ')[0]} ${costLabels[recipe.costEstimate].color.split(' ')[1] || ''}`} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                   Coût
                 </p>
-                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                   {costLabels[recipe.costEstimate].emoji} {costLabels[recipe.costEstimate].label}
                 </p>
               </div>
             </div>
           )}
           {recipe.caloriesPerServing && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/40">
-                <Flame className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 dark:text-orange-400" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                   Calories
                 </p>
-                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                   {recipe.caloriesPerServing} kcal/pers.
                 </p>
               </div>
             </div>
           )}
           {recipe.rating > 0 && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/40">
-                <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400" />
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                   Note
                 </p>
-                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                   {recipe.rating.toFixed(1)}/10
                 </p>
               </div>
