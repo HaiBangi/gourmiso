@@ -91,8 +91,10 @@ export function ThemeToggle() {
           Sombre
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("system")} className="cursor-pointer">
-          <Monitor className="h-4 w-4 mr-2" />
-          Système
+          <div className="relative h-4 w-4 mr-2">
+            <Sun className="absolute h-3 w-3 top-0 left-0" />
+            <Moon className="absolute h-3 w-3 bottom-0 right-0" />
+          </div>          Système
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
