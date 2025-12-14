@@ -77,13 +77,13 @@ export function RecipeDetail({
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       {/* Hero Section */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 md:px-8 py-4">
         <div className="relative h-[250px] sm:h-[300px] w-full overflow-hidden rounded-2xl bg-stone-900 shadow-xl">
           <RecipeImage
             src={recipe.imageUrl}
             alt={recipe.name}
             priority
-            sizes="(max-width: 896px) 100vw, 896px"
+            sizes="(max-width: 640px) 100vw, (max-width: 1536px) 1536px, 100vw"
             className="object-cover opacity-80"
             iconSize="lg"
           />
@@ -155,7 +155,7 @@ export function RecipeDetail({
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 md:px-8 py-6 sm:py-8">
         {/* Stats Bar */}
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-3">
