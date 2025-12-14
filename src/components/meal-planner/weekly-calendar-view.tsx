@@ -278,10 +278,10 @@ export function WeeklyCalendarView({ savedPlans, isLoading }: WeeklyCalendarView
                             return (
                               <div 
                                 key={lineIdx} 
-                                className="flex items-start gap-2 my-1"
+                                className="flex items-center gap-2 my-1"
                                 style={{ marginLeft: indentLevel > 0 ? `${indentLevel * 1.5}rem` : '0' }}
                               >
-                                <span className={`mt-1.5 flex-shrink-0 ${
+                                <span className={`flex-shrink-0 ${
                                   indentLevel > 0 ? 'h-1 w-1' : 'h-1.5 w-1.5'
                                 } rounded-full ${
                                   indentLevel > 0 
