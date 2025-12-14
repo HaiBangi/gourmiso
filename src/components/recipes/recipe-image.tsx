@@ -55,6 +55,8 @@ export function RecipeImage({
       sizes={sizes}
       className={className}
       onError={() => setHasError(true)}
+      loading={priority ? "eager" : "lazy"}
+      quality={85}
     />
   );
 }

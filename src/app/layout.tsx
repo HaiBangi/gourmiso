@@ -4,6 +4,7 @@ import { SessionProvider } from "@/components/auth/session-provider";
 import { RecipeProvider } from "@/components/recipes/recipe-context";
 import { AppHeader } from "@/components/layout/app-header";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
+import { WebVitals } from "@/components/analytics/web-vitals";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -61,11 +62,19 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${sourceSans.variable} font-sans antialiased bg-stone-50 dark:bg-stone-950`}
       >
+        {/* Skip to main content link for keyboard navigation */}
+        <a href="#main-content" className="skip-to-main">
+          Aller au contenu principal
+        </a>
+        
         <PWAProvider>
           <SessionProvider>
             <RecipeProvider recipe={null}>
+              <WebVitals />
               <AppHeader />
-              {children}
+              <main id="main-content">
+                {children}
+              </main>
             </RecipeProvider>
           </SessionProvider>
         </PWAProvider>

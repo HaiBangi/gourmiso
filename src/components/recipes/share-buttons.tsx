@@ -50,6 +50,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
           variant="outline"
           size="sm"
           className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-white/50 dark:border-stone-700/50 hover:bg-white dark:hover:bg-stone-800 gap-1.5 cursor-pointer shadow-lg"
+          aria-label="Partager cette recette sur les réseaux sociaux"
         >
           <Share2 className="h-4 w-4" />
           <span className="hidden sm:inline">Partager</span>

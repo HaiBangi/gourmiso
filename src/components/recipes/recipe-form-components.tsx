@@ -206,11 +206,13 @@ export function YoutubeImportFormSection({
           className={`h-10 text-sm bg-white/90 dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600'}`}
           disabled={isLoading}
           autoFocus
+          aria-label="URL de la vidéo YouTube"
         />
         <Button
           onClick={handleImport}
           disabled={!youtubeUrl.trim() || isLoading}
           className="bg-white hover:bg-red-50 text-red-600 dark:bg-stone-900 dark:hover:bg-red-950/20 dark:text-red-500 h-10 px-4 gap-2 font-medium"
+          aria-label={isLoading ? "Importation de la vidéo YouTube en cours" : "Importer la recette depuis YouTube"}
         >
           {isLoading ? (
             <>
@@ -357,11 +359,13 @@ export function TikTokImportForm({
           className={`h-10 text-sm bg-white/90 dark:bg-stone-900 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-white border ${error ? 'border-red-500' : 'border-stone-300 dark:border-stone-600'}`}
           disabled={isLoading}
           autoFocus
+          aria-label="URL de la vidéo TikTok"
         />
         <Button
           onClick={handleImport}
           disabled={!videoUrl.trim() || isLoading}
           className="bg-black hover:bg-stone-900 text-white border border-stone-700 h-10 px-4 gap-2 font-medium"
+          aria-label={isLoading ? "Importation de la vidéo TikTok en cours" : "Importer la recette depuis TikTok"}
         >
           {isLoading ? (
             <>

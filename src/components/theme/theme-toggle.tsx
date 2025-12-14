@@ -59,7 +59,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9 text-white/80 hover:text-white hover:bg-white/20">
+      <Button variant="ghost" size="icon" className="h-9 w-9 text-white/90 hover:text-white hover:bg-white/20" aria-label="Basculer le thème">
         <Sun className="h-4 w-4" />
       </Button>
     );
@@ -68,7 +68,7 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 cursor-pointer text-white/80 hover:text-white hover:bg-white/20">
+        <Button variant="ghost" size="icon" className="h-9 w-9 cursor-pointer text-white/90 hover:text-white hover:bg-white/20" aria-label="Sélectionner le thème">
           {theme === "dark" ? (
             <Moon className="h-4 w-4" />
           ) : theme === "light" ? (

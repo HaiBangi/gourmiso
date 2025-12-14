@@ -120,6 +120,33 @@
     @apply bg-background text-foreground;
   }
 
+  /* Accessibility: Improved focus visibility for keyboard navigation */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-emerald-500 dark:outline-emerald-400;
+  }
+
+  /* Ensure buttons and interactive elements have visible focus states */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    @apply ring-2 ring-emerald-500 dark:ring-emerald-400 ring-offset-2 ring-offset-white dark:ring-offset-stone-900;
+  }
+
+  /* Skip to main content link for screen readers */
+  .skip-to-main {
+    @apply fixed top-0 left-0 bg-emerald-600 text-white px-4 py-2 rounded-br-lg z-50 -translate-y-full focus:translate-y-0 transition-transform;
+  }
+
+  /* Performance: Disable backdrop-blur on mobile devices for better performance */
+  @media (max-width: 768px) {
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
   /* Prevent iOS Safari from zooming when focusing on inputs */
   input,
   textarea,
@@ -128,7 +155,7 @@
     font-size: 16px !important;
   }
 
-  /* Ensure inputs are at least 44px tall for better mobile UX */
+  /* Ensure inputs are at least 44px tall for better mobile UX and accessibility (WCAG touch target size) */
   input[type="text"],
   input[type="email"],
   input[type="password"],

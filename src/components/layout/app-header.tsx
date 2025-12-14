@@ -130,8 +130,8 @@ export function AppHeader() {
                   )}
                   {crumb.href ? (
                     <Link
-                      href={crumb.href}
-                      className="text-white/80 dark:text-white/70 hover:text-white transition-colors font-medium hover:underline"
+                      href="/recipes"
+                      className="text-white/90 dark:text-white/80 hover:text-white transition-colors font-medium hover:underline"
                     >
                       {crumb.label}
                     </Link>

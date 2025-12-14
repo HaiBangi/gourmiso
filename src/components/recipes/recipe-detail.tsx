@@ -137,7 +137,7 @@ export function RecipeDetail({
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">
               {recipe.name}
             </h1>
-            <p className="text-white/80 text-lg">
+            <p className="text-white/90 text-lg">
               par{" "}
               {recipe.userId ? (
                 <Link
