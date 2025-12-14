@@ -97,8 +97,8 @@ export function RecipeDetail({
             </div>
           )}
 
-          {/* Tags - Top Left avec padding-right sur mobile pour éviter overlap avec boutons */}
-          <div className={`absolute top-3 left-3 flex flex-wrap gap-2 z-10 ${canEdit ? 'pr-20 sm:pr-3' : ''}`}>
+          {/* Tags - Top Left avec limitation de largeur sur mobile pour éviter overlap avec boutons */}
+          <div className={`absolute top-3 left-3 flex flex-wrap gap-2 z-10 ${canEdit ? 'max-w-[calc(100%-140px)] sm:max-w-none' : 'max-w-[calc(100%-20px)]'}`}>
             <Badge className="bg-emerald-700/90 hover:bg-emerald-600 text-white border-0 backdrop-blur-sm shadow-lg">
               {categoryLabels[recipe.category] || recipe.category}
             </Badge>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, ChefHat, Shield, Heart, Rocket, Youtube, FolderOpen } from "lucide-react";
+import { LogOut, User, ChefHat, Shield, Heart, Rocket, FolderOpen, Lightbulb } from "lucide-react";
 
 const roleLabels = {
   OWNER: { label: "Propriétaire", icon: Shield, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-900/40" },
@@ -105,6 +105,12 @@ export function UserButton() {
           <Link href="/profile/collections" className="flex items-center">
             <FolderOpen className="mr-3 h-4 w-4 text-amber-500 dark:text-amber-400" />
             <span>Mes collections</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="py-2.5 px-3 rounded-lg cursor-pointer dark:text-stone-200 dark:hover:bg-stone-700 dark:focus:bg-stone-700">
+          <Link href="/notes" className="flex items-center">
+            <Lightbulb className="mr-3 h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+            <span>Mes notes</span>
           </Link>
         </DropdownMenuItem>
 
