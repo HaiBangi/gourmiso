@@ -914,7 +914,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
                   size="sm"
                   onClick={handleOptimizeWithAI}
                   disabled={loading || !name.trim()}
-                  className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 rounded-lg shadow-sm transition-all"
+                  className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 rounded-lg shadow-sm transition-all"
                 >
                   <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4 md:mr-2" />
                   <span className="hidden md:inline">Optimiser avec IA</span>

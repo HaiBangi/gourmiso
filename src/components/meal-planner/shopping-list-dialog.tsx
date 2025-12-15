@@ -128,21 +128,23 @@ export function ShoppingListDialog({ open, onOpenChange, plan }: ShoppingListDia
         className="max-h-[90vh] overflow-y-auto"
       >
         <DialogHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl flex items-center gap-2">
-                <ShoppingCart className="h-6 w-6 text-emerald-600" />
-                Liste de Courses - {plan?.name}
-              </DialogTitle>
-              <p className="text-sm text-stone-500 mt-1">
-                {checkedCount} / {totalItems} articles cochés
-              </p>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-4 pr-8">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  <ShoppingCart className="h-6 w-6 text-emerald-600" />
+                  Liste de Courses - {plan?.name}
+                </DialogTitle>
+                <p className="text-sm text-stone-500 mt-1">
+                  {checkedCount} / {totalItems} articles cochés
+                </p>
+              </div>
             </div>
             <Button
               onClick={generateAIShoppingList}
               disabled={isGeneratingAI}
               variant="outline"
-              className="gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 flex-shrink-0"
+              className="gap-2 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 w-full sm:w-auto"
             >
               {isGeneratingAI ? (
                 <>

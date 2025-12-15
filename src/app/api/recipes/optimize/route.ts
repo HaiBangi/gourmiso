@@ -103,7 +103,7 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
 - Utilise c.à.s et c.à.c au lieu de cuillère à soupe/café`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -114,8 +114,8 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
           content: prompt,
         },
       ],
-      temperature: 0.3,
-      max_completion_tokens: 3000,
+      temperature: 1,
+      max_completion_tokens: 6000,
     });
 
     const content = completion.choices[0]?.message?.content;

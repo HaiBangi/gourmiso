@@ -95,7 +95,7 @@ ${existingRecipes.length > 0 ? `- Voici des recettes existantes que tu peux util
 }`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",

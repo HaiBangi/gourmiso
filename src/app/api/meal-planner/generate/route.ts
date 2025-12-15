@@ -125,7 +125,7 @@ ${useMyRecipes ? '7. PRIVILÉGIE les recettes personnelles de l\'utilisateur. Si
 Génère maintenant le menu complet en JSON.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
