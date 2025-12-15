@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,27 +23,33 @@ interface ShoppingListDialogProps {
 export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate }: ShoppingListDialogProps) {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  
-  // Charger la liste optimisée existante si elle existe
-  const initialOptimizedList = useMemo(() => {
+  const [aiShoppingList, setAiShoppingList] = useState<Record<string, string[]> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Charger la liste optimisée quand le plan change
+  useEffect(() => {
+    console.log('🔄 Dialog opened/plan changed, plan ID:', plan?.id, 'has optimized:', !!plan?.optimizedShoppingList);
+    
     if (plan?.optimizedShoppingList) {
       try {
-        return typeof plan.optimizedShoppingList === 'string' 
+        const parsed = typeof plan.optimizedShoppingList === 'string' 
           ? JSON.parse(plan.optimizedShoppingList) 
           : plan.optimizedShoppingList;
+        console.log('📋 Chargement liste optimisée pour plan', plan.id, ':', parsed);
+        setAiShoppingList(parsed);
       } catch (e) {
-        console.error('Erreur parsing optimizedShoppingList:', e);
-        return null;
+        console.error('❌ Erreur parsing optimizedShoppingList:', e);
+        setAiShoppingList(null);
       }
+    } else {
+      console.log('🔄 Pas de liste optimisée pour plan', plan?.id, ', réinitialisation à null');
+      setAiShoppingList(null);
     }
-    return null;
-  }, [plan?.optimizedShoppingList]);
-  
-  const [aiShoppingList, setAiShoppingList] = useState<Record<string, string[]> | null>(initialOptimizedList);
-  const [error, setError] = useState<string | null>(null);
+  }, [plan?.id, plan?.optimizedShoppingList]);
 
   // Calculer la liste de courses consolidée
   const shoppingList = useMemo(() => {
+    console.log('🛒 Calcul de la liste de courses pour le plan', plan?.id, 'avec', plan?.meals?.length, 'repas');
     if (!plan?.meals) return {};
 
     const consolidated: Record<string, string[]> = {
@@ -55,7 +61,7 @@ export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate }: Shopp
       "Autres": [],
     };
 
-    // Grouper tous les ingrédients
+    // ...existing code...
     const ingredientMap: Map<string, number> = new Map();
 
     plan.meals.forEach((meal: any) => {
@@ -180,6 +186,14 @@ export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate }: Shopp
   const displayList = aiShoppingList || shoppingList;
   const totalItems = Object.values(displayList).reduce((acc, items) => acc + items.length, 0);
   const checkedCount = checkedItems.size;
+
+  console.log('📊 Affichage:', {
+    planId: plan?.id,
+    hasAiList: !!aiShoppingList,
+    hasShoppingList: !!shoppingList,
+    displayingAI: !!aiShoppingList,
+    totalItems
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

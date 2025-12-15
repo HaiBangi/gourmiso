@@ -106,7 +106,7 @@ ${existingRecipes.length > 0 ? `- Voici des recettes existantes que tu peux util
           content: prompt,
         },
       ],
-      temperature: 0.8,
+      temperature: 1,
       max_completion_tokens: 15000
     });
 

@@ -94,7 +94,7 @@ ${allIngredients.join('\n')}
           content: prompt,
         },
       ],
-      temperature: 0.3,
+      temperature: 1,
       max_completion_tokens: 2000,
     });
 

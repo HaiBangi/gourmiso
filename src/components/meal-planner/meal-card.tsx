@@ -43,25 +43,28 @@ export function MealCard({ meal, onRefresh }: MealCardProps) {
         onClick={() => setShowDetail(true)}
         className="w-full h-full p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
-        <div className="relative h-full flex flex-col">
-          {/* Meal Name */}
-          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-1">
+        <div className="relative h-full flex flex-col gap-2">
+          {/* Meal Name - avec hauteur fixe pour éviter l'overlap */}
+          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 min-h-[2.5rem]">
             {meal.name}
           </h4>
           
-          {/* Time info */}
-          <p className="text-xs text-stone-500 dark:text-stone-400">
-            ⏱ {meal.prepTime + meal.cookTime} min
-          </p>
-          
-          {/* Calories */}
-          {meal.calories && (
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              🔥 {meal.calories} kcal
+          {/* Time and Calories info - dans un conteneur séparé */}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1">
+              <span>⏱</span>
+              <span>{meal.prepTime + meal.cookTime} min</span>
             </p>
-          )}
+            
+            {meal.calories && (
+              <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                <span>🔥</span>
+                <span>{meal.calories} kcal</span>
+              </p>
+            )}
+          </div>
           
-          {/* Actions */}
+          {/* Actions - toujours en bas */}
           <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
             <Button
               size="sm"

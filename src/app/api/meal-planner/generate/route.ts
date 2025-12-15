@@ -136,7 +136,7 @@ Génère maintenant le menu complet en JSON.`;
           content: prompt,
         },
       ],
-      temperature: 0.8,
+      temperature: 1,
       max_tokens: 15000,
     });
 

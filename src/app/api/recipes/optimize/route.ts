@@ -151,7 +151,7 @@ Pour une recette COMPLEXE (avec groupes - ex: Bo Bun, Ramen, Loc Lac):
           content: prompt,
         },
       ],
-      temperature: 0.3,
+      temperature: 1,
       max_completion_tokens: 3000,
       response_format: { type: "json_object" },
     });

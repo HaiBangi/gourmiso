@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           content: aiPrompt,
         },
       ],
-      temperature: 0.8,
+      temperature: 1,
       max_tokens: 2000,
     });
 
