@@ -123,21 +123,22 @@ export function ContributorsDialog({
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    if (role === "CONTRIBUTOR") {
-      return (
-        <Badge variant="default" className="gap-1 bg-emerald-600">
-          <Edit3 className="h-3 w-3" />
-          Contributeur
-        </Badge>
-      );
+  const updateContributorRole = async (userId: string, newRole: "CONTRIBUTOR" | "VIEWER") => {
+    try {
+      const res = await fetch(`/api/meal-planner/plan/${planId}/contributors`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+
+      if (res.ok) {
+        setContributors(contributors.map(c => 
+          c.user.id === userId ? { ...c, role: newRole } : c
+        ));
+      }
+    } catch (error) {
+      console.error("Erreur mise à jour rôle:", error);
     }
-    return (
-      <Badge variant="secondary" className="gap-1">
-        <Eye className="h-3 w-3" />
-        Lecteur
-      </Badge>
-    );
   };
 
   return (
@@ -267,7 +268,28 @@ export function ContributorsDialog({
                         </div>
                       </div>
 
-                      {getRoleBadge(contributor.role)}
+                      <Select
+                        value={contributor.role}
+                        onValueChange={(v) => updateContributorRole(contributor.user.id, v as "CONTRIBUTOR" | "VIEWER")}
+                      >
+                        <SelectTrigger className="w-[150px] h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CONTRIBUTOR">
+                            <div className="flex items-center gap-2">
+                              <Edit3 className="h-4 w-4 text-emerald-600" />
+                              <span>Contributeur</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="VIEWER">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4 text-stone-500" />
+                              <span>Lecteur</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
 
                       <Button
                         size="sm"

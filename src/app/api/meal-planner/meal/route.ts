@@ -12,6 +12,33 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { planId, dayOfWeek, timeSlot, mealType, recipeId, portionsUsed } = body;
 
+    // Vérifier les permissions sur le plan
+    const plan = await db.weeklyMealPlan.findUnique({
+      where: { id: planId },
+      include: {
+        contributors: {
+          where: {
+            userId: session.user.id,
+          },
+        },
+      },
+    });
+
+    if (!plan) {
+      return NextResponse.json({ error: "Plan non trouvé" }, { status: 404 });
+    }
+
+    // Vérifier que l'utilisateur est soit le propriétaire, soit un contributeur
+    const isOwner = plan.userId === session.user.id;
+    const isContributor = plan.contributors.some(c => c.role === "CONTRIBUTOR");
+
+    if (!isOwner && !isContributor) {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls les propriétaires et contributeurs peuvent ajouter des repas" },
+        { status: 403 }
+      );
+    }
+
     // Si c'est une recette existante
     if (recipeId) {
       const recipe = await db.recipe.findUnique({
@@ -97,6 +124,37 @@ export async function DELETE(request: Request) {
 
     if (!mealId) {
       return NextResponse.json({ error: "ID manquant" }, { status: 400 });
+    }
+
+    // Récupérer le repas pour vérifier les permissions
+    const meal = await db.plannedMeal.findUnique({
+      where: { id: parseInt(mealId) },
+      include: {
+        weeklyMealPlan: {
+          include: {
+            contributors: {
+              where: {
+                userId: session.user.id,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!meal) {
+      return NextResponse.json({ error: "Repas non trouvé" }, { status: 404 });
+    }
+
+    // Vérifier que l'utilisateur est soit le propriétaire, soit un contributeur
+    const isOwner = meal.weeklyMealPlan.userId === session.user.id;
+    const isContributor = meal.weeklyMealPlan.contributors.some(c => c.role === "CONTRIBUTOR");
+
+    if (!isOwner && !isContributor) {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls les propriétaires et contributeurs peuvent supprimer des repas" },
+        { status: 403 }
+      );
     }
 
     await db.plannedMeal.delete({

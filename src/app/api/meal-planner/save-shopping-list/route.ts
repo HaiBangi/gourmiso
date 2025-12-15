@@ -19,9 +19,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Vérifier que le plan appartient à l'utilisateur
+    // Vérifier que le plan appartient à l'utilisateur OU que l'utilisateur est contributeur
     const plan = await db.weeklyMealPlan.findUnique({
       where: { id: planId },
+      include: {
+        contributors: {
+          where: {
+            userId: session.user.id,
+          },
+        },
+      },
     });
 
     if (!plan) {
@@ -31,9 +38,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (plan.userId !== session.user.id) {
+    // Vérifier que l'utilisateur est soit le propriétaire, soit un contributeur avec le rôle CONTRIBUTOR
+    const isOwner = plan.userId === session.user.id;
+    const isContributor = plan.contributors.some(c => c.role === "CONTRIBUTOR");
+
+    if (!isOwner && !isContributor) {
       return NextResponse.json(
-        { error: "Non autorisé" },
+        { error: "Non autorisé - Seuls les propriétaires et contributeurs peuvent optimiser la liste de courses" },
         { status: 403 }
       );
     }
