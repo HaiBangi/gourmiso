@@ -34,6 +34,8 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
 **Ta mission d'optimisation:**
 
 1. **Ingrédients:**
+   - Si la recette a des parties distinctes (marinade, sauce, garniture, etc.), utilise "ingredientGroups"
+   - Sinon, utilise une simple liste "ingredients"
    - Regroupe les ingrédients similaires si possible
    - Normalise les quantités : convertis les fractions en décimales (¼=0.25, ½=0.5, ¾=0.75)
    - Utilise TOUJOURS les abréviations françaises :
@@ -62,6 +64,8 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
    - Sois précis et réaliste
 
 **Format JSON strict (UNIQUEMENT du JSON):**
+
+Pour une recette SIMPLE (sans groupes):
 {
   "name": "Nom optimisé (si améliorable)",
   "preparationTime": 30,
@@ -84,7 +88,7 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
   ],
   "steps": [
     {
-      "text": "Préparer la marinade avec :\n- 2 c.à.s de sauce soja\n- 1 c.à.s de miel\n- 3 gousses d'ail hachées\n\nMélanger tous les ingrédients dans un bol jusqu'à ce que le miel soit bien dissous.",
+      "text": "Préparer la marinade avec :\\n- 2 c.à.s de sauce soja\\n- 1 c.à.s de miel\\n- 3 gousses d'ail hachées\\n\\nMélanger tous les ingrédients dans un bol jusqu'à ce que le miel soit bien dissous.",
       "order": 1
     },
     {
@@ -95,6 +99,39 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
   "optimizationNotes": "Résumé des améliorations : utilisation d'abréviations françaises, format de liste pour 3+ ingrédients, clarification des étapes, estimation des calories"
 }
 
+Pour une recette COMPLEXE (avec groupes - ex: Bo Bun, Ramen, Loc Lac):
+{
+  "name": "Nom optimisé",
+  "preparationTime": 30,
+  "cookingTime": 45,
+  "servings": 4,
+  "caloriesPerServing": 450,
+  "ingredientGroups": [
+    {
+      "name": "Marinade",
+      "ingredients": [
+        { "name": "sauce de soja", "quantity": 2, "unit": "c.à.s" },
+        { "name": "miel", "quantity": 1, "unit": "c.à.s" },
+        { "name": "gousses d'ail", "quantity": 3, "unit": null }
+      ]
+    },
+    {
+      "name": "Garniture",
+      "ingredients": [
+        { "name": "salade", "quantity": 200, "unit": "g" },
+        { "name": "carottes râpées", "quantity": 100, "unit": "g" }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "text": "Préparer la marinade...",
+      "order": 1
+    }
+  ],
+  "optimizationNotes": "Résumé des améliorations"
+}
+
 **Important:**
 - Garde l'esprit de la recette originale
 - N'ajoute pas d'ingrédients nouveaux
@@ -103,7 +140,7 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
 - Utilise c.à.s et c.à.c au lieu de cuillère à soupe/café`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -114,8 +151,9 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
           content: prompt,
         },
       ],
-      temperature: 1,
-      max_completion_tokens: 6000,
+      temperature: 0.3,
+      max_completion_tokens: 3000,
+      response_format: { type: "json_object" },
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -123,15 +161,51 @@ ${recipe.steps.map((step: any, idx: number) => `${idx + 1}. ${step.text}`).join(
       throw new Error("Pas de réponse de ChatGPT");
     }
 
-    const optimizedRecipe = JSON.parse(content);
+    // Nettoyer le contenu avant de parser
+    let cleanedContent = content.trim();
+    
+    // Retirer les backticks markdown si présents
+    if (cleanedContent.startsWith('```json')) {
+      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanedContent.startsWith('```')) {
+      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+
+    const optimizedRecipe = JSON.parse(cleanedContent);
 
     return NextResponse.json(optimizedRecipe);
   } catch (error) {
     console.error("❌ Erreur optimisation recette:", error);
+    
+    // Extraire les détails de l'erreur
+    let errorMessage = "Erreur inconnue";
+    let errorDetails = "";
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = error.stack || "";
+      
+      // Si c'est une erreur OpenAI, extraire plus de détails
+      if ('response' in error) {
+        const openAIError = error as any;
+        errorDetails = JSON.stringify({
+          message: openAIError.message,
+          type: openAIError.type,
+          code: openAIError.code,
+          status: openAIError.status,
+          response: openAIError.response?.data || openAIError.response
+        }, null, 2);
+      }
+    }
+    
+    console.error("📋 Détails complets de l'erreur:", errorDetails);
+    
     return NextResponse.json(
       {
-        error: "Erreur lors de l'optimisation",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Erreur lors de l'optimisation de la recette",
+        message: errorMessage,
+        details: errorDetails,
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

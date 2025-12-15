@@ -213,10 +213,36 @@ ${existingRecipes.length > 0 ? `- Voici des recettes existantes que tu peux util
     });
   } catch (error) {
     console.error("❌ Erreur génération menu:", error);
+    
+    // Extraire les détails de l'erreur
+    let errorMessage = "Erreur inconnue";
+    let errorDetails = "";
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = error.stack || "";
+      
+      // Si c'est une erreur OpenAI, extraire plus de détails
+      if ('response' in error) {
+        const openAIError = error as any;
+        errorDetails = JSON.stringify({
+          message: openAIError.message,
+          type: openAIError.type,
+          code: openAIError.code,
+          status: openAIError.status,
+          response: openAIError.response?.data || openAIError.response
+        }, null, 2);
+      }
+    }
+    
+    console.error("📋 Détails complets de l'erreur:", errorDetails);
+    
     return NextResponse.json(
       {
         error: "Erreur lors de la génération du menu",
-        details: error instanceof Error ? error.message : String(error),
+        message: errorMessage,
+        details: errorDetails,
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

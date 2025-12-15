@@ -68,7 +68,7 @@ import {
   TikTokImportForm,
 } from "./recipe-form-components";
 import { VoiceToTextImport } from "./voice-to-text-import";
-
+import { SuccessAlert } from "@/components/ui/success-alert";
 
 export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess, onCancel }: RecipeFormProps) {
   const router = useRouter();
@@ -76,6 +76,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ message: string; details?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [userPseudo, setUserPseudo] = useState<string>("Anonyme");
@@ -626,23 +627,55 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       });
 
       if (!res.ok) {
-        throw new Error('Erreur lors de l\'optimisation');
+        const errorData = await res.json();
+        console.error('❌ Erreur API:', errorData);
+        throw new Error(
+          `Erreur ${res.status}: ${errorData.message || errorData.error}\n\n` +
+          `Détails: ${errorData.details || 'Aucun détail disponible'}\n\n` +
+          `Timestamp: ${errorData.timestamp || new Date().toISOString()}`
+        );
       }
 
       const optimized = await res.json();
 
-      // Appliquer directement les modifications sans confirmation
-      setName(optimized.name);
-      setPreparationTime(optimized.preparationTime.toString());
-      setCookingTime(optimized.cookingTime.toString());
-      setServings(optimized.servings.toString());
-      setCaloriesPerServing(optimized.caloriesPerServing ? optimized.caloriesPerServing.toString() : '');
+      // Vérifier que la réponse contient les données attendues
+      if (!optimized || typeof optimized !== 'object') {
+        throw new Error('Réponse invalide de l\'API d\'optimisation');
+      }
 
-      // Mettre à jour les ingrédients
-      if (!useGroups) {
+      console.log('✅ Réponse optimisation:', optimized);
+
+      // Appliquer directement les modifications
+      if (optimized.name) setName(optimized.name);
+      if (optimized.preparationTime !== undefined) setPreparationTime(optimized.preparationTime.toString());
+      if (optimized.cookingTime !== undefined) setCookingTime(optimized.cookingTime.toString());
+      if (optimized.servings !== undefined) setServings(optimized.servings.toString());
+      if (optimized.caloriesPerServing) setCaloriesPerServing(optimized.caloriesPerServing.toString());
+
+      // Gérer les ingrédients (groupes ou simple liste)
+      if (optimized.ingredientGroups && Array.isArray(optimized.ingredientGroups) && optimized.ingredientGroups.length > 0) {
+        // La recette a été optimisée avec des groupes
+        console.log('📦 Utilisation des groupes d\'ingrédients');
+        setUseGroups(true);
+        const formattedGroups = optimized.ingredientGroups.map((group: any, groupIdx: number) => ({
+          id: `group-${Date.now()}-${groupIdx}`,
+          name: group.name || 'Sans nom',
+          ingredients: Array.isArray(group.ingredients) ? group.ingredients.map((ing: any, ingIdx: number) => ({
+            id: `ing-${Date.now()}-${groupIdx}-${ingIdx}`,
+            name: ing.name || '',
+            quantity: ing.quantity?.toString() || "",
+            unit: ing.unit || "",
+            quantityUnit: combineQuantityUnit(ing.quantity?.toString() || "", ing.unit || ""),
+          })) : [],
+        }));
+        setIngredientGroups(formattedGroups);
+      } else if (optimized.ingredients && Array.isArray(optimized.ingredients) && optimized.ingredients.length > 0) {
+        // La recette a été optimisée avec une liste simple
+        console.log('📋 Utilisation d\'une liste simple d\'ingrédients');
+        setUseGroups(false);
         const optimizedIngredients = optimized.ingredients.map((ing: any, index: number) => ({
           id: `ing-${Date.now()}-${index}`,
-          name: ing.name,
+          name: ing.name || '',
           quantityUnit: combineQuantityUnit(ing.quantity?.toString() || '', ing.unit || ''),
           quantity: ing.quantity?.toString() || '',
           unit: ing.unit || '',
@@ -651,17 +684,23 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       }
 
       // Mettre à jour les étapes
-      const optimizedSteps = optimized.steps.map((step: any) => ({
-        id: `step-${Date.now()}-${step.order}`,
-        text: step.text,
-      }));
-      setSteps(optimizedSteps);
+      if (optimized.steps && Array.isArray(optimized.steps) && optimized.steps.length > 0) {
+        const optimizedSteps = optimized.steps.map((step: any, idx: number) => ({
+          id: `step-${Date.now()}-${idx}`,
+          text: step.text || '',
+        }));
+        setSteps(optimizedSteps);
+      }
 
-      // Notification de succès avec les améliorations
-      alert(`✨ Recette optimisée avec succès !\n\n${optimized.optimizationNotes}\n\nVérifiez les modifications avant d'enregistrer.`);
+      // Notification de succès élégante
+      setSuccess({
+        message: "Recette optimisée avec succès !",
+        details: optimized.optimizationNotes || "La recette a été améliorée et optimisée."
+      });
     } catch (error) {
-      console.error('Erreur:', error);
-      setError('Erreur lors de l\'optimisation de la recette');
+      console.error('❌ Erreur complète:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(`Erreur lors de l'optimisation:\n${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -836,6 +875,16 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
         <DialogTitle className="sr-only">
           {isYouTubeImport ? "Nouvelle recette depuis YouTube" : isDuplication ? "Dupliquer la recette" : isEdit ? "Modifier la recette" : "Nouvelle recette"}
         </DialogTitle>
+        
+        {/* Success Alert */}
+        {success && (
+          <SuccessAlert
+            message={success.message}
+            details={success.details}
+            onClose={() => setSuccess(null)}
+            autoClose={7000}
+          />
+        )}
         
         {/* Loading Overlay - Bloque toute interaction pendant l'import */}
         {isImporting && (

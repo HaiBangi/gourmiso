@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ErrorAlert } from "@/components/ui/error-alert";
 
 interface GenerateMenuDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ const CUISINE_TYPES = [
 
 export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: GenerateMenuDialogProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [numberOfPeople, setNumberOfPeople] = useState(2);
   const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>(["lunch", "dinner"]);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
@@ -67,6 +69,7 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
     }
 
     setIsGenerating(true);
+    setError(null);
     try {
       const res = await fetch("/api/meal-planner/generate-menu", {
         method: "POST",
@@ -84,14 +87,23 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Erreur lors de la génération");
+        console.error('❌ Erreur API:', errorData);
+        throw new Error(
+          `Erreur ${res.status}: ${errorData.message || errorData.error}\n\n` +
+          `Détails: ${errorData.details || 'Aucun détail disponible'}\n\n` +
+          `Timestamp: ${errorData.timestamp || new Date().toISOString()}`
+        );
       }
 
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Erreur:", error);
-      alert(error instanceof Error ? error.message : "Erreur lors de la génération du menu");
+      console.error('❌ Erreur complète:', error);
+      setError(
+        `Erreur lors de la génération du menu:\n\n${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -209,6 +221,8 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
             </label>
           </div>
         </div>
+
+        {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>

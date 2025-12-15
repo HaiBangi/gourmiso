@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Check, Sparkles, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { ErrorAlert } from "@/components/ui/error-alert";
 
 interface ShoppingListDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function ShoppingListDialog({ open, onOpenChange, plan }: ShoppingListDia
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiShoppingList, setAiShoppingList] = useState<Record<string, string[]> | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Calculer la liste de courses consolidée
   const shoppingList = useMemo(() => {
@@ -105,13 +107,25 @@ export function ShoppingListDialog({ open, onOpenChange, plan }: ShoppingListDia
         body: JSON.stringify({ planId: plan.id }),
       });
 
-      if (!res.ok) throw new Error('Erreur lors de la génération');
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('❌ Erreur API:', errorData);
+        throw new Error(
+          `Erreur ${res.status}: ${errorData.message || errorData.error}\n\n` +
+          `Détails: ${errorData.details || 'Aucun détail disponible'}\n\n` +
+          `Timestamp: ${errorData.timestamp || new Date().toISOString()}`
+        );
+      }
 
       const data = await res.json();
       setAiShoppingList(data.shoppingList);
     } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de la génération de la liste de courses');
+      console.error('❌ Erreur complète:', error);
+      alert(
+        `Erreur lors de la génération de la liste de courses:\n\n${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
       setIsGeneratingAI(false);
     }
@@ -160,6 +174,8 @@ export function ShoppingListDialog({ open, onOpenChange, plan }: ShoppingListDia
             </Button>
           </div>
         </DialogHeader>
+
+        {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
 
         {/* Grid layout - colonnes sur desktop, liste sur mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
