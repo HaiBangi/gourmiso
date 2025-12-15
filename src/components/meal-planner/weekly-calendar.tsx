@@ -250,6 +250,9 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                 {TIME_SLOTS.map((slot) => {
                   const meal = getMealForSlot(day, slot.time);
                   
+                  // Ne pas afficher le slot s'il n'y a pas de repas (mobile uniquement)
+                  if (!meal) return null;
+                  
                   return (
                     <div
                       key={`${day}-${slot.time}`}
