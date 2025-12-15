@@ -309,7 +309,7 @@ export default async function RecipesPage({ searchParams }: PageProps) {
   const userCollections = await getUserCollections(userId);
 
   return (
-    <main className="min-h-screen">
+    <main className="pb-8">
       {/* Pseudo CTA Banner */}
       {showPseudoBanner && (
         <PseudoBanner userId={userId} userName={userName} />

@@ -19,7 +19,7 @@ export default async function NotesPage() {
   const notes = await getUserNotes();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-emerald-50/30 dark:from-stone-950 dark:via-stone-900 dark:to-emerald-950/20">
+    <div className="bg-gradient-to-br from-stone-50 via-white to-emerald-50/30 dark:from-stone-950 dark:via-stone-900 dark:to-emerald-950/20 pb-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <NotesClient initialNotes={notes} />
       </div>

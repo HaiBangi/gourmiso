@@ -92,14 +92,14 @@ export default function MealPlannerPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <p>Veuillez vous connecter pour accéder au planificateur de menus.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       <div className="max-w-[1800px] mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4">

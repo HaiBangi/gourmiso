@@ -75,7 +75,7 @@ export function RecipeDetail({
   console.log("[RecipeDetail] canEdit prop received:", canEdit);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       {/* Hero Section */}
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 md:px-8 py-4">
         <div className="relative h-[250px] sm:h-[300px] w-full overflow-hidden rounded-2xl bg-stone-900 shadow-xl">

@@ -57,7 +57,7 @@ export default async function ProfilePage() {
   const RoleIcon = role.icon;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <main className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       {/* Profile Header Card */}
       <section className="mx-auto max-w-screen-xl px-4 pt-6 sm:px-6 sm:pt-8">
         <Card className="mb-6 overflow-hidden dark:bg-stone-800/90 dark:border-stone-700">

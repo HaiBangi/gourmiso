@@ -3,6 +3,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent unnecessary scrolling */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

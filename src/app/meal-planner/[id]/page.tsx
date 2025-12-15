@@ -88,10 +88,10 @@ export default function MealPlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-stone-50 dark:bg-stone-900 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-800 flex items-center justify-center overflow-hidden">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          <p className="text-stone-600 dark:text-stone-400">Chargement du menu...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-emerald-600" />
+          <p className="text-lg font-medium text-stone-600 dark:text-stone-400">Chargement du menu...</p>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export default function MealPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       <div className="max-w-[1800px] mx-auto px-4 py-6 space-y-6">
         {/* Header avec navigation et partage */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

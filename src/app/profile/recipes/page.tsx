@@ -42,7 +42,7 @@ export default async function MyRecipesPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <main className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <ViewProvider>
           {/* Page Title */}
