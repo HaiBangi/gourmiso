@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseGPTJson } from "@/lib/chatgpt-helpers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
       throw new Error("Pas de réponse de ChatGPT");
     }
 
-    const recipeData = JSON.parse(content);
+    const recipeData = parseGPTJson(content);
 
     // Créer le repas
     const meal = await db.plannedMeal.create({

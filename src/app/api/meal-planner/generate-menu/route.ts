@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseGPTJson } from "@/lib/chatgpt-helpers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -150,7 +151,7 @@ ${includedRecipes.length > 0 ? `- IMPORTANT: Inclus OBLIGATOIREMENT ces recettes
 
     console.log("📝 Réponse ChatGPT:", content.substring(0, 200));
 
-    const menuData = JSON.parse(content);
+    const menuData = parseGPTJson(content);
 
     // Créer tous les repas dans la base de données
     const createdMeals = [];

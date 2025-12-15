@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import OpenAI from "openai";
 import type { Category, CostEstimate } from "@/types/recipe";
 import { cache } from "@/lib/cache";
+import { parseGPTJson } from "@/lib/chatgpt-helpers";
 
 const SYSTEM_PROMPT = `Tu es un assistant culinaire expert qui convertit des transcriptions de vidéos YouTube de recettes en recettes structurées au format JSON.
 
@@ -237,7 +238,7 @@ Utilise le nom de la chaîne YouTube "${author || userPseudo}" comme auteur de l
     }
 
     // Parser la réponse JSON
-    const recipe = JSON.parse(content);
+    const recipe = parseGPTJson(content);
 
     // Valider et nettoyer la recette
     const validatedRecipe = {

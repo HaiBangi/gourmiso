@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseGPTJson } from "@/lib/chatgpt-helpers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -149,7 +150,7 @@ Génère maintenant le menu complet en JSON.`;
     // Parse le JSON
     let menuData;
     try {
-      menuData = JSON.parse(content);
+      menuData = parseGPTJson(content);
     } catch (parseError) {
       console.error("Erreur de parsing JSON:", parseError);
       console.error("Contenu reçu:", content);
