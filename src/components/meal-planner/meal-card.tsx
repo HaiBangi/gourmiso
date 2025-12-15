@@ -43,29 +43,29 @@ export function MealCard({ meal, onRefresh }: MealCardProps) {
         onClick={() => setShowDetail(true)}
         className="w-full h-full p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
-        <div className="relative h-full flex flex-col gap-2">
-          {/* Meal Name - avec hauteur fixe pour éviter l'overlap */}
-          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 min-h-[2.5rem]">
+        <div className="relative h-full flex flex-col">
+          {/* Meal Name - avec hauteur min pour 2 lignes */}
+          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-1.5">
             {meal.name}
           </h4>
           
-          {/* Time and Calories info - dans un conteneur séparé */}
-          <div className="flex flex-col gap-1">
-            <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1">
+          {/* Time and Calories info - sur la même ligne */}
+          <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400 mb-2">
+            <span className="flex items-center gap-1">
               <span>⏱</span>
               <span>{meal.prepTime + meal.cookTime} min</span>
-            </p>
+            </span>
             
             {meal.calories && (
-              <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1">
+              <span className="flex items-center gap-1">
                 <span>🔥</span>
                 <span>{meal.calories} kcal</span>
-              </p>
+              </span>
             )}
           </div>
           
           {/* Actions - toujours en bas */}
-          <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+          <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1">
             <Button
               size="sm"
               variant="ghost"

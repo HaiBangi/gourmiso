@@ -219,6 +219,9 @@ model WeeklyMealPlan {
   optimizedShoppingList Json? // Liste optimisée par IA
   prepTips     String[] @default([])
   
+  // Partage et visibilité
+  isPublic Boolean @default(false) // Menu public ou privé
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   

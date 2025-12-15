@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart, Sparkles } from "lucide-react";
@@ -16,6 +17,7 @@ const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dima
 
 export default function MealPlannerPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [plans, setPlans] = useState<any[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -154,7 +156,7 @@ export default function MealPlannerPage() {
                     ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30"
                     : "border-stone-200 dark:border-stone-700 hover:border-emerald-300"
                 }`}
-                onClick={() => setSelectedPlanId(plan.id)}
+                onClick={() => router.push(`/meal-planner/${plan.id}`)}
               >
                 <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                 <span className="font-medium whitespace-nowrap text-sm sm:text-base">{plan.name}</span>

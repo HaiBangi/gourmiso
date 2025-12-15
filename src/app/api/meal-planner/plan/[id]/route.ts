@@ -2,38 +2,85 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-export async function PATCH(
+export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const { id } = await context.params;
+    const planId = parseInt(id);
+    if (isNaN(planId)) {
+      return NextResponse.json(
+        { error: "ID invalide" },
+        { status: 400 }
+      );
     }
 
-    const { id } = await params;
-    const body = await request.json();
-    const { name } = body;
+    const session = await auth();
 
-    const plan = await db.weeklyMealPlan.update({
-      where: { id: parseInt(id) },
-      data: { name },
+    const plan = await db.weeklyMealPlan.findUnique({
+      where: { id: planId },
+      include: {
+        meals: {
+          include: {
+            recipe: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+              },
+            },
+          },
+          orderBy: [
+            { dayOfWeek: 'asc' },
+            { mealType: 'asc' },
+          ],
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            pseudo: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(plan);
+    if (!plan) {
+      return NextResponse.json(
+        { error: "Menu non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    // Vérifier l'accès
+    const isOwner = session?.user?.id === plan.userId;
+    const canAccess = plan.isPublic || isOwner;
+
+    if (!canAccess) {
+      return NextResponse.json(
+        { error: "Accès refusé - Ce menu est privé" },
+        { status: 403 }
+      );
+    }
+
+    return NextResponse.json({
+      ...plan,
+      isOwner,
+    });
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("❌ Erreur récupération menu:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la mise à jour" },
+      { error: "Erreur lors de la récupération du menu" },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(
+// Route pour mettre à jour la visibilité du menu
+export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -41,17 +88,89 @@ export async function DELETE(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const { id } = await params;
+    const { id } = await context.params;
+    const planId = parseInt(id);
+    if (isNaN(planId)) {
+      return NextResponse.json(
+        { error: "ID invalide" },
+        { status: 400 }
+      );
+    }
 
-    await db.weeklyMealPlan.delete({
-      where: { id: parseInt(id) },
+    const body = await request.json();
+    const { isPublic } = body;
+
+    console.log('🔍 DEBUG toggle public:', {
+      planId,
+      isPublic,
+      userId: session.user.id,
     });
 
-    return NextResponse.json({ success: true });
+    // Vérifier que le plan appartient à l'utilisateur
+    const plan = await db.weeklyMealPlan.findUnique({
+      where: { id: planId },
+    });
+
+    console.log('📋 Plan trouvé:', {
+      found: !!plan,
+      planId: plan?.id,
+      currentIsPublic: plan?.isPublic,
+      owner: plan?.userId,
+    });
+
+    if (!plan) {
+      return NextResponse.json(
+        { error: "Menu non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    if (plan.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Non autorisé" },
+        { status: 403 }
+      );
+    }
+
+    // Mettre à jour la visibilité
+    const updatedPlan = await db.weeklyMealPlan.update({
+      where: { id: planId },
+      data: {
+        isPublic: isPublic === true,
+        updatedAt: new Date(),
+      },
+    });
+
+    console.log(`✅ Menu ${planId} visibilité changée:`, isPublic ? 'Public' : 'Privé');
+
+    return NextResponse.json({
+      success: true,
+      isPublic: updatedPlan.isPublic,
+    });
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("❌ Erreur mise à jour visibilité:", error);
+    
+    let errorMessage = "Erreur lors de la mise à jour";
+    let errorDetails = "";
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = error.stack || "";
+    }
+    
+    console.error("📋 Détails complets de l'erreur:", {
+      message: errorMessage,
+      details: errorDetails,
+      timestamp: new Date().toISOString(),
+    });
+    
     return NextResponse.json(
-      { error: "Erreur lors de la suppression" },
+      { 
+        error: "Erreur lors de la mise à jour",
+        message: errorMessage,
+        details: errorDetails.substring(0, 200), // Limiter la taille
+        timestamp: new Date().toISOString(),
+      },
       { status: 500 }
     );
   }
