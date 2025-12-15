@@ -240,7 +240,7 @@ export function IngredientsCard({ ingredients, ingredientGroups, originalServing
                 <div key={group.id}>
                   <div 
                     onClick={() => toggleGroup(group.ingredients)}
-                    className="font-semibold text-emerald-700 dark:text-emerald-400 text-sm mb-3 flex items-center gap-2 cursor-pointer hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors py-1 -mx-1 px-1 rounded active:bg-emerald-100 dark:active:bg-emerald-900/30"
+                    className="font-semibold text-emerald-700 dark:text-emerald-400 text-sm mb-2 flex items-center gap-2 cursor-pointer hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors py-1 -mx-1 px-1 rounded active:bg-emerald-100 dark:active:bg-emerald-900/30"
                   >
                     <Checkbox
                       checked={isGroupChecked}
@@ -250,6 +250,7 @@ export function IngredientsCard({ ingredients, ingredientGroups, originalServing
                     />
                     <span className="flex-1">{group.name}</span>
                   </div>
+                  <hr className="border-t border-emerald-200 dark:border-emerald-800 mb-3" />
                   <ul className="space-y-1 pl-6">
                     {group.ingredients.map(renderIngredient)}
                   </ul>
