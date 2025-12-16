@@ -18,9 +18,7 @@ interface AddMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   planId: number;
-  day: string;
-  timeSlot: string;
-  mealType: string;
+  slots: Array<{ day: string; time: string; type: string }>;
   onSuccess: () => void;
 }
 
@@ -28,9 +26,7 @@ export function AddMealDialog({
   open,
   onOpenChange,
   planId,
-  day,
-  timeSlot,
-  mealType,
+  slots,
   onSuccess,
 }: AddMealDialogProps) {
   const [tab, setTab] = useState<"existing" | "generate">("existing");
@@ -40,6 +36,12 @@ export function AddMealDialog({
   const [portionsDesired, setPortionsDesired] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
   const [generatePrompt, setGeneratePrompt] = useState("");
+  
+  // Pour la compatibilité, on prend le premier slot comme référence
+  const primarySlot = slots.length > 0 ? slots[0] : { day: '', time: '', type: '' };
+  const day = primarySlot.day;
+  const timeSlot = primarySlot.time;
+  const mealType = primarySlot.type;
 
   useEffect(() => {
     if (open && tab === "existing") {
@@ -169,7 +171,7 @@ export function AddMealDialog({
       <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            Ajouter un repas - {day} à {timeSlot} ({mealType})
+            Ajouter un repas{slots.length > 1 ? ` (${slots.length} créneaux)` : ` - ${day} à ${timeSlot} (${mealType})`}
           </DialogTitle>
         </DialogHeader>
 

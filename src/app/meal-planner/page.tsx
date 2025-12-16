@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart, Sparkles, Lock, Globe, Check, Copy, Users2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ShoppingCart, Sparkles, Lock, Globe, Check, Copy, Users2, MoreVertical } from "lucide-react";
 import { WeeklyCalendar } from "@/components/meal-planner/weekly-calendar";
 import { MealPlannerDialog } from "@/components/meal-planner/meal-planner-dialog-new";
 import { EditPlanDialog } from "@/components/meal-planner/edit-plan-dialog";
@@ -216,7 +216,7 @@ function MealPlannerContent() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       <div className="max-w-[1800px] mx-auto px-4 py-6">
         {/* Header optimisé */}
         <div className="mb-4">
@@ -238,7 +238,7 @@ function MealPlannerContent() {
             
             {/* Sélecteur de menu sur mobile */}
             {allPlans.length > 0 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Select value={selectedPlanId?.toString()} onValueChange={(value) => selectPlan(parseInt(value))}>
                   <SelectTrigger className="flex-1">
                     <SelectValue>
@@ -274,28 +274,37 @@ function MealPlannerContent() {
                   </SelectContent>
                 </Select>
 
-                {/* Boutons d'action (icônes uniquement) à droite du dropdown sur mobile */}
+                {/* Menu à 3 points pour les actions du menu (uniquement si propriétaire) */}
                 {selectedPlan && selectedPlan.isOwner && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setIsEditDialogOpen(true)}
-                      className="h-10 w-10 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex-shrink-0"
-                      title="Modifier le menu"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setPlanToDelete(selectedPlanId)}
-                      className="h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
-                      title="Supprimer le menu"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-10 w-10 p-0 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 flex-shrink-0"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel className="text-xs text-stone-500">Actions du menu</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="cursor-pointer gap-2 text-orange-600 focus:text-orange-600 focus:bg-orange-50 dark:focus:bg-orange-900/20"
+                      >
+                        <Edit2 className="h-4 w-4 text-orange-600" />
+                        <span>Modifier le menu</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setPlanToDelete(selectedPlanId)}
+                        className="cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <span>Supprimer le menu</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { MealCard } from "./meal-card";
 import { AddMealDialog } from "./add-meal-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -102,15 +102,6 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
     }
   };
 
-  const navigateDay = (direction: 'prev' | 'next') => {
-    const currentIndex = DAYS.indexOf(selectedDay);
-    if (direction === 'prev' && currentIndex > 0) {
-      setSelectedDay(DAYS[currentIndex - 1]);
-    } else if (direction === 'next' && currentIndex < DAYS.length - 1) {
-      setSelectedDay(DAYS[currentIndex + 1]);
-    }
-  };
-
   const getDayMealCount = (day: string) => {
     return TIME_SLOTS.filter(slot => getMealForSlot(day, slot.time)).length;
   };
@@ -194,76 +185,52 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
         <Tabs value={selectedDay} onValueChange={setSelectedDay} className="w-full">
           {/* Navigation par onglets avec scroll horizontal */}
           <div className="sticky top-0 z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-3 -mx-4 px-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigateDay('prev')}
-                disabled={DAYS.indexOf(selectedDay) === 0}
-                className="flex-shrink-0 h-9 w-9 p-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <TabsList className="flex-1 h-auto p-1 bg-white dark:bg-stone-800 overflow-x-auto scrollbar-hide">
-                {DAYS.map((day, index) => {
-                  const colors = DAY_COLORS[day];
-                  const mealCount = getDayMealCount(day);
-                  return (
-                    <TabsTrigger
-                      key={day}
-                      value={day}
-                      className="flex-shrink-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none relative px-2 py-1.5"
-                    >
-                      <div className={`flex flex-col items-center gap-0.5 ${selectedDay === day ? colors.header : ''} ${selectedDay === day ? 'px-3 py-1.5 rounded-lg' : ''} transition-all`}>
-                        <span className={`text-xs font-semibold ${selectedDay === day ? '' : 'text-stone-600 dark:text-stone-400'}`}>
-                          {DAYS_SHORT[index]}
+            <TabsList className="w-full h-auto p-1 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm overflow-x-auto scrollbar-hide">
+              {DAYS.map((day, index) => {
+                const colors = DAY_COLORS[day];
+                const mealCount = getDayMealCount(day);
+                return (
+                  <TabsTrigger
+                    key={day}
+                    value={day}
+                    className="flex-shrink-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none relative px-2 py-1.5"
+                  >
+                    <div className={`flex flex-col items-center gap-0.5 ${selectedDay === day ? colors.header : ''} ${selectedDay === day ? 'px-3 py-1.5 rounded-lg' : ''} transition-all`}>
+                      <span className={`text-xs font-semibold ${selectedDay === day ? '' : 'text-stone-600 dark:text-stone-400'}`}>
+                        {DAYS_SHORT[index]}
+                      </span>
+                      {mealCount > 0 && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDay === day ? 'bg-white/30' : colors.accent + ' text-white'}`}>
+                          {mealCount}
                         </span>
-                        {mealCount > 0 && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDay === day ? 'bg-white/30' : colors.accent + ' text-white'}`}>
-                            {mealCount}
-                          </span>
-                        )}
-                      </div>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigateDay('next')}
-                disabled={DAYS.indexOf(selectedDay) === DAYS.length - 1}
-                className="flex-shrink-0 h-9 w-9 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+                      )}
+                    </div>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
           </div>
 
           {/* Contenu de chaque jour */}
           {DAYS.map((day) => {
             const colors = DAY_COLORS[day];
+            
             return (
               <TabsContent key={day} value={day} className="mt-0 space-y-2">
                 {TIME_SLOTS.map((slot) => {
                   const meal = getMealForSlot(day, slot.time);
                   
-                  // Ne pas afficher le slot s'il n'y a pas de repas (mobile uniquement)
-                  if (!meal) return null;
-                  
                   return (
                     <div
                       key={`${day}-${slot.time}`}
-                      className={`rounded-xl border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} ${meal ? colors.card : 'bg-white dark:bg-stone-800'} overflow-hidden transition-all`}
+                      className={`rounded-xl border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} ${meal ? colors.card : 'bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm'} overflow-hidden transition-all`}
                     >
                       {/* Header du créneau */}
-                      <div className={`flex items-center justify-between px-3 py-2 ${meal ? colors.header : 'bg-stone-100 dark:bg-stone-700'}`}>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-lg ${meal ? '' : 'opacity-70'}`}>{slot.emoji}</span>
-                          <div>
-                            <div className={`font-semibold text-sm ${meal ? '' : 'text-stone-700 dark:text-stone-300'}`}>
+                      <div className={`flex items-center justify-between px-3 py-2 ${meal ? colors.header : 'bg-stone-100/50 dark:bg-stone-700/50'}`}>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className={`text-lg flex-shrink-0 ${meal ? '' : 'opacity-70'}`}>{slot.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-semibold text-sm truncate ${meal ? '' : 'text-stone-700 dark:text-stone-300'}`}>
                               {slot.fullLabel}
                             </div>
                             <div className={`text-xs ${meal ? 'text-white/80' : 'text-stone-500 dark:text-stone-400'}`}>
@@ -276,7 +243,7 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                             size="sm"
                             variant="ghost"
                             onClick={() => handleAddMeal(day, slot.time, slot.type)}
-                            className="h-8 w-8 p-0 hover:bg-white/20"
+                            className="h-8 w-8 p-0 hover:bg-white/20 flex-shrink-0"
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -284,7 +251,7 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                       </div>
 
                       {/* Contenu du repas */}
-                      {meal ? (
+                      {meal && (
                         <div className="p-2">
                           <MealCard 
                             meal={meal} 
@@ -292,12 +259,6 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                             onRefresh={onRefresh}
                             canEdit={canEdit}
                           />
-                        </div>
-                      ) : (
-                        <div className="p-6 text-center">
-                          <p className="text-sm text-stone-400 dark:text-stone-500">
-                            Aucun repas planifié
-                          </p>
                         </div>
                       )}
                     </div>
