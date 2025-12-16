@@ -42,11 +42,11 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
     <>
       <div
         onClick={() => setShowDetail(true)}
-        className="w-full h-full p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
+        className="w-full h-full p-3 lg:p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
         <div className="relative h-full flex flex-col">
           {/* Meal Name - avec hauteur min pour 2 lignes */}
-          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-1.5">
+          <h4 className="text-sm lg:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 mb-2 pr-16 lg:pr-0">
             {meal.name}
           </h4>
           
@@ -65,13 +65,13 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
             )}
           </div>
           
-          {/* Actions - toujours en bas */}
+          {/* Actions - toujours visibles sur mobile, au hover sur desktop */}
           {canEdit && (
-            <div className="mt-auto flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity pt-1">
+            <div className="absolute top-2 right-2 lg:static lg:mt-auto flex gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity lg:pt-1">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                className="h-8 w-8 lg:h-7 lg:w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 bg-white/90 dark:bg-stone-900/90 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowEditDialog(true);
@@ -83,7 +83,7 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="h-8 w-8 lg:h-7 lg:w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 bg-white/90 dark:bg-stone-900/90 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDeleteDialog(true);

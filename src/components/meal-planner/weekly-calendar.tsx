@@ -180,12 +180,12 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
         })}
       </div>
 
-      {/* Vue Mobile - Onglets ultra-compacts par jour */}
+      {/* Vue Mobile - Onglets par jour */}
       <div className="lg:hidden">
         <Tabs value={selectedDay} onValueChange={setSelectedDay} className="w-full">
           {/* Navigation par onglets avec scroll horizontal */}
-          <div className="sticky top-0 z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-3 -mx-4 px-4">
-            <TabsList className="w-full h-auto p-1 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm overflow-x-auto scrollbar-hide">
+          <div className="sticky top-0 z-10 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 -mx-4 px-4 pb-2 mb-4">
+            <TabsList className="w-full h-auto p-1 bg-stone-100 dark:bg-stone-800 grid grid-cols-7 gap-1">
               {DAYS.map((day, index) => {
                 const colors = DAY_COLORS[day];
                 const mealCount = getDayMealCount(day);
@@ -193,14 +193,14 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                   <TabsTrigger
                     key={day}
                     value={day}
-                    className="flex-shrink-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none relative px-2 py-1.5"
+                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none p-0 h-auto"
                   >
-                    <div className={`flex flex-col items-center gap-0.5 ${selectedDay === day ? colors.header : ''} ${selectedDay === day ? 'px-3 py-1.5 rounded-lg' : ''} transition-all`}>
-                      <span className={`text-xs font-semibold ${selectedDay === day ? '' : 'text-stone-600 dark:text-stone-400'}`}>
+                    <div className={`flex flex-col items-center justify-center gap-1 w-full py-2 px-1 rounded-md ${selectedDay === day ? colors.header + ' shadow-md' : 'bg-white dark:bg-stone-700'} transition-all`}>
+                      <span className={`text-[11px] font-bold ${selectedDay === day ? 'text-white' : 'text-stone-700 dark:text-stone-300'}`}>
                         {DAYS_SHORT[index]}
                       </span>
                       {mealCount > 0 && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDay === day ? 'bg-white/30' : colors.accent + ' text-white'}`}>
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${selectedDay === day ? 'bg-white/30 text-white' : colors.accent + ' text-white'}`}>
                           {mealCount}
                         </span>
                       )}
@@ -216,24 +216,24 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
             const colors = DAY_COLORS[day];
             
             return (
-              <TabsContent key={day} value={day} className="mt-0 space-y-2">
+              <TabsContent key={day} value={day} className="mt-0 space-y-3">
                 {TIME_SLOTS.map((slot) => {
                   const meal = getMealForSlot(day, slot.time);
                   
                   return (
                     <div
                       key={`${day}-${slot.time}`}
-                      className={`rounded-xl border-2 ${meal ? colors.border : 'border-dashed border-stone-200 dark:border-stone-700'} ${meal ? colors.card : 'bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm'} overflow-hidden transition-all`}
+                      className={`rounded-lg border-2 ${meal ? colors.border : 'border-dashed border-stone-300 dark:border-stone-600'} ${meal ? colors.card : 'bg-white dark:bg-stone-800'} overflow-hidden shadow-sm`}
                     >
                       {/* Header du créneau */}
-                      <div className={`flex items-center justify-between px-3 py-2 ${meal ? colors.header : 'bg-stone-100/50 dark:bg-stone-700/50'}`}>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className={`text-lg flex-shrink-0 ${meal ? '' : 'opacity-70'}`}>{slot.emoji}</span>
+                      <div className={`flex items-center justify-between px-4 py-3 ${meal ? colors.header : 'bg-stone-50 dark:bg-stone-700'}`}>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <span className={`text-2xl ${meal ? '' : 'opacity-60'}`}>{slot.emoji}</span>
                           <div className="flex-1 min-w-0">
-                            <div className={`font-semibold text-sm truncate ${meal ? '' : 'text-stone-700 dark:text-stone-300'}`}>
+                            <div className={`font-bold text-base ${meal ? 'text-white' : 'text-stone-800 dark:text-stone-200'}`}>
                               {slot.fullLabel}
                             </div>
-                            <div className={`text-xs ${meal ? 'text-white/80' : 'text-stone-500 dark:text-stone-400'}`}>
+                            <div className={`text-xs font-medium ${meal ? 'text-white/70' : 'text-stone-500 dark:text-stone-400'}`}>
                               {slot.time}
                             </div>
                           </div>
@@ -241,18 +241,18 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                         {!meal && !readOnly && canEdit && (
                           <Button
                             size="sm"
-                            variant="ghost"
                             onClick={() => handleAddMeal(day, slot.time, slot.type)}
-                            className="h-8 w-8 p-0 hover:bg-white/20 flex-shrink-0"
+                            className={`${colors.accent} text-white hover:opacity-90 h-9 px-3`}
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4 mr-1" />
+                            <span className="text-xs font-semibold">Ajouter</span>
                           </Button>
                         )}
                       </div>
 
                       {/* Contenu du repas */}
                       {meal && (
-                        <div className="p-2">
+                        <div className="p-3">
                           <MealCard 
                             meal={meal} 
                             planId={plan.id}
@@ -276,9 +276,7 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
           open={!!selectedSlot}
           onOpenChange={(open) => !open && setSelectedSlot(null)}
           planId={plan.id}
-          day={selectedSlot.day}
-          timeSlot={selectedSlot.time}
-          mealType={selectedSlot.type}
+          slots={[{ day: selectedSlot.day, time: selectedSlot.time, type: selectedSlot.type }]}
           onSuccess={() => {
             onRefresh();
             setSelectedSlot(null);
