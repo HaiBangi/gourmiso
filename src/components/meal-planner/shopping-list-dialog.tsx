@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Check, Sparkles, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ErrorAlert } from "@/components/ui/error-alert";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ShoppingListDialogProps {
   open: boolean;
@@ -22,6 +29,7 @@ interface ShoppingListDialogProps {
 }
 
 export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate, canOptimize = false }: ShoppingListDialogProps) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiShoppingList, setAiShoppingList] = useState<Record<string, string[]> | null>(null);

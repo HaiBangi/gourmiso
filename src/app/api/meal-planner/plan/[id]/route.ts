@@ -192,3 +192,77 @@ export async function PATCH(
     );
   }
 }
+
+// Route pour supprimer un menu
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const planId = parseInt(id);
+    if (isNaN(planId)) {
+      return NextResponse.json(
+        { error: "ID invalide" },
+        { status: 400 }
+      );
+    }
+
+    console.log('🗑️ Tentative de suppression du menu:', {
+      planId,
+      userId: session.user.id,
+    });
+
+    // Vérifier que le plan appartient à l'utilisateur
+    const plan = await db.weeklyMealPlan.findUnique({
+      where: { id: planId },
+    });
+
+    if (!plan) {
+      return NextResponse.json(
+        { error: "Menu non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    if (plan.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Non autorisé - Seul le propriétaire peut supprimer ce menu" },
+        { status: 403 }
+      );
+    }
+
+    // Supprimer le plan (les repas seront supprimés en cascade grâce à onDelete: Cascade dans le schema)
+    await db.weeklyMealPlan.delete({
+      where: { id: planId },
+    });
+
+    console.log(`✅ Menu ${planId} supprimé avec succès`);
+
+    return NextResponse.json({
+      success: true,
+      message: "Menu supprimé avec succès",
+    });
+  } catch (error) {
+    console.error("❌ Erreur suppression menu:", error);
+    
+    let errorMessage = "Erreur lors de la suppression";
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    return NextResponse.json(
+      { 
+        error: "Erreur lors de la suppression",
+        message: errorMessage,
+      },
+      { status: 500 }
+    );
+  }
+}

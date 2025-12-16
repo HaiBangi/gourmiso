@@ -16,7 +16,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Clock, Users, Flame, Check } from "lucide-react";
+import { ExternalLink, Clock, Users, Flame, Check, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -180,7 +180,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                 Ingrédients
               </CardTitle>
               {checkedIngredients.size > 0 && (
-                <p className="text-xs text-emerald-600">
+                <p className="text-sm text-emerald-600">
                   {checkedIngredients.size} / {fullRecipe?.ingredients?.length || meal.ingredients?.length || 0} cochés
                 </p>
               )}
@@ -203,7 +203,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                               onClick={(e) => e.stopPropagation()}
                               className="h-4 w-4 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                             />
-                            <h4 className={`font-semibold text-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex-1 ${isGroupChecked ? 'line-through opacity-60' : ''}`}>
+                            <h4 className={`font-semibold text-sm text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex-1 ${isGroupChecked ? 'line-through opacity-60' : ''}`}>
                               {group.name}
                             </h4>
                           </div>
@@ -224,9 +224,9 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                             <Checkbox
                               checked={isChecked}
                               onCheckedChange={() => toggleIngredient(globalIdx)}
-                              className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                              className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                             />
-                            <span className={`flex-1 text-xs sm:text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                            <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
                               {ing.quantity && ing.unit ? (
                                 <>
                                   {ing.quantity} {ing.unit} {ing.name}
@@ -256,9 +256,9 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={() => toggleIngredient(idx)}
-                          className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                          className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                         />
-                        <span className={`flex-1 text-xs sm:text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                        <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
                           {ing.quantity && ing.unit ? (
                             <>
                               {ing.quantity} {ing.unit} {ing.name}
@@ -285,9 +285,9 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={() => toggleIngredient(idx)}
-                          className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                          className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                         />
-                        <span className={`flex-1 text-xs sm:text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                        <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
                           {ing}
                         </span>
                       </label>
@@ -305,7 +305,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                 <span className="text-lg">👨‍🍳</span>
                 Préparation
               </CardTitle>
-              <p className="text-xs text-stone-500 mt-1">
+              <p className="text-sm text-stone-500 mt-1">
                 Cliquez pour cocher une étape
               </p>
             </CardHeader>
@@ -330,14 +330,14 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">
                             <div
-                              className={`flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs font-bold ${
+                              className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
                                 isCompleted
                                   ? "bg-emerald-500"
                                   : "bg-orange-500"
                               }`}
                             >
                               {isCompleted ? (
-                                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                                <Check className="h-4 w-4 text-white" />
                               ) : (
                                 <span className="text-white">{step.order}</span>
                               )}
@@ -345,7 +345,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className={`text-xs sm:text-sm leading-relaxed text-justify ${
+                            <div className={`text-sm leading-relaxed text-justify ${
                               isCompleted ? "text-stone-500 dark:text-stone-400" : "text-stone-700 dark:text-stone-200"
                             }`}>
                               {step.text.split('\n').map((line: string, lineIndex: number) => {
@@ -399,14 +399,14 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                           <div className="flex gap-3">
                             <div className="flex-shrink-0">
                               <div
-                                className={`flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs font-bold ${
+                                className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
                                   isCompleted
                                     ? "bg-emerald-500"
                                     : "bg-orange-500"
                                 }`}
                               >
                                 {isCompleted ? (
-                                  <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                                  <Check className="h-4 w-4 text-white" />
                                 ) : (
                                   <span className="text-white">{index + 1}</span>
                                 )}
@@ -414,7 +414,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                             </div>
 
                             <div className="flex-1 min-w-0">
-                              <div className={`text-xs sm:text-sm leading-relaxed ${
+                              <div className={`text-sm leading-relaxed ${
                                 isCompleted ? "text-stone-500 dark:text-stone-400" : "text-stone-700 dark:text-stone-200"
                               }`}>
                                 {step}
@@ -774,10 +774,19 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[75vh] p-0 overflow-y-auto rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[85vh] p-0 overflow-y-auto rounded-t-3xl">
         <VisuallyHidden>
           <SheetTitle>{meal.name}</SheetTitle>
         </VisuallyHidden>
+        
+        {/* Bouton de fermeture visible */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-4 right-4 z-50 flex items-center justify-center h-8 w-8 rounded-full bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-stone-800 transition-colors border border-stone-200 dark:border-stone-700"
+          aria-label="Fermer"
+        >
+          <X className="h-4 w-4 text-stone-700 dark:text-stone-200" />
+        </button>
         
         {/* Toujours afficher le nom de la recette en premier */}
         {recipeImageUrl ? (

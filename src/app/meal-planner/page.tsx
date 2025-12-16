@@ -238,40 +238,66 @@ function MealPlannerContent() {
             
             {/* Sélecteur de menu sur mobile */}
             {allPlans.length > 0 && (
-              <Select value={selectedPlanId?.toString()} onValueChange={(value) => selectPlan(parseInt(value))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {selectedPlan ? (
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                        <span className="font-medium truncate">{selectedPlan.name}</span>
-                        {!selectedPlan.isOwner && (
-                          <span className="ml-auto px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
-                            Partagé
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-stone-500">Sélectionner un menu</span>
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {allPlans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id.toString()}>
-                      <div className="flex items-center gap-2 w-full">
-                        <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                        <span className="flex-1 truncate">{plan.name}</span>
-                        {!plan.isOwner && (
-                          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
-                            Partagé
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1">
+                <Select value={selectedPlanId?.toString()} onValueChange={(value) => selectPlan(parseInt(value))}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue>
+                      {selectedPlan ? (
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span className="font-medium truncate flex-1">{selectedPlan.name}</span>
+                          {!selectedPlan.isOwner && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
+                              Partagé
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-stone-500">Sélectionner un menu</span>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPlans.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id.toString()}>
+                        <div className="flex items-center gap-2 w-full max-w-[280px]">
+                          <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span className="flex-1 truncate">{plan.name}</span>
+                          {!plan.isOwner && (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
+                              Partagé
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Boutons d'action (icônes uniquement) à droite du dropdown sur mobile */}
+                {selectedPlan && selectedPlan.isOwner && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsEditDialogOpen(true)}
+                      className="h-10 w-10 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex-shrink-0"
+                      title="Modifier le menu"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setPlanToDelete(selectedPlanId)}
+                      className="h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
+                      title="Supprimer le menu"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
             )}
 
             {/* Boutons d'action sur mobile - scroll horizontal */}
@@ -375,15 +401,6 @@ function MealPlannerContent() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 flex-shrink-0 border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
-                      onClick={() => setIsEditDialogOpen(true)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      <span>Modifier</span>
-                    </Button>
                   </>
                 )}
               </div>
@@ -409,63 +426,65 @@ function MealPlannerContent() {
             <div className="flex items-center gap-2">
               {/* Sélecteur de menu dropdown */}
               {allPlans.length > 0 && (
-                <Select value={selectedPlanId?.toString()} onValueChange={(value) => selectPlan(parseInt(value))}>
-                  <SelectTrigger className="w-[240px] h-9">
-                    <SelectValue>
-                      {selectedPlan ? (
-                        <div className="flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                          <span className="font-medium truncate">{selectedPlan.name}</span>
-                          {!selectedPlan.isOwner && (
-                            <span className="ml-auto px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
-                              Partagé
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-stone-500">Sélectionner un menu</span>
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allPlans.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.id.toString()}>
-                        <div className="flex items-center gap-2 w-full">
-                          <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                          <span className="flex-1 truncate">{plan.name}</span>
-                          {!plan.isOwner && (
-                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
-                              Partagé
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+                <div className="flex items-center gap-1">
+                  <Select value={selectedPlanId?.toString()} onValueChange={(value) => selectPlan(parseInt(value))}>
+                    <SelectTrigger className="w-[240px] h-9">
+                      <SelectValue>
+                        {selectedPlan ? (
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                            <span className="font-medium truncate">{selectedPlan.name}</span>
+                            {!selectedPlan.isOwner && (
+                              <span className="ml-auto px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
+                                Partagé
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-stone-500">Sélectionner un menu</span>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allPlans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id.toString()}>
+                          <div className="flex items-center gap-2 w-full max-w-[280px]">
+                            <CalendarIcon className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                            <span className="flex-1 truncate">{plan.name}</span>
+                            {!plan.isOwner && (
+                              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full flex-shrink-0">
+                                Partagé
+                              </span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-              {/* Boutons d'action pour le menu sélectionné */}
-              {selectedPlan && selectedPlan.isOwner && (
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditDialogOpen(true)}
-                    className="h-9 w-9 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                    title="Modifier le menu"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setPlanToDelete(selectedPlanId)}
-                    className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    title="Supprimer le menu"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {/* Boutons d'action pour le menu sélectionné (icônes uniquement) */}
+                  {selectedPlan && selectedPlan.isOwner && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="h-9 w-9 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                        title="Modifier le menu"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setPlanToDelete(selectedPlanId)}
+                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        title="Supprimer le menu"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
 

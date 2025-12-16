@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +52,7 @@ const CUISINE_TYPES = [
 ];
 
 export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: GenerateMenuDialogProps) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [numberOfPeople, setNumberOfPeople] = useState(2);
@@ -176,8 +185,8 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
           mealTypes: selectedMealTypes,
           cuisinePreferences: selectedCuisines,
           preferences,
-          recipeMode, // "new", "existing", ou "mix"
-          includeRecipes: selectedRecipes.map(r => r.id), // IDs des recettes à inclure
+          recipeMode,
+          includeRecipes: selectedRecipes.map(r => r.id),
         }),
       });
 
@@ -205,219 +214,254 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="h-6 w-6 text-emerald-600" />
-            Générer un Menu Automatiquement
-          </DialogTitle>
-          <DialogDescription>
-            Laissez l&apos;IA créer un menu complet pour votre semaine
-          </DialogDescription>
-        </DialogHeader>
+  const FormContent = () => (
+    <div className="space-y-4 md:space-y-6 py-4 px-4 md:px-0">
+      {/* Nombre de personnes */}
+      <div className="space-y-2">
+        <Label htmlFor="people" className="text-sm md:text-base">Nombre de personnes</Label>
+        <Input
+          id="people"
+          type="number"
+          min={1}
+          value={numberOfPeople}
+          onChange={(e) => setNumberOfPeople(parseInt(e.target.value) || 1)}
+          className="text-sm md:text-base"
+        />
+      </div>
 
-        <div className="space-y-6 py-4">
-          {/* Nombre de personnes */}
-          <div className="space-y-2">
-            <Label htmlFor="people">Nombre de personnes</Label>
+      {/* Types de repas */}
+      <div className="space-y-3">
+        <Label className="text-sm md:text-base">Types de repas à générer</Label>
+        <div className="grid grid-cols-2 gap-3">
+          {MEAL_TYPES.map((meal) => (
+            <div key={meal.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={meal.id}
+                checked={selectedMealTypes.includes(meal.id)}
+                onCheckedChange={() => toggleMealType(meal.id)}
+              />
+              <label
+                htmlFor={meal.id}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                {meal.label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Types de cuisine */}
+      <div className="space-y-3">
+        <Label className="text-sm md:text-base">Types de cuisine préférés (optionnel)</Label>
+        <div className="flex flex-wrap gap-2">
+          {CUISINE_TYPES.map((cuisine) => (
+            <Badge
+              key={cuisine}
+              variant={selectedCuisines.includes(cuisine) ? "default" : "outline"}
+              className="cursor-pointer text-xs md:text-sm"
+              onClick={() => toggleCuisine(cuisine)}
+            >
+              {cuisine}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Sélection de recettes à inclure */}
+      <div className="space-y-3">
+        <Label className="text-sm md:text-base">Inclure des recettes spécifiques (optionnel)</Label>
+        <p className="text-xs text-stone-500 mb-2">
+          Recherchez et sélectionnez les recettes que vous voulez absolument dans le menu
+        </p>
+        
+        {/* Barre de recherche avec autocomplétion */}
+        <div className="relative" ref={searchRef}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
             <Input
-              id="people"
-              type="number"
-              min={1}
-              value={numberOfPeople}
-              onChange={(e) => setNumberOfPeople(parseInt(e.target.value) || 1)}
+              placeholder="Rechercher une recette..."
+              value={recipeSearch}
+              onChange={(e) => {
+                setRecipeSearch(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              className="pl-9 text-sm"
             />
           </div>
 
-          {/* Types de repas */}
-          <div className="space-y-3">
-            <Label>Types de repas à générer</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {MEAL_TYPES.map((meal) => (
-                <div key={meal.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={meal.id}
-                    checked={selectedMealTypes.includes(meal.id)}
-                    onCheckedChange={() => toggleMealType(meal.id)}
-                  />
-                  <label
-                    htmlFor={meal.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {meal.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Types de cuisine */}
-          <div className="space-y-3">
-            <Label>Types de cuisine préférés (optionnel)</Label>
-            <div className="flex flex-wrap gap-2">
-              {CUISINE_TYPES.map((cuisine) => (
-                <Badge
-                  key={cuisine}
-                  variant={selectedCuisines.includes(cuisine) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => toggleCuisine(cuisine)}
+          {/* Liste de suggestions */}
+          {showSuggestions && filteredRecipes.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+              {filteredRecipes.map((recipe) => (
+                <button
+                  key={recipe.id}
+                  onClick={() => addRecipe(recipe)}
+                  className="w-full px-4 py-3 text-left hover:bg-stone-100 dark:hover:bg-stone-700 flex items-center justify-between gap-2 border-b border-stone-100 dark:border-stone-700 last:border-0"
                 >
-                  {cuisine}
-                </Badge>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-stone-900 dark:text-stone-100 truncate">
+                      {recipe.name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {recipe.category && (
+                        <span className="text-xs text-stone-500 dark:text-stone-400">
+                          {recipe.category}
+                        </span>
+                      )}
+                      {recipe.author?.name && (
+                        <span className="text-xs text-stone-400 dark:text-stone-500">
+                          {recipe.author.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-stone-500">
+                    {recipe.prepTime && <span>⏱ {recipe.prepTime} min</span>}
+                    {recipe.caloriesPerServing && <span>🔥 {recipe.caloriesPerServing} kcal</span>}
+                  </div>
+                </button>
               ))}
             </div>
-          </div>
-
-          {/* Sélection de recettes à inclure */}
-          <div className="space-y-3">
-            <Label>Inclure des recettes spécifiques (optionnel)</Label>
-            <p className="text-xs text-stone-500 mb-2">
-              Recherchez et sélectionnez les recettes que vous voulez absolument dans le menu
-            </p>
-            
-            {/* Barre de recherche avec autocomplétion */}
-            <div className="relative" ref={searchRef}>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                <Input
-                  placeholder="Rechercher une recette (ex: pâtes, boeuf, salade...)"
-                  value={recipeSearch}
-                  onChange={(e) => {
-                    setRecipeSearch(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  className="pl-9"
-                />
-              </div>
-
-              {/* Liste de suggestions */}
-              {showSuggestions && filteredRecipes.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                  {filteredRecipes.map((recipe) => (
-                    <button
-                      key={recipe.id}
-                      onClick={() => addRecipe(recipe)}
-                      className="w-full px-4 py-3 text-left hover:bg-stone-100 dark:hover:bg-stone-700 flex items-center justify-between gap-2 border-b border-stone-100 dark:border-stone-700 last:border-0"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-stone-900 dark:text-stone-100 truncate">
-                          {recipe.name}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {recipe.category && (
-                            <span className="text-xs text-stone-500 dark:text-stone-400">
-                              {recipe.category}
-                            </span>
-                          )}
-                          {recipe.author?.name && (
-                            <span className="text-xs text-stone-400 dark:text-stone-500">
-                              {recipe.author.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-stone-500">
-                        {recipe.prepTime && <span>⏱ {recipe.prepTime} min</span>}
-                        {recipe.caloriesPerServing && <span>🔥 {recipe.caloriesPerServing} kcal</span>}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Recettes sélectionnées */}
-            {selectedRecipes.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {selectedRecipes.map((recipe) => (
-                  <Badge
-                    key={recipe.id}
-                    variant="secondary"
-                    className="gap-1 pr-1 pl-3 py-1"
-                  >
-                    <span className="text-sm">{recipe.name}</span>
-                    <button
-                      onClick={() => removeRecipe(recipe.id)}
-                      className="ml-1 hover:bg-stone-300 dark:hover:bg-stone-600 rounded-full p-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Autres informations */}
-          <div className="space-y-2">
-            <Label htmlFor="preferences">Autres informations (optionnel)</Label>
-            <Textarea
-              id="preferences"
-              placeholder="Ex: Jeudi je veux une omelette, vendredi je veux bo bun, je ne veux aucun plat de pâtes, pas de poisson..."
-              value={preferences}
-              onChange={(e) => setPreferences(e.target.value)}
-              rows={4}
-            />
-            <p className="text-xs text-stone-500">
-              Indiquez vos souhaits spécifiques, plats à éviter, jours particuliers, etc.
-            </p>
-          </div>
-
-          {/* Mode de génération des recettes */}
-          <div className="space-y-2">
-            <Label htmlFor="recipeMode">Mode de génération</Label>
-            <Select value={recipeMode} onValueChange={(value: "new" | "existing" | "mix") => setRecipeMode(value)}>
-              <SelectTrigger id="recipeMode">
-                <SelectValue placeholder="Choisir le mode de génération" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Créer de nouvelles recettes</span>
-                    <span className="text-xs text-stone-500">L&apos;IA génère uniquement de nouvelles recettes</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="existing">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Utiliser mes recettes existantes</span>
-                    <span className="text-xs text-stone-500">Utilise uniquement vos recettes déjà créées</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="mix">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Mix des deux</span>
-                    <span className="text-xs text-stone-500">Combine vos recettes et de nouvelles suggestions</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          )}
         </div>
 
-        {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
+        {/* Recettes sélectionnées */}
+        {selectedRecipes.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {selectedRecipes.map((recipe) => (
+              <Badge
+                key={recipe.id}
+                variant="secondary"
+                className="gap-1 pr-1 pl-3 py-1 text-xs md:text-sm"
+              >
+                <span>{recipe.name}</span>
+                <button
+                  onClick={() => removeRecipe(recipe.id)}
+                  className="ml-1 hover:bg-stone-300 dark:hover:bg-stone-600 rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
 
-        <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
-            Annuler
-          </Button>
-          <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2">
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Génération en cours...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Générer le Menu
-              </>
-            )}
-          </Button>
+      {/* Autres informations */}
+      <div className="space-y-2">
+        <Label htmlFor="preferences" className="text-sm md:text-base">Autres informations (optionnel)</Label>
+        <Textarea
+          id="preferences"
+          placeholder="Ex: Jeudi je veux une omelette, pas de poisson..."
+          value={preferences}
+          onChange={(e) => setPreferences(e.target.value)}
+          rows={3}
+          className="text-sm"
+        />
+        <p className="text-xs text-stone-500">
+          Indiquez vos souhaits spécifiques, plats à éviter, etc.
+        </p>
+      </div>
+
+      {/* Mode de génération des recettes */}
+      <div className="space-y-2">
+        <Label htmlFor="recipeMode" className="text-sm md:text-base">Mode de génération</Label>
+        <Select value={recipeMode} onValueChange={(value: "new" | "existing" | "mix") => setRecipeMode(value)}>
+          <SelectTrigger id="recipeMode" className="text-sm">
+            <SelectValue placeholder="Choisir le mode de génération" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="new">
+              <div className="flex flex-col items-start">
+                <span className="font-medium text-sm">Créer de nouvelles recettes</span>
+                <span className="text-xs text-stone-500">L&apos;IA génère uniquement de nouvelles recettes</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="existing">
+              <div className="flex flex-col items-start">
+                <span className="font-medium text-sm">Utiliser mes recettes existantes</span>
+                <span className="text-xs text-stone-500">Utilise uniquement vos recettes déjà créées</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="mix">
+              <div className="flex flex-col items-start">
+                <span className="font-medium text-sm">Mix des deux</span>
+                <span className="text-xs text-stone-500">Combine vos recettes et de nouvelles suggestions</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
+
+      <div className="flex gap-2 justify-end pt-2">
+        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating} size="sm">
+          Annuler
+        </Button>
+        <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2" size="sm">
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Génération...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Générer
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl md:text-2xl">
+              <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
+              Générer un Menu Automatiquement
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Laissez l&apos;IA créer un menu complet pour votre semaine
+            </DialogDescription>
+          </DialogHeader>
+          <FormContent />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[85vh] p-0 overflow-y-auto rounded-t-3xl">
+        {/* Bouton de fermeture visible */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-4 right-4 z-50 flex items-center justify-center h-8 w-8 rounded-full bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-stone-800 transition-colors border border-stone-200 dark:border-stone-700"
+          aria-label="Fermer"
+        >
+          <X className="h-4 w-4 text-stone-700 dark:text-stone-200" />
+        </button>
+        
+        <div className="sticky top-0 z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 rounded-t-3xl px-4 pt-6 pb-3 border-b border-stone-200 dark:border-stone-700">
+          <SheetHeader className="space-y-2">
+            <SheetTitle className="flex items-center gap-2 text-xl text-left">
+              <Sparkles className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+              <span>Générer un Menu</span>
+            </SheetTitle>
+            <SheetDescription className="text-sm text-left">
+              Laissez l&apos;IA créer un menu complet pour votre semaine
+            </SheetDescription>
+          </SheetHeader>
         </div>
-      </DialogContent>
-    </Dialog>
+        <FormContent />
+      </SheetContent>
+    </Sheet>
   );
 }

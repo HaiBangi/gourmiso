@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Eye, Edit2 } from "lucide-react";
+import { Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeDetailSheet } from "./recipe-detail-sheet";
 import { EditMealDialog } from "./edit-meal-dialog";
@@ -67,7 +67,7 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
           
           {/* Actions - toujours en bas */}
           {canEdit && (
-            <div className="mt-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1">
+            <div className="mt-auto flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity pt-1">
               <Button
                 size="sm"
                 variant="ghost"
