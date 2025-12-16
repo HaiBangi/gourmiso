@@ -350,6 +350,7 @@ export function ExportPdfButton({ recipe }: ExportPdfButtonProps) {
 
   return (
     <Button
+      data-export-pdf
       variant="outline"
       size="sm"
       onClick={handleExport}

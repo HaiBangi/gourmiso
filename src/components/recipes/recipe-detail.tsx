@@ -1,6 +1,17 @@
+"use client";
+
+import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Star, Play, Coins, Flame } from "lucide-react";
+import { Toast } from "@/components/ui/toast";
+import { Clock, Users, Star, Play, Coins, Flame, MoreVertical, Share2, Download, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RecipeImage } from "./recipe-image";
 import { EditRecipeButton } from "./edit-recipe-button";
 import { DeleteRecipeButton } from "./delete-recipe-button";
@@ -73,6 +84,33 @@ export function RecipeDetail({
   isAuthenticated = false,
 }: RecipeDetailProps) {
   console.log("[RecipeDetail] canEdit prop received:", canEdit);
+  const [showToast, setShowToast] = useState(false);
+  const editButtonRef = useRef<HTMLDivElement>(null);
+  const deleteButtonRef = useRef<HTMLDivElement>(null);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShowToast(true);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const pdfButton = document.querySelector('[data-export-pdf]') as HTMLButtonElement;
+    if (pdfButton) pdfButton.click();
+  };
+
+  const handleEditRecipe = () => {
+    const button = editButtonRef.current?.querySelector('button');
+    if (button) button.click();
+  };
+
+  const handleDeleteRecipe = () => {
+    const button = deleteButtonRef.current?.querySelector('button');
+    if (button) button.click();
+  };
 
   return (
     <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
@@ -89,16 +127,75 @@ export function RecipeDetail({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-          {/* Edit/Delete Buttons - Top Right (z-index plus élevé pour toujours être au-dessus) */}
+          {/* Mobile: Dropdown Menu - Top Right */}
+          <div className="sm:hidden absolute top-3 right-3 z-20">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/90 hover:bg-white text-stone-700 border-0 backdrop-blur-sm shadow-lg h-9 w-9 p-0"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {canEdit && (
+                  <>
+                    <DropdownMenuItem onClick={handleEditRecipe} className="cursor-pointer">
+                      <Edit className="h-4 w-4 mr-2 text-amber-700 dark:text-amber-500" />
+                      <span className="text-amber-700 dark:text-amber-500">Modifier</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDeleteRecipe} className="cursor-pointer">
+                      <Trash2 className="h-4 w-4 mr-2 text-rose-700 dark:text-rose-400" />
+                      <span className="text-rose-700 dark:text-rose-400">Supprimer</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {recipe.videoUrl && (
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <a href={recipe.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                      <Play className="h-4 w-4 mr-2 text-red-700 dark:text-red-400" />
+                      <span className="text-red-700 dark:text-red-400">Voir la vidéo</span>
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer">
+                  <Download className="h-4 w-4 mr-2 text-purple-700 dark:text-purple-400" />
+                  <span className="text-purple-700 dark:text-purple-400">Télécharger PDF</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={copyToClipboard} className="cursor-pointer">
+                  <Share2 className="h-4 w-4 mr-2 text-blue-700 dark:text-blue-400" />
+                  <span className="text-blue-700 dark:text-blue-400">Partager</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Boutons invisibles pour Edit et Delete - utilisés par le dropdown mobile */}
+            {canEdit && (
+              <>
+                <div ref={editButtonRef} className="hidden">
+                  <EditRecipeButton recipe={recipe} />
+                </div>
+                <div ref={deleteButtonRef} className="hidden">
+                  <DeleteRecipeButton recipeId={recipe.id} recipeName={recipe.name} />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Desktop: Edit/Delete Buttons - Top Right */}
           {canEdit && (
-            <div className="absolute top-3 right-3 flex gap-2 z-20">
+            <div className="hidden sm:flex absolute top-3 right-3 gap-2 z-20">
               <EditRecipeButton recipe={recipe} />
               <DeleteRecipeButton recipeId={recipe.id} recipeName={recipe.name} />
             </div>
           )}
 
-          {/* Tags - Top Left avec limitation de largeur sur mobile pour éviter overlap avec boutons */}
-          <div className={`absolute top-3 left-3 flex flex-wrap gap-2 z-10 ${canEdit ? 'max-w-[calc(100%-140px)] sm:max-w-none' : 'max-w-[calc(100%-20px)]'}`}>
+          {/* Tags - Top Left - MASQUÉ SUR MOBILE */}
+          <div className={`hidden sm:flex absolute top-3 left-3 flex-wrap gap-2 z-10 ${canEdit ? 'max-w-[calc(100%-140px)] sm:max-w-none' : 'max-w-[calc(100%-20px)]'}`}>
             <Badge className="bg-emerald-700/90 hover:bg-emerald-600 text-white border-0 backdrop-blur-sm shadow-lg">
               {categoryLabels[recipe.category] || recipe.category}
             </Badge>
@@ -113,8 +210,8 @@ export function RecipeDetail({
             ))}
           </div>
 
-          {/* Video/Share/PDF Buttons - Bottom Right */}
-          <div className="absolute bottom-3 right-3 flex gap-2 z-10">
+          {/* Video/Share/PDF Buttons - Desktop Only - Bottom Right */}
+          <div className="hidden sm:flex absolute bottom-3 right-3 gap-2 z-10">
             <ShareButtons title={`${recipe.name} - Yumiso`} />
             <ExportPdfButton recipe={recipe} />
             {recipe.videoUrl && (
@@ -133,12 +230,11 @@ export function RecipeDetail({
           </div>
 
           {/* Title Overlay - Bottom Left */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 pr-32 sm:pr-40">
-            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+            <h1 className="font-serif text-xl sm:text-3xl md:text-4xl font-bold text-white mb-0.5 sm:mb-1 leading-tight">
               {recipe.name}
             </h1>
-            <p className="text-white/90 text-lg">
-              par{" "}
+            <p className="text-white/80 text-xs sm:text-lg italic">
               {recipe.userId ? (
                 <Link
                   href={`/users/${recipe.userId}`}
@@ -277,6 +373,13 @@ export function RecipeDetail({
           <RecipeComments recipeId={recipe.id} comments={comments} />
         </div>
       </div>
+
+      {/* Toast notification pour le partage */}
+      <Toast
+        message="Lien copié dans le presse-papier !"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

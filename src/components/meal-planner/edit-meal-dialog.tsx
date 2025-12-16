@@ -25,6 +25,7 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingRecipes, setIsFetchingRecipes] = useState(false);
   const [portionsDesired, setPortionsDesired] = useState(meal?.servings || 2);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
   }, [open, meal]);
 
   const fetchRecipes = async () => {
+    setIsFetchingRecipes(true);
     try {
       const res = await fetch("/api/recipes");
       if (res.ok) {
@@ -43,6 +45,8 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
       }
     } catch (error) {
       console.error("Erreur:", error);
+    } finally {
+      setIsFetchingRecipes(false);
     }
   };
 
@@ -122,27 +126,38 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
           </div>
 
           <div className="max-h-96 overflow-y-auto space-y-2">
-            {filteredRecipes.map((recipe) => (
-              <Card
-                key={recipe.id}
-                className={`p-3 cursor-pointer transition-all ${
-                  selectedRecipe?.id === recipe.id
-                    ? "border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                    : "hover:border-emerald-300"
-                }`}
-                onClick={() => setSelectedRecipe(recipe)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{recipe.name}</h4>
-                    <p className="text-sm text-stone-500">
-                      ⏱ {recipe.preparationTime + recipe.cookingTime} min • 🍽 {recipe.servings} portions
-                      {recipe.caloriesPerServing && ` • 🔥 ${recipe.caloriesPerServing} kcal`}
-                    </p>
+            {isFetchingRecipes ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent"></div>
+                <p className="text-sm text-stone-500">Chargement des recettes...</p>
+              </div>
+            ) : filteredRecipes.length === 0 ? (
+              <div className="text-center py-8 text-stone-500">
+                <p className="text-sm">Aucune recette trouvée</p>
+              </div>
+            ) : (
+              filteredRecipes.map((recipe) => (
+                <Card
+                  key={recipe.id}
+                  className={`p-3 cursor-pointer transition-all ${
+                    selectedRecipe?.id === recipe.id
+                      ? "border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                      : "hover:border-emerald-300"
+                  }`}
+                  onClick={() => setSelectedRecipe(recipe)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{recipe.name}</h4>
+                      <p className="text-sm text-stone-500">
+                        ⏱ {recipe.preparationTime + recipe.cookingTime} min • 🍽 {recipe.servings} portions
+                        {recipe.caloriesPerServing && ` • 🔥 ${recipe.caloriesPerServing} kcal`}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
 
           <div className="flex items-center gap-2">

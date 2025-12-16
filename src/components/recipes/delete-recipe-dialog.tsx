@@ -3,16 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { deleteRecipe } from "@/actions/recipes";
 
 interface DeleteRecipeDialogProps {
@@ -65,33 +64,38 @@ export function DeleteRecipeDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Supprimer cette recette ?</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Supprimer cette recette ?</DialogTitle>
+          <DialogDescription>
             Êtes-vous sûr de vouloir supprimer &quot;{recipeName}&quot; ? Cette
             action est irréversible.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+          <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
             {error}
           </div>
         )}
-        <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
+            Annuler
+          </Button>
+          <Button
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700"
+            variant="destructive"
           >
             {loading ? "Suppression..." : "Supprimer"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

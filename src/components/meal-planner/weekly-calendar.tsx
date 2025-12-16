@@ -11,13 +11,13 @@ const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dima
 const DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 const DAY_COLORS: Record<string, { header: string; card: string; border: string; accent: string }> = {
-  "Lundi": { header: "bg-stone-600 text-white", card: "bg-stone-50 dark:bg-stone-900/30", border: "border-stone-300 dark:border-stone-600", accent: "bg-stone-500" },
-  "Mardi": { header: "bg-slate-600 text-white", card: "bg-slate-50 dark:bg-slate-900/30", border: "border-slate-300 dark:border-slate-600", accent: "bg-slate-500" },
-  "Mercredi": { header: "bg-zinc-600 text-white", card: "bg-zinc-50 dark:bg-zinc-900/30", border: "border-zinc-300 dark:border-zinc-600", accent: "bg-zinc-500" },
-  "Jeudi": { header: "bg-neutral-600 text-white", card: "bg-neutral-50 dark:bg-neutral-900/30", border: "border-neutral-300 dark:border-neutral-600", accent: "bg-neutral-500" },
-  "Vendredi": { header: "bg-gray-600 text-white", card: "bg-gray-50 dark:bg-gray-900/30", border: "border-gray-300 dark:border-gray-600", accent: "bg-gray-500" },
-  "Samedi": { header: "bg-emerald-600 text-white", card: "bg-emerald-50 dark:bg-emerald-900/30", border: "border-emerald-300 dark:border-emerald-600", accent: "bg-emerald-500" },
-  "Dimanche": { header: "bg-amber-600 text-white", card: "bg-amber-50 dark:bg-amber-900/30", border: "border-amber-300 dark:border-amber-600", accent: "bg-amber-500" },
+  "Lundi": { header: "bg-slate-700 text-white", card: "bg-slate-50 dark:bg-slate-900/30", border: "border-slate-300 dark:border-slate-600", accent: "bg-slate-700" },
+  "Mardi": { header: "bg-blue-800 text-white", card: "bg-blue-50 dark:bg-blue-900/30", border: "border-blue-300 dark:border-blue-600", accent: "bg-blue-800" },
+  "Mercredi": { header: "bg-violet-800 text-white", card: "bg-violet-50 dark:bg-violet-900/30", border: "border-violet-300 dark:border-violet-600", accent: "bg-violet-800" },
+  "Jeudi": { header: "bg-purple-800 text-white", card: "bg-purple-50 dark:bg-purple-900/30", border: "border-purple-300 dark:border-purple-600", accent: "bg-purple-800" },
+  "Vendredi": { header: "bg-indigo-800 text-white", card: "bg-indigo-50 dark:bg-indigo-900/30", border: "border-indigo-300 dark:border-indigo-600", accent: "bg-indigo-800" },
+  "Samedi": { header: "bg-emerald-800 text-white", card: "bg-emerald-50 dark:bg-emerald-900/30", border: "border-emerald-300 dark:border-emerald-600", accent: "bg-emerald-800" },
+  "Dimanche": { header: "bg-rose-800 text-white", card: "bg-rose-50 dark:bg-rose-900/30", border: "border-rose-300 dark:border-rose-600", accent: "bg-rose-800" },
 };
 
 const TIME_SLOTS = [
