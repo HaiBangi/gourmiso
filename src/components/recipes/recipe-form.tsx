@@ -220,16 +220,6 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       savedAt: Date.now(),
     };
 
-    console.log('[RecipeForm] saveDraft called with:', {
-      context,
-      ingredientsCount: currentIngredients.length,
-      stepsCount: currentSteps.length,
-      useGroups: currentUseGroups,
-      groupsCount: currentIngredientGroups.length,
-      ingredients: currentIngredients,
-      steps: currentSteps,
-    });
-
     // Only save if there's meaningful content
     const hasContent = name.trim() ||
       description.trim() ||
@@ -238,26 +228,21 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       (currentIngredientGroups && currentIngredientGroups.length > 0 && currentIngredientGroups.some(g => g.ingredients.some(i => i.name.trim())));
 
     if (hasContent) {
-      console.log('[RecipeForm] Saving draft to localStorage with key:', draftKey);
       try {
         localStorage.setItem(draftKey, JSON.stringify(draft));
-        console.log('[RecipeForm] Draft saved successfully');
       } catch (e) {
-        console.warn("Could not save draft to localStorage", e);
+        // Silent fail
       }
-    } else {
-      console.log('[RecipeForm] No meaningful content to save');
     }
   };
 
   // Clear draft from localStorage
   const clearDraft = useCallback(() => {
     const draftKey = isEdit && recipe ? `${EDIT_RECIPE_DRAFT_KEY_PREFIX}${recipe.id}` : NEW_RECIPE_DRAFT_KEY;
-    console.log('[RecipeForm] Clearing draft with key:', draftKey);
     try {
       localStorage.removeItem(draftKey);
     } catch (e) {
-      console.warn("Could not clear draft from localStorage");
+      // Silent fail
     }
   }, [isEdit, recipe]);
 
@@ -832,7 +817,6 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
       if (recipe && isEdit) {
         // For edits, we keep the draft but clear mounted state
         // The draft will be restored on next open
-        console.log('[RecipeForm] Edit dialog closed, draft saved');
       } else if (recipe && !isEdit) {
         // For duplications, reset form when closing
         resetForm();

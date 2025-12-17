@@ -83,7 +83,6 @@ export function RecipeDetail({
   collections = [],
   isAuthenticated = false,
 }: RecipeDetailProps) {
-  console.log("[RecipeDetail] canEdit prop received:", canEdit);
   const [showToast, setShowToast] = useState(false);
   const editButtonRef = useRef<HTMLDivElement>(null);
   const deleteButtonRef = useRef<HTMLDivElement>(null);

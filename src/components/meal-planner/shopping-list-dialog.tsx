@@ -158,15 +158,14 @@ export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate, canOpti
         });
 
         if (!saveRes.ok) {
-          console.error('⚠️ Erreur lors de la sauvegarde, mais la liste a été générée');
+          // Erreur lors de la sauvegarde, mais la liste a été générée
         } else {
-          console.log('✅ Liste de courses optimisée sauvegardée');
           if (onUpdate) {
             onUpdate();
           }
         }
       } catch (saveError) {
-        console.error('⚠️ Erreur lors de la sauvegarde:', saveError);
+        // Erreur lors de la sauvegarde
       }
     } catch (error) {
       console.error('❌ Erreur complète:', error);

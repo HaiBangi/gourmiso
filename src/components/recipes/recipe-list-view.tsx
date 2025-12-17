@@ -66,12 +66,14 @@ export function RecipeListView({
       {recipes.map((recipe) => (
         <Card
           key={recipe.id}
-          className={`overflow-hidden hover:shadow-lg transition-shadow duration-200 relative ${
+          className={`overflow-hidden hover:shadow-lg transition-all duration-200 relative ${
             isDeletionMode ? 'cursor-pointer' : ''
           } ${
             isDeletionMode && selectedIds.has(recipe.id) 
-              ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-950/20' 
-              : ''
+              ? 'ring-4 ring-red-500 dark:ring-red-600 bg-red-50 dark:bg-red-950/20' 
+              : isDeletionMode 
+                ? 'hover:ring-2 hover:ring-red-200 dark:hover:ring-red-800' 
+                : ''
           }`}
           onClick={() => {
             if (isDeletionMode && onToggleSelection) {

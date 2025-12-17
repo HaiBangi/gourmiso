@@ -97,6 +97,9 @@ export function RecipeListWithDeletion({
 }: RecipeListWithDeletionProps) {
   const { isDeletionMode, selectedIds, handleToggleSelection, handleClearSelection } = useDeletionMode();
 
+  // Filtrer les recettes sélectionnées
+  const selectedRecipes = recipes.filter(recipe => selectedIds.has(recipe.id));
+
   return (
     <>
       <RecipeList
@@ -110,6 +113,7 @@ export function RecipeListWithDeletion({
       {isDeletionMode && (
         <DeletionActions
           selectedIds={selectedIds}
+          selectedRecipes={selectedRecipes}
           onClear={handleClearSelection}
         />
       )}

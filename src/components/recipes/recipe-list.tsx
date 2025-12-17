@@ -95,10 +95,12 @@ export function RecipeList({
           {recipes.map((recipe) => (
             <div 
               key={recipe.id} 
-              className={`relative ${isDeletionMode ? 'cursor-pointer' : ''} ${
+              className={`relative transition-all ${isDeletionMode ? 'cursor-pointer' : ''} ${
                 isDeletionMode && selectedIds.has(recipe.id) 
-                  ? 'ring-2 ring-red-500 rounded-lg' 
-                  : ''
+                  ? 'ring-4 ring-red-500 dark:ring-red-600 rounded-lg' 
+                  : isDeletionMode 
+                    ? 'hover:ring-2 hover:ring-red-200 dark:hover:ring-red-800 rounded-lg' 
+                    : ''
               }`}
               onClick={() => {
                 if (isDeletionMode && onToggleSelection) {
