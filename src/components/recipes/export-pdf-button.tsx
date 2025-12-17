@@ -44,19 +44,51 @@ export function ExportPdfButton({ recipe }: ExportPdfButtonProps) {
       // === IMAGE DE LA RECETTE ===
       if (recipe.imageUrl) {
         try {
-          const imgData = await fetch(recipe.imageUrl).then(res => res.blob()).then(blob => {
-            return new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(blob);
-            });
+          // Utiliser un élément Image au lieu de fetch pour éviter les problèmes CORS
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          // Timeout plus court pour ne pas bloquer trop longtemps sur mobile
+          const imageLoadPromise = new Promise<string>((resolve, reject) => {
+            img.onload = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                  reject(new Error('Canvas context not available'));
+                  return;
+                }
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL('image/jpeg') || '';
+                if (!dataUrl) {
+                  reject(new Error('Failed to convert canvas to data URL'));
+                  return;
+                }
+                resolve(dataUrl);
+              } catch (err) {
+                reject(err);
+              }
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = recipe.imageUrl || '';
           });
+
+          // Timeout de 3 secondes seulement
+          const timeoutPromise = new Promise<string>((_, reject) => {
+            setTimeout(() => reject(new Error('Image load timeout')), 3000);
+          });
+
+          // Essayer de charger l'image avec timeout
+          const imgData = await Promise.race([imageLoadPromise, timeoutPromise]);
           
           const imgWidth = 45;
           const imgHeight = 30;
           doc.addImage(imgData, 'JPEG', pageWidth - margin - imgWidth, 10, imgWidth, imgHeight);
         } catch (error) {
-          console.error("Erreur lors du chargement de l'image:", error);
+          console.log("Image non disponible, le PDF sera généré sans image:", error);
+          // Continue sans image - pas bloquant pour l'export PDF
         }
       }
 
@@ -343,6 +375,8 @@ export function ExportPdfButton({ recipe }: ExportPdfButtonProps) {
       doc.save(`${fileName}.pdf`);
     } catch (error) {
       console.error("Error exporting PDF:", error);
+      // Afficher un message d'erreur à l'utilisateur
+      alert("Erreur lors de l'export du PDF. Veuillez réessayer.");
     } finally {
       setIsExporting(false);
     }
