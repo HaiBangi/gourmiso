@@ -415,7 +415,7 @@ export function RecipeDetail({
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 md:px-8 py-3 sm:py-4">
         {/* Stats Bar - MASQUÉ SUR DESKTOP (lg+) car maintenant à côté de l'image */}
         <div className="lg:hidden grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -506,7 +506,7 @@ export function RecipeDetail({
 
         {/* Description */}
         {recipe.description && (
-          <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 mb-6 sm:mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 mb-3 sm:mb-4 leading-relaxed">
             {recipe.description}
           </p>
         )}

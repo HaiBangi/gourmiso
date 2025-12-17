@@ -545,7 +545,7 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
           </VisuallyHidden>
           
           {/* Hero: Image 80% + Stats 20% */}
-          <div className="flex gap-4 h-[300px] p-4">
+          <div className="flex gap-4 h-[354px] p-4">
             {/* Image 80% */}
             {fullRecipe?.imageUrl ? (
               <div className="relative w-[80%] overflow-hidden rounded-xl bg-stone-900">
