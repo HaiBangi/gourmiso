@@ -28,6 +28,7 @@ model User {
   personalNotes UserNote[]       @relation("UserPersonalNotes")
   mealPlans     WeeklyMealPlan[] @relation("UserMealPlans")
   mealPlanContributions MealPlanContributor[] @relation("MealPlanContributions")
+  checkedIngredients ShoppingListItem[] @relation("CheckedIngredients")
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -195,6 +196,30 @@ model UserNote {
 
 // ==================== MEAL PLANNER MODELS ====================
 
+// ==================== SHOPPING LIST REALTIME ====================
+
+model ShoppingListItem {
+  id              Int      @id @default(autoincrement())
+  ingredientName  String   // Nom de l'ingrédient (ex: "Tomates - 500g")
+  category        String   // Catégorie (ex: "Légumes")
+  isChecked       Boolean  @default(false)
+  checkedAt       DateTime? // Quand l'ingrédient a été coché
+  
+  // Qui a coché l'ingrédient
+  checkedByUserId String?
+  checkedByUser   User?    @relation("CheckedIngredients", fields: [checkedByUserId], references: [id], onDelete: SetNull)
+  
+  // Lien vers le plan de repas
+  weeklyMealPlanId Int
+  weeklyMealPlan   WeeklyMealPlan @relation("ShoppingListItems", fields: [weeklyMealPlanId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([weeklyMealPlanId, ingredientName, category])
+  @@index([weeklyMealPlanId])
+}
+
 model WeeklyMealPlan {
   id        Int      @id @default(autoincrement())
   name      String   // Ex: "Semaine du 14 décembre 2025"
@@ -231,6 +256,7 @@ model WeeklyMealPlan {
   
   meals         PlannedMeal[]
   contributors  MealPlanContributor[]
+  shoppingListItems ShoppingListItem[] @relation("ShoppingListItems")
 }
 
 model MealPlanContributor {

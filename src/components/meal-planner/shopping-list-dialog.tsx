@@ -26,9 +26,26 @@ interface ShoppingListDialogProps {
   plan: any;
   onUpdate?: () => void;
   canOptimize?: boolean;
+  // Temps réel
+  realtimeToggle?: (ingredientName: string, category: string, currentState: boolean) => void;
+  realtimeItems?: Array<{
+    id: number;
+    ingredientName: string;
+    category: string;
+    isChecked: boolean;
+    checkedByUser: { pseudo: string; name: string | null } | null;
+  }>;
 }
 
-export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate, canOptimize = false }: ShoppingListDialogProps) {
+export function ShoppingListDialog({ 
+  open, 
+  onOpenChange, 
+  plan, 
+  onUpdate, 
+  canOptimize = false,
+  realtimeToggle,
+  realtimeItems = [],
+}: ShoppingListDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -112,14 +129,24 @@ export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate, canOpti
     return consolidated;
   }, [plan]);
 
-  const toggleItem = (item: string) => {
-    const newSet = new Set(checkedItems);
-    if (newSet.has(item)) {
-      newSet.delete(item);
+  const toggleItem = (item: string, category: string = "Autres") => {
+    // Si le temps réel est activé, utiliser la fonction temps réel
+    if (realtimeToggle && realtimeItems) {
+      const realtimeItem = realtimeItems.find(
+        (i) => i.ingredientName === item && i.category === category
+      );
+      const currentState = realtimeItem?.isChecked || false;
+      realtimeToggle(item, category, currentState);
     } else {
-      newSet.add(item);
+      // Sinon, utiliser le comportement local classique
+      const newSet = new Set(checkedItems);
+      if (newSet.has(item)) {
+        newSet.delete(item);
+      } else {
+        newSet.add(item);
+      }
+      setCheckedItems(newSet);
     }
-    setCheckedItems(newSet);
   };
 
   const generateAIShoppingList = async () => {
@@ -210,26 +237,40 @@ export function ShoppingListDialog({ open, onOpenChange, plan, onUpdate, canOpti
               {category}
             </h3>
             <div className="space-y-1.5 md:space-y-2">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex items-center space-x-2 md:space-x-3 p-1.5 md:p-2 hover:bg-stone-50 dark:hover:bg-stone-800 rounded transition-colors">
-                  <Checkbox
-                    id={`${category}-${idx}`}
-                    checked={checkedItems.has(item)}
-                    onCheckedChange={() => toggleItem(item)}
-                    className="h-5 w-5"
-                  />
-                  <label
-                    htmlFor={`${category}-${idx}`}
-                    className={`flex-1 cursor-pointer select-none text-sm md:text-base ${
-                      checkedItems.has(item)
-                        ? "line-through text-stone-400"
-                        : "text-stone-700 dark:text-stone-300"
-                    }`}
-                  >
-                    {item}
-                  </label>
-                </div>
-              ))}
+              {items.map((item, idx) => {
+                // Vérifier si l'item est coché en temps réel
+                const realtimeItem = realtimeItems.find(
+                  (i) => i.ingredientName === item && i.category === category
+                );
+                const isItemChecked = realtimeItem?.isChecked || checkedItems.has(item);
+                const checkedBy = realtimeItem?.checkedByUser;
+
+                return (
+                  <div key={idx} className="flex items-center space-x-2 md:space-x-3 p-1.5 md:p-2 hover:bg-stone-50 dark:hover:bg-stone-800 rounded transition-colors">
+                    <Checkbox
+                      id={`${category}-${idx}`}
+                      checked={isItemChecked}
+                      onCheckedChange={() => toggleItem(item, category)}
+                      className="h-5 w-5"
+                    />
+                    <label
+                      htmlFor={`${category}-${idx}`}
+                      className={`flex-1 cursor-pointer select-none text-sm md:text-base ${
+                        isItemChecked
+                          ? "line-through text-stone-400"
+                          : "text-stone-700 dark:text-stone-300"
+                      }`}
+                    >
+                      {item}
+                      {checkedBy && isItemChecked && (
+                        <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
+                          ✓ {checkedBy.pseudo || checkedBy.name}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         ))}

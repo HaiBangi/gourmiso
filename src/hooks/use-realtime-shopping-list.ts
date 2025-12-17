@@ -1,0 +1,239 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+
+interface ShoppingListItem {
+  id: number;
+  ingredientName: string;
+  category: string;
+  isChecked: boolean;
+  checkedAt: Date | null;
+  checkedByUserId: string | null;
+  checkedByUser: {
+    id: string;
+    pseudo: string;
+    name: string | null;
+  } | null;
+}
+
+interface RealtimeEvent {
+  type: "connected" | "initial" | "ingredient_toggled";
+  items?: ShoppingListItem[];
+  item?: ShoppingListItem;
+  userName?: string;
+  userId?: string;
+  planId?: number;
+  timestamp: string;
+}
+
+export function useRealtimeShoppingList(planId: number | null) {
+  const { data: session } = useSession();
+  const [items, setItems] = useState<Map<string, ShoppingListItem>>(new Map());
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+
+  // Fonction pour toggle un ingrédient
+  const toggleIngredient = useCallback(
+    async (ingredientName: string, category: string, currentState: boolean) => {
+      if (!planId || !session?.user) return;
+
+      const newState = !currentState;
+      console.log(`[Realtime] Toggling ingredient: ${ingredientName} (${category}) from ${currentState} to ${newState}`);
+
+      // Optimistic UI: mettre à jour immédiatement
+      const key = `${ingredientName}-${category}`;
+      setItems((prev) => {
+        const newMap = new Map(prev);
+        const existing = newMap.get(key);
+        if (existing) {
+          newMap.set(key, {
+            ...existing,
+            isChecked: newState,
+            checkedAt: newState ? new Date() : null,
+            checkedByUserId: newState ? session.user.id! : null,
+            checkedByUser: newState
+              ? {
+                  id: session.user.id!,
+                  pseudo: session.user.pseudo || session.user.name || "Anonyme",
+                  name: session.user.name || null,
+                }
+              : null,
+          });
+        }
+        return newMap;
+      });
+
+      // Envoyer la requête au serveur
+      try {
+        console.log(`[Realtime] Sending toggle request to server`);
+        const response = await fetch("/api/shopping-list/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId,
+            ingredientName,
+            category,
+            isChecked: newState,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Échec du toggle");
+        }
+        
+        const result = await response.json();
+        console.log(`[Realtime] Toggle response:`, result);
+      } catch (error) {
+        console.error(`[Realtime] Toggle error:`, error);
+        // Rollback en cas d'erreur
+        setItems((prev) => {
+          const newMap = new Map(prev);
+          const existing = newMap.get(key);
+          if (existing) {
+            newMap.set(key, {
+              ...existing,
+              isChecked: currentState,
+            });
+          }
+          return newMap;
+        });
+        toast.error("Erreur lors de la mise à jour");
+      }
+    },
+    [planId, session]
+  );
+
+  // Connexion SSE
+  useEffect(() => {
+    if (!planId || !session?.user) {
+      console.log('[Realtime] ⚠️ No planId or session, skipping connection');
+      setIsLoading(false);
+      return;
+    }
+
+    console.log(`[Realtime] 🔄 Initializing SSE for plan ${planId}`);
+    let mounted = true;
+    
+    const connect = () => {
+      if (!mounted) {
+        console.log('[Realtime] Component unmounted, aborting connect');
+        return;
+      }
+
+      // Nettoyer la connexion précédente
+      if (eventSourceRef.current) {
+        console.log('[Realtime] Closing previous EventSource');
+        eventSourceRef.current.close();
+      }
+
+      console.log(`[Realtime] 📡 Creating EventSource for plan ${planId}`);
+      const eventSource = new EventSource(
+        `/api/shopping-list/subscribe/${planId}`
+      );
+
+      eventSource.onopen = () => {
+        if (!mounted) return;
+        console.log(`[Realtime] ✅ SSE OPENED for plan ${planId}`);
+        setIsConnected(true);
+        setReconnectAttempts(0);
+      };
+
+      eventSource.onmessage = (event) => {
+        if (!mounted) return;
+        console.log(`[Realtime] 📨 Message received:`, event.data.substring(0, 100));
+        try {
+          const data: RealtimeEvent = JSON.parse(event.data);
+          console.log(`[Realtime] Type: ${data.type}`);
+
+          switch (data.type) {
+            case "connected":
+              console.log(`[Realtime] ✅ Connected to plan ${data.planId}`);
+              break;
+
+            case "initial":
+              if (data.items) {
+                console.log(`[Realtime] 📋 ${data.items.length} initial items`);
+                const newMap = new Map<string, ShoppingListItem>();
+                data.items.forEach((item) => {
+                  const key = `${item.ingredientName}-${item.category}`;
+                  newMap.set(key, item);
+                });
+                setItems(newMap);
+                setIsLoading(false);
+              }
+              break;
+
+            case "ingredient_toggled":
+              if (data.item) {
+                console.log(`[Realtime] 🔄 "${data.item.ingredientName}" → ${data.item.isChecked ? '✅' : '⬜'} by ${data.userId}`);
+                const key = `${data.item.ingredientName}-${data.item.category}`;
+                setItems((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(key, data.item!);
+                  console.log(`[Realtime] 💾 State updated (${newMap.size} items)`);
+                  return newMap;
+                });
+
+                // Toast si autre utilisateur
+                if (data.userId && data.userId !== session.user.id && data.userName) {
+                  const action = data.item.isChecked ? "coché" : "décoché";
+                  console.log(`[Realtime] 🔔 Toast: ${data.userName} a ${action}`);
+                  toast.info(`${data.userName} a ${action} "${data.item.ingredientName}"`, {
+                    duration: 3000,
+                  });
+                }
+              }
+              break;
+          }
+        } catch (error) {
+          console.error("[Realtime] ❌ Parse error:", error);
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.error(`[Realtime] ❌ ERROR. ReadyState: ${eventSource.readyState}`);
+        setIsConnected(false);
+        eventSource.close();
+
+        if (!mounted) return;
+
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+        console.log(`[Realtime] 🔄 Retry in ${delay}ms (attempt ${reconnectAttempts + 1})`);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (mounted) {
+            setReconnectAttempts((prev) => prev + 1);
+            connect();
+          }
+        }, delay);
+      };
+
+      eventSourceRef.current = eventSource;
+    };
+
+    connect();
+
+    return () => {
+      console.log(`[Realtime] 🧹 Cleanup for plan ${planId}`);
+      mounted = false;
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, [planId, session, reconnectAttempts]);
+
+  return {
+    items: Array.from(items.values()),
+    toggleIngredient,
+    isConnected,
+    isLoading,
+  };
+}

@@ -5,6 +5,7 @@ import { RecipeProvider } from "@/components/recipes/recipe-context";
 import { AppHeader } from "@/components/layout/app-header";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { WebVitals } from "@/components/analytics/web-vitals";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -71,6 +72,7 @@ export default function RootLayout({
           <SessionProvider>
             <RecipeProvider recipe={null}>
               <WebVitals />
+              <Toaster />
               <AppHeader />
               <main id="main-content">
                 {children}

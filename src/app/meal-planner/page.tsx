@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {RealtimeShoppingListDialog} from "@/components/meal-planner/realtime-shopping-list-dialog";
 
 function MealPlannerContent() {
   const { data: session, status } = useSession();
@@ -726,7 +727,7 @@ function MealPlannerContent() {
             onUpdate={handleUpdatePlanName}
           />
           
-          <ShoppingListDialog
+          <RealtimeShoppingListDialog
             open={showShoppingList}
             onOpenChange={setShowShoppingList}
             plan={selectedPlan}
