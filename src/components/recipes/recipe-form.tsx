@@ -1103,8 +1103,10 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
           )}
         </div>
 
-        <ScrollArea className="max-h-[calc(80vh-140px)]">
-          <form onSubmit={handleSubmit} className="p-6">
+        {/* Main Recipe Form - hidden when multi-import is active */}
+        {!showMultiImport && (
+          <ScrollArea className="max-h-[calc(80vh-140px)]">
+            <form onSubmit={handleSubmit} className="p-6">
             {/* Error message */}
             {error && (
               <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-start gap-3">
@@ -1630,8 +1632,10 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
           </div>
         </form>
       </ScrollArea>
+        )}
 
-        {/* Sticky Footer */}
+        {/* Sticky Footer - shown only when not in multi-import mode */}
+        {!showMultiImport && (
         <div className="border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <p className="text-xs text-stone-500 dark:text-stone-400">
@@ -1666,6 +1670,7 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
             </div>
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );

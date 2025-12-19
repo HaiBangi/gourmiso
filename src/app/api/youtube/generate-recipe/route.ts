@@ -6,6 +6,20 @@ import type { Category, CostEstimate } from "@/types/recipe";
 import { cache } from "@/lib/cache";
 import { parseGPTJson } from "@/lib/chatgpt-helpers";
 
+/**
+ * Nettoie la quantité pour s'assurer qu'elle est un nombre valide
+ */
+function cleanQuantity(quantity: unknown): number {
+  if (typeof quantity === 'number') {
+    return quantity;
+  }
+  if (typeof quantity === 'string') {
+    const parsed = parseFloat(quantity);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+}
+
 const SYSTEM_PROMPT = `Tu es un assistant culinaire expert qui convertit des transcriptions de vidéos YouTube de recettes en recettes structurées au format JSON.
 
 Pour chaque vidéo, tu dois extraire :  
@@ -48,6 +62,7 @@ Règles essentielles :
 - Pas de doublons dans la même liste ou groupe.  
 - Convertis les fractions en décimales : ¼=0.25, ½=0.5, ¾=0.75, ⅓=0.33, etc.  
 - Traduire tous les ingrédients et quantités en français.  
+- Quantités : toujours des float. Par exemple si la recette indique 1-2 oignons, choisis soit 1 soit 2.  
 - Unités : tbsp/Tbsp → c.à.s, tsp/Tsp → c.à.c, ml, l, g, kg, pincée, etc. 1/3 cup=80ml, 2/3 cup=160ml, 1 cup = 240ml, etc. 
 
 **Groupes d’ingrédients**  
@@ -178,7 +193,7 @@ export async function POST(request: NextRequest) {
     const cacheKey = `chatgpt:recipe:${title}:${transcript.substring(0, 100)}`;
     
     // Verifier le cache
-    const cachedRecipe = cache.get<any>(cacheKey);
+    const cachedRecipe = cache.get<Record<string, unknown>>(cacheKey);
     if (cachedRecipe) {
       console.log("[Generate Recipe] Cache hit - Recette trouvee dans le cache");
       return NextResponse.json({ recipe: cachedRecipe });

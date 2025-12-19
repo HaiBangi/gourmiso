@@ -216,12 +216,12 @@ export function MultiImportForm({ onClose }: MultiImportFormProps) {
         </div>
       )}
 
-      {/* Boutons d'action */}
-      <div className="flex gap-3">
+      {/* Bouton d'action */}
+      <div>
         <Button
           onClick={handleImport}
           disabled={isImporting || urlCount === 0 || urlCount > 20}
-          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-6 text-base shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-6 text-base shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isImporting ? (
             <>
@@ -234,14 +234,6 @@ export function MultiImportForm({ onClose }: MultiImportFormProps) {
               Tout importer ({urlCount})
             </>
           )}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onClose}
-          disabled={isImporting}
-          className="px-6 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/30"
-        >
-          Annuler
         </Button>
       </div>
 
