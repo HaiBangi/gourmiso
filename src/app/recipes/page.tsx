@@ -45,7 +45,7 @@ const categoryOrder: Record<string, number> = {
 const RECIPES_PER_PAGE = 20;
 
 async function getRecipes(searchParams: SearchParams, userId?: string): Promise<{ recipes: Recipe[]; totalCount: number }> {
-  const { category, search, maxTime, authors, myRecipes, tags, collection, page } = searchParams;
+  const { category, search, maxTime, authors, myRecipes, tags, collection } = searchParams;
 
   // Parse filters
   const authorNames = authors ? authors.split(",").filter(Boolean) : [];
@@ -142,15 +142,12 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
     });
   }
 
-  // Get total count before pagination
+  // Get total count BEFORE any pagination
   const totalCount = recipes.length;
 
-  // Apply pagination
-  const currentPage = page ? Math.max(1, parseInt(page)) : 1;
-  const skip = (currentPage - 1) * RECIPES_PER_PAGE;
-  const paginatedRecipes = recipes.slice(skip, skip + RECIPES_PER_PAGE);
-
-  return { recipes: paginatedRecipes as Recipe[], totalCount };
+  // ⚠️ NE PAS paginer ici ! La pagination se fera APRÈS le tri
+  // On retourne toutes les recettes filtrées pour permettre le tri correct
+  return { recipes: recipes as Recipe[], totalCount };
 }
 
 async function getFavoriteIds(userId?: string): Promise<Set<number>> {
@@ -307,13 +304,19 @@ async function RecipesContent({ searchParams, userId, isAdmin }: { searchParams:
     getFavoriteIds(userId),
   ]);
 
+  // D'abord trier TOUTES les recettes filtrées
   const sortedRecipes = sortRecipes(recipes, favoriteIds, searchParams.sort);
+  
+  // Ensuite appliquer la pagination sur les recettes triées
   const currentPage = searchParams.page ? Math.max(1, parseInt(searchParams.page)) : 1;
+  const skip = (currentPage - 1) * RECIPES_PER_PAGE;
+  const paginatedRecipes = sortedRecipes.slice(skip, skip + RECIPES_PER_PAGE);
+  
   const totalPages = Math.ceil(totalCount / RECIPES_PER_PAGE);
 
   return (
     <>
-      <RecipeListWithDeletion recipes={sortedRecipes} favoriteIds={favoriteIds} isAdmin={isAdmin} />
+      <RecipeListWithDeletion recipes={paginatedRecipes} favoriteIds={favoriteIds} isAdmin={isAdmin} />
       {totalPages > 1 && (
         <RecipePagination 
           currentPage={currentPage} 
