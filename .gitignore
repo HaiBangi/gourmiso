@@ -49,6 +49,13 @@ next-env.d.ts
 /public/worker-*.js.map
 /public/fallback-*.js
 
+# Backups (ignore content but keep folder structure)
+backups/*
+!backups/.gitkeep
+!backups/json/.gitkeep
+!backups/sql/.gitkeep
+!backups/csv/.gitkeep
+
 /src/generated/prisma
 /.idea/.gitignore
 /.idea/AugmentWebviewStateStore.xml

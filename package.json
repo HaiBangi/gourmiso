@@ -15,6 +15,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "db:backup": "tsx scripts/backup-database.ts",
+    "db:backup:full": "tsx scripts/full-backup.ts",
+    "db:restore:json": "tsx scripts/restore-json-backup.ts",
     "pwa:icons": "node scripts/generate-pwa-icons.js"
   },
   "prisma": {
