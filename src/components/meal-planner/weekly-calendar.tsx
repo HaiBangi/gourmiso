@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ImageIcon, LayoutList } from "lucide-react";
 import { MealCard } from "./meal-card";
 import { AddMealDialog } from "./add-meal-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,6 +38,7 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
   const [selectedSlot, setSelectedSlot] = useState<{ day: string; time: string; type: string } | null>(null);
   const [draggedMeal, setDraggedMeal] = useState<any>(null);
   const [selectedDay, setSelectedDay] = useState(DAYS[0]);
+  const [showImages, setShowImages] = useState(true); // Toggle pour afficher/masquer les images
 
   const getMealForSlot = (day: string, timeSlot: string) => {
     return plan.meals?.find(
@@ -108,6 +109,28 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
 
   return (
     <>
+      {/* Bouton Toggle pour afficher/masquer les images - DESKTOP UNIQUEMENT */}
+      <div className="mb-4 hidden lg:flex lg:justify-end">
+        <Button
+          onClick={() => setShowImages(!showImages)}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          {showImages ? (
+            <>
+              <LayoutList className="h-4 w-4" />
+              Vue compacte
+            </>
+          ) : (
+            <>
+              <ImageIcon className="h-4 w-4" />
+              Vue avec images
+            </>
+          )}
+        </Button>
+      </div>
+      
       {/* Vue Desktop - Grille complète */}
       <div className="hidden lg:grid lg:grid-cols-8 gap-2 bg-white dark:bg-stone-800 rounded-lg shadow-lg p-4">
         {/* Header Row - Time Labels */}
@@ -156,10 +179,12 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                         className="w-full h-full cursor-move"
                       >
                         <MealCard 
+                          key={`${meal.id}-${showImages}`}
                           meal={meal} 
                           planId={plan.id}
                           onRefresh={onRefresh}
                           canEdit={canEdit}
+                          showImages={showImages}
                         />
                       </div>
                     ) : (
@@ -251,10 +276,12 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
                       {meal && (
                         <div className="p-2">
                           <MealCard 
+                            key={`${meal.id}-mobile`}
                             meal={meal} 
                             planId={plan.id}
                             onRefresh={onRefresh}
                             canEdit={canEdit}
+                            showImages={true}
                           />
                         </div>
                       )}

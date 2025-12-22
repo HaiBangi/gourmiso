@@ -14,9 +14,10 @@ interface MealCardProps {
   planId: number;
   onRefresh: () => void;
   canEdit?: boolean;
+  showImages?: boolean;
 }
 
-export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
+export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }: MealCardProps) {
   const [showDetail, setShowDetail] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -46,79 +47,140 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
         onClick={() => setShowDetail(true)}
         className="w-full h-full bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
-        {/* Image de la recette (si disponible) */}
-        {meal.imageUrl && (
-          <div className="relative w-full h-32 lg:h-40 overflow-hidden">
-            <Image
-              src={meal.imageUrl}
-              alt={meal.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              unoptimized // Pour Unsplash URLs
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          </div>
-        )}
-        
-        <div className={`relative h-full flex flex-col ${meal.imageUrl ? 'p-3' : 'p-3 lg:p-3'}`}>
-          {/* Meal Name - 3 lignes max */}
-          <h4 className="text-sm lg:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-3 mb-2 pr-20 lg:pr-0">
-            {meal.name}
-          </h4>
-          
-          {/* Actions et Calories */}
-          {canEdit ? (
-            <div className="absolute top-2 right-2 lg:static lg:mt-auto lg:flex lg:items-center lg:justify-between gap-1 transition-opacity lg:pt-1">
-              {/* Boutons sur mobile (absolute) et desktop (flex à gauche) */}
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 lg:h-7 lg:w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 bg-white/90 dark:bg-stone-900/90 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowEditDialog(true);
-                  }}
-                  title="Modifier"
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 lg:h-7 lg:w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 bg-white/90 dark:bg-stone-900/90 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDeleteDialog(true);
-                  }}
-                  disabled={isDeleting}
-                  title="Supprimer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              
-              {/* Calories à droite sur desktop seulement */}
-              {meal.calories && (
-                <div className="hidden lg:flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
-                  <span>🔥</span>
-                  <span className="font-medium">{meal.calories} kcal</span>
+        {/* Afficher l'image SEULEMENT si showImages=true ET qu'une image existe */}
+        {showImages && (meal.imageUrl || meal.recipe?.imageUrl) ? (
+          <div className="relative w-full h-48 lg:h-full overflow-hidden">
+            {/* Image en arrière-plan */}
+            <div className="absolute inset-0">
+              <Image
+                src={meal.imageUrl || meal.recipe?.imageUrl}
+                alt={meal.name}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                unoptimized
+              />
+            </div>
+            
+            {/* Gradient overlay pour améliorer la lisibilité */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/60" />
+            
+            {/* Titre en haut de l'image */}
+            <div className="absolute top-0 left-0 right-0 p-3 lg:p-4">
+              <h4 className="text-base lg:text-base font-bold text-white line-clamp-2 leading-snug drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                {meal.name}
+              </h4>
+            </div>
+            
+            {/* Boutons et calories en bas */}
+            <div className="absolute bottom-0 left-0 right-0 p-2 lg:p-3">
+              {canEdit ? (
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-orange-300 hover:text-orange-200 hover:bg-orange-400/20 rounded-md drop-shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowEditDialog(true);
+                      }}
+                      title="Modifier"
+                    >
+                      <Edit2 className="h-3 w-3 stroke-[2.5]" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-red-300 hover:text-red-200 hover:bg-red-400/20 rounded-md drop-shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteDialog(true);
+                      }}
+                      disabled={isDeleting}
+                      title="Supprimer"
+                    >
+                      <Trash2 className="h-3 w-3 stroke-[2.5]" />
+                    </Button>
+                  </div>
+                  
+                  {meal.calories && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">🔥</span>
+                      <span className="text-sm font-bold text-white drop-shadow-md">{meal.calories}</span>
+                    </div>
+                  )}
                 </div>
+              ) : (
+                meal.calories && (
+                  <div className="flex items-center justify-end">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">🔥</span>
+                      <span className="text-sm font-bold text-white drop-shadow-md">{meal.calories}</span>
+                    </div>
+                  </div>
+                )
               )}
             </div>
-          ) : (
-            // Si pas d'édition possible, afficher seulement les calories en bas à droite
-            meal.calories && (
-              <div className="hidden lg:flex mt-auto items-center justify-end pt-1">
-                <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
-                  <span>🔥</span>
-                  <span className="font-medium">{meal.calories} kcal</span>
+          </div>
+        ) : (
+          // Mode compacte : pas d'image (soit showImages=false, soit pas d'image disponible)
+          <div className="relative flex flex-col p-3 lg:p-3 h-full">
+            {/* Meal Name */}
+            <h4 className="text-sm lg:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-3 mb-2">
+              {meal.name}
+            </h4>
+            
+            {/* Actions et Calories */}
+            {canEdit ? (
+              <div className="mt-auto flex items-center justify-between gap-1 pt-1">
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowEditDialog(true);
+                    }}
+                    title="Modifier"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                    disabled={isDeleting}
+                    title="Supprimer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
+                
+                {meal.calories && (
+                  <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
+                    <span>🔥</span>
+                    <span className="font-medium">{meal.calories} kcal</span>
+                  </div>
+                )}
               </div>
-            )
-          )}
-        </div>
+            ) : (
+              meal.calories && (
+                <div className="mt-auto flex items-center justify-end pt-1">
+                  <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
+                    <span>🔥</span>
+                    <span className="font-medium">{meal.calories} kcal</span>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        )}
       </div>
 
       {/* Recipe Detail Dialog */}
