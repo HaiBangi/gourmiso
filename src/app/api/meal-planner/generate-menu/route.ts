@@ -17,6 +17,45 @@ const MEAL_TYPE_MAP: Record<string, { time: string; label: string }> = {
   dinner: { time: "19:00", label: "Dîner" },
 };
 
+/**
+ * Récupère une image de haute qualité depuis Unsplash
+ * @param recipeName - Nom de la recette pour la recherche
+ * @returns URL de l'image ou null si non trouvée
+ */
+async function fetchRecipeImage(recipeName: string): Promise<string | null> {
+  try {
+    const accessKey = process.env.UNSPLASH_ACCESS_KEY;
+    
+    if (accessKey) {
+      // Version avec clé API (meilleure qualité et contrôle)
+      const searchQuery = encodeURIComponent(`${recipeName} food dish`);
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&orientation=landscape`,
+        {
+          headers: {
+            'Authorization': `Client-ID ${accessKey}`,
+          },
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          return data.results[0].urls.regular;
+        }
+      }
+    }
+    
+    // Fallback: utiliser l'API publique sans clé
+    const query = recipeName.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(' ').slice(0, 3).join(',');
+    return `https://source.unsplash.com/1600x900/?food,${query},dish,meal`;
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'image:", error);
+    return "https://source.unsplash.com/1600x900/?food,dish,meal";
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -293,6 +332,9 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
       }
       // Cas 3: Utiliser directement les données de l'IA (mode "new" ou pas de match)
       else {
+        // Récupérer une image pour la nouvelle recette
+        const imageUrl = await fetchRecipeImage(meal.name);
+        
         mealData = {
           weeklyMealPlanId: planId,
           dayOfWeek: meal.dayOfWeek,
@@ -308,6 +350,7 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
           steps: meal.steps || [],
           recipeId: null,
           isUserRecipe: false,
+          imageUrl: imageUrl, // Ajouter l'image récupérée
         };
       }
 

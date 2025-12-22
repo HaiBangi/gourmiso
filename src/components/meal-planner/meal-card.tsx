@@ -7,6 +7,7 @@ import { RecipeDetailSheet } from "./recipe-detail-sheet";
 import { EditMealDialog } from "./edit-meal-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatTime } from "@/lib/utils";
+import Image from "next/image";
 
 interface MealCardProps {
   meal: any;
@@ -43,9 +44,24 @@ export function MealCard({ meal, onRefresh, canEdit = false }: MealCardProps) {
     <>
       <div
         onClick={() => setShowDetail(true)}
-        className="w-full h-full p-3 lg:p-3 bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
+        className="w-full h-full bg-white dark:bg-stone-800 rounded-lg cursor-pointer hover:shadow-lg transition-all group relative overflow-hidden border border-stone-200 dark:border-stone-700"
       >
-        <div className="relative h-full flex flex-col">
+        {/* Image de la recette (si disponible) */}
+        {meal.imageUrl && (
+          <div className="relative w-full h-32 lg:h-40 overflow-hidden">
+            <Image
+              src={meal.imageUrl}
+              alt={meal.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized // Pour Unsplash URLs
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </div>
+        )}
+        
+        <div className={`relative h-full flex flex-col ${meal.imageUrl ? 'p-3' : 'p-3 lg:p-3'}`}>
           {/* Meal Name - 3 lignes max */}
           <h4 className="text-sm lg:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-3 mb-2 pr-20 lg:pr-0">
             {meal.name}

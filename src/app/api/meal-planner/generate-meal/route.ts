@@ -15,6 +15,51 @@ function roundToMultipleOf5(minutes: number): number {
   return Math.round(minutes / 5) * 5;
 }
 
+/**
+ * Récupère une image de haute qualité depuis Unsplash
+ * @param recipeName - Nom de la recette pour la recherche
+ * @returns URL de l'image ou null si non trouvée
+ */
+async function fetchRecipeImage(recipeName: string): Promise<string | null> {
+  try {
+    // Utiliser l'API Unsplash (gratuite, sans clé API pour la recherche basique)
+    // Format: https://source.unsplash.com/1600x900/?food,{query}
+    // Alternative avec clé API pour plus de contrôle
+    
+    const accessKey = process.env.UNSPLASH_ACCESS_KEY;
+    
+    if (accessKey) {
+      // Version avec clé API (meilleure qualité et contrôle)
+      const searchQuery = encodeURIComponent(`${recipeName} food dish`);
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&orientation=landscape`,
+        {
+          headers: {
+            'Authorization': `Client-ID ${accessKey}`,
+          },
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          // Retourner l'URL en haute résolution (regular = 1080px de largeur)
+          return data.results[0].urls.regular;
+        }
+      }
+    }
+    
+    // Fallback: utiliser l'API publique sans clé (moins fiable mais fonctionne)
+    const query = recipeName.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(' ').slice(0, 3).join(',');
+    return `https://source.unsplash.com/1600x900/?food,${query},dish,meal`;
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'image:", error);
+    // Retourner une image générique de nourriture en cas d'erreur
+    return "https://source.unsplash.com/1600x900/?food,dish,meal";
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -97,6 +142,9 @@ export async function POST(request: Request) {
     const prepTime = roundToMultipleOf5(recipeData.prepTime || 0);
     const cookTime = roundToMultipleOf5(recipeData.cookTime || 0);
 
+    // Récupérer une image de haute qualité pour la recette
+    const imageUrl = await fetchRecipeImage(recipeData.name);
+
     // Créer le repas
     const meal = await db.plannedMeal.create({
       data: {
@@ -113,6 +161,7 @@ export async function POST(request: Request) {
         ingredients: recipeData.ingredients || [],
         steps: recipeData.steps || [],
         isUserRecipe: false,
+        imageUrl: imageUrl, // Ajouter l'URL de l'image
       },
     });
 

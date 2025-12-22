@@ -112,6 +112,9 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
   };
 
   const fullRecipe = recipe || meal.recipe;
+  
+  // Vérifier plusieurs sources pour l'image
+  const recipeImageUrl = fullRecipe?.imageUrl || meal.recipe?.imageUrl || meal.imageUrl;
 
   // Labels de coût (comme dans recipe-detail.tsx)
   const costLabels: Record<string, { label: string; emoji: string; color: string }> = {
@@ -548,15 +551,16 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
           {/* Hero: Image 80% + Stats 20% */}
           <div className="flex gap-4 h-[354px] p-4">
             {/* Image 80% */}
-            {fullRecipe?.imageUrl ? (
+            {recipeImageUrl ? (
               <div className="relative w-[80%] overflow-hidden rounded-xl bg-stone-900">
                 <Image
-                  src={fullRecipe.imageUrl}
+                  src={recipeImageUrl}
                   alt={meal.name}
                   fill
                   className="object-cover opacity-80"
                   sizes="80vw"
                   priority
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4">
@@ -950,9 +954,6 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
       </Dialog>
     );
   }
-
-  // Vérifier plusieurs sources pour l'image
-  const recipeImageUrl = fullRecipe?.imageUrl || meal.recipe?.imageUrl || meal.imageUrl;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
