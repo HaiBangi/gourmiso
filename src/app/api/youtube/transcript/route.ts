@@ -3,300 +3,113 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cache, cacheKeys } from "@/lib/cache";
 import { Innertube } from "youtubei.js";
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 
 // Configuration du runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// ============================================================================
+// PROXY CONFIGURATION (Floxy residential IPs)
+// ============================================================================
+
+let proxyAgent: ProxyAgent | null = null;
+let proxyFailed = false;
+let proxyConfigured = false;
+
 /**
- * Crée une fonction fetch personnalisée qui utilise ScraperAPI
- * ScraperAPI est compatible avec Vercel et contourne les blocages YouTube
+ * Parse l'URL du proxy pour différents formats
+ * Supporte: host:port:username:password (Floxy) ou user:pass@host:port
  */
-function createScraperAPIFetch(): typeof fetch {
-  const scraperApiKey = process.env.SCRAPER_API_KEY;
-  
-  if (!scraperApiKey) {
-    console.warn('[ScraperAPI] ⚠️ SCRAPER_API_KEY non configuré - Utilisation de fetch standard (risque de blocage sur Vercel)');
-    return fetch;
+function parseProxyUrl(proxyUrl: string): string {
+  // Si déjà avec protocole, retourner tel quel
+  if (proxyUrl.startsWith('http://') || proxyUrl.startsWith('https://')) {
+    return proxyUrl;
   }
 
-  console.log('[ScraperAPI] ✅ Configuration détectée - Utilisation du proxy API');
+  // Si format user:pass@host:port, ajouter http://
+  if (proxyUrl.includes('@')) {
+    return `http://${proxyUrl}`;
+  }
 
-  return async (input: RequestInfo | URL, init?: RequestInit) => {
-    const targetUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    
-    // Construire l'URL ScraperAPI
-    const scraperUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}&render=false`;
-    
-    console.log(`[ScraperAPI] Requête via proxy: ${targetUrl.substring(0, 60)}...`);
-    
+  // Parser le format Floxy: host:port:username:password
+  const parts = proxyUrl.split(':');
+  if (parts.length === 4) {
+    const [host, port, username, password] = parts;
+    return `http://${username}:${password}@${host}:${port}`;
+  }
+
+  // Fallback
+  return proxyUrl;
+}
+
+/**
+ * Crée une fonction fetch avec proxy Floxy pour les requêtes YouTube
+ * Basé sur l'implémentation de seomikewaltman qui fonctionne en production
+ */
+function getProxyFetch(): typeof fetch | undefined {
+  // En mode test, pas de proxy
+  if (process.env.NODE_ENV === 'test') {
+    return undefined;
+  }
+
+  const proxyUrl = process.env.PROXY_URL;
+  
+  if (!proxyUrl || proxyFailed) {
+    if (!proxyConfigured) {
+      proxyConfigured = true;
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('[Proxy] ⚠️ PROXY_URL non configuré - YouTube risque de bloquer les requêtes en production');
+      }
+    }
+    return undefined;
+  }
+
+  if (!proxyAgent) {
     try {
-      const response = await fetch(scraperUrl, {
-        ...init,
-        // Supprimer les headers spécifiques car ScraperAPI gère ça
-        headers: undefined,
-      });
-      
-      console.log(`[ScraperAPI] ✅ Réponse: ${response.status}`);
-      return response;
+      const parsedUrl = parseProxyUrl(proxyUrl);
+      console.log('[Proxy] ✅ Configuration du proxy résidentiel Floxy');
+      proxyAgent = new ProxyAgent(parsedUrl);
+      proxyConfigured = true;
     } catch (error) {
-      console.error('[ScraperAPI] ❌ Erreur:', error);
-      throw error;
+      console.error('[Proxy] ❌ Erreur configuration proxy:', error);
+      proxyFailed = true;
+      proxyConfigured = true;
+      return undefined;
     }
-  };
+  }
+
+  // Retourner la fonction fetch avec le proxy undici
+  // Cast via unknown pour éviter les erreurs de type entre undici Response et global Response
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
+    // Gérer les objets Request - extraire l'URL et fusionner les options
+    if (input instanceof Request) {
+      const url = input.url;
+      return undiciFetch(url, {
+        method: input.method,
+        headers: input.headers as HeadersInit,
+        body: input.body,
+        ...init,
+        dispatcher: proxyAgent!,
+      } as Parameters<typeof undiciFetch>[1]);
+    }
+    
+    const url = typeof input === 'string' ? input : input.toString();
+    return undiciFetch(url, {
+      ...init,
+      dispatcher: proxyAgent!,
+    } as Parameters<typeof undiciFetch>[1]);
+  }) as unknown as typeof fetch;
 }
 
-// Types pour les caption tracks
-interface CaptionTrack {
-  baseUrl?: string;
-  base_url?: string;
-  languageCode?: string;
-  language_code?: string;
-  name?: { simpleText?: string; text?: string };
-  kind?: string;
-}
+// ============================================================================
+// TRANSCRIPT PARSING
+// ============================================================================
 
-// Singleton pour Innertube client
-let innertubeClient: Innertube | null = null;
-let innertubeClientExpiry: number = 0;
-const CLIENT_TTL = 1000 * 60 * 30; // 30 minutes
-
-/**
- * Récupère ou crée un client Innertube avec support ScraperAPI
- * ScraperAPI contourne les nouveaux blocages YouTube (décembre 2024)
- */
-async function getInnertubeClient(): Promise<Innertube> {
-  const now = Date.now();
-  
-  // En production, on recrée le client à chaque fois
-  const shouldRecreate = process.env.NODE_ENV === 'production' || !innertubeClient || innertubeClientExpiry < now;
-  
-  if (!shouldRecreate && innertubeClient) {
-    console.log('[Innertube] Réutilisation du client existant');
-    return innertubeClient;
-  }
-
-  console.log('[Innertube] Création d\'un nouveau client...');
-
-  try {
-    // Utiliser ScraperAPI si configuré (requis depuis les changements YouTube de décembre 2024)
-    const fetchFunction = createScraperAPIFetch();
-    
-    const innertube = await Innertube.create({
-      fetch: fetchFunction,
-      generate_session_locally: true,
-      lang: 'fr',
-      location: 'FR',
-    });
-
-    // En développement, on garde le client en cache
-    if (process.env.NODE_ENV === 'development') {
-      innertubeClient = innertube;
-      innertubeClientExpiry = now + CLIENT_TTL;
-    }
-    
-    const usingProxy = process.env.SCRAPER_API_KEY ? '(avec ScraperAPI)' : '(sans proxy - peut échouer)';
-    console.log(`[Innertube] ✅ Client créé avec succès ${usingProxy}`);
-    return innertube;
-
-  } catch (error) {
-    console.error('[Innertube] Erreur création client:', error);
-    throw error;
-  }
-}
-
-/**
- * Récupère la transcription d'une vidéo YouTube en utilisant youtubei.js
- * Utilise directement l'URL timedtext fournie par l'API YouTube
- * Avec retry logic et rotation de proxy pour éviter les blocages
- */
-async function getYoutubeTranscript(videoId: string, retryCount: number = 0): Promise<string> {
-  const MAX_RETRIES = 3;
-  
-  const cacheKey = cacheKeys.youtubeTranscript(videoId);
-  const cached = cache.get<string>(cacheKey);
-  if (cached) {
-    console.log(`[Transcript] ✅ Cache hit pour ${videoId}`);
-    return cached;
-  }
-
-  console.log(`[Transcript] Récupération pour ${videoId} (tentative ${retryCount + 1}/${MAX_RETRIES + 1})`);
-
-  try {
-    const innertube = await getInnertubeClient();
-    
-    // Récupérer les informations de base de la vidéo (inclut les caption tracks)
-    console.log(`[Transcript] Récupération des infos vidéo...`);
-    const videoInfo = await innertube.getBasicInfo(videoId);
-    
-    // Vérifier si YouTube demande une vérification bot
-    const playabilityStatus = (videoInfo as unknown as { playability_status?: { reason?: string } }).playability_status;
-    if (playabilityStatus?.reason?.includes('bot')) {
-      console.warn('[Transcript] ⚠️ YouTube détecte un bot - Rotation de proxy nécessaire');
-      
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[Transcript] 🔄 Retry ${retryCount + 1}/${MAX_RETRIES} avec nouveau proxy...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Backoff exponentiel
-        return getYoutubeTranscript(videoId, retryCount + 1);
-      }
-      
-      throw new Error("YouTube bloque les requêtes même avec proxy. Veuillez configurer un proxy résidentiel dans PROXY_URL.");
-    }
-    
-    // Vérifier si des sous-titres sont disponibles
-    if (!videoInfo.captions?.caption_tracks || videoInfo.captions.caption_tracks.length === 0) {
-      // Si pas de captions et qu'on peut retry, essayer avec une nouvelle rotation de proxy
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[Transcript] ⚠️ Pas de captions trouvées - Retry ${retryCount + 1}/${MAX_RETRIES}...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return getYoutubeTranscript(videoId, retryCount + 1);
-      }
-      
-      throw new Error("Cette vidéo n'a pas de sous-titres disponibles. Le créateur doit activer les sous-titres.");
-    }
-
-    console.log(`[Transcript] ${videoInfo.captions.caption_tracks.length} piste(s) de sous-titres trouvée(s)`);
-
-    // ...existing code pour sélection et parsing des captions...
-    
-    // Sélectionner la meilleure piste (FR > EN > première)
-    const captionTracks = videoInfo.captions.caption_tracks;
-    let selectedTrack = captionTracks.find((t: CaptionTrack) => {
-      const langCode = t.language_code || t.languageCode;
-      return langCode === 'fr' || langCode?.startsWith('fr');
-    });
-    
-    if (!selectedTrack) {
-      selectedTrack = captionTracks.find((t: CaptionTrack) => {
-        const langCode = t.language_code || t.languageCode;
-        return langCode === 'en' || langCode?.startsWith('en');
-      });
-    }
-    
-    if (!selectedTrack) {
-      selectedTrack = captionTracks[0];
-    }
-
-    const trackUrl = selectedTrack?.base_url || (selectedTrack as CaptionTrack)?.baseUrl;
-    const trackLang = selectedTrack?.language_code || (selectedTrack as CaptionTrack)?.languageCode;
-    
-    console.log(`[Transcript] Langue sélectionnée: ${trackLang}`);
-
-    if (!trackUrl) {
-      throw new Error("URL de sous-titres non disponible");
-    }
-
-    // Récupérer les sous-titres directement via l'URL timedtext
-    console.log(`[Transcript] Récupération des sous-titres...`);
-    
-    // Utiliser ScraperAPI si configuré pour contourner les blocages YouTube
-    const fetchFunction = createScraperAPIFetch();
-    
-    const subtitleResponse = await fetchFunction(trackUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Referer': `https://www.youtube.com/watch?v=${videoId}`
-      },
-    });
-
-    if (!subtitleResponse.ok) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[Transcript] ⚠️ Erreur HTTP ${subtitleResponse.status} - Retry...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return getYoutubeTranscript(videoId, retryCount + 1);
-      }
-      throw new Error(`Erreur HTTP ${subtitleResponse.status}`);
-    }
-
-    const subtitleXml = await subtitleResponse.text();
-    console.log(`[Transcript] Données reçues: ${subtitleXml.length} caractères`);
-
-    if (subtitleXml.length === 0) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[Transcript] ⚠️ Réponse vide - Retry...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return getYoutubeTranscript(videoId, retryCount + 1);
-      }
-      throw new Error("Réponse vide du serveur YouTube");
-    }
-
-    // Parser le XML des sous-titres
-    const fullText = parseXmlTranscript(subtitleXml);
-
-    if (fullText.length === 0) {
-      console.error(`[Transcript] Données brutes:`, subtitleXml.substring(0, 500));
-      
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[Transcript] ⚠️ Parsing échoué - Retry...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return getYoutubeTranscript(videoId, retryCount + 1);
-      }
-      
-      throw new Error("Impossible d'extraire le texte des sous-titres");
-    }
-
-    console.log(`[Transcript] ✅ Succès: ${fullText.length} caractères`);
-    
-    // Mettre en cache pour 24h
-    cache.set(cacheKey, fullText, 1000 * 60 * 60 * 24);
-    
-    return fullText;
-
-  } catch (error) {
-    console.error(`[Transcript] ❌ Erreur (tentative ${retryCount + 1}):`, error);
-    
-    // Retry automatique en cas d'erreur si on n'a pas atteint le max
-    if (retryCount < MAX_RETRIES) {
-      console.log(`[Transcript] 🔄 Retry automatique ${retryCount + 1}/${MAX_RETRIES}...`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return getYoutubeTranscript(videoId, retryCount + 1);
-    }
-    
-    throw error;
-  }
-}
-
-/**
- * Parse le XML de transcription YouTube
- * Supporte les formats <text> (standard) et <p> (Android)
- */
-function parseXmlTranscript(subtitleData: string): string {
-  // Format <text start="sec" dur="sec">text</text> (standard)
-  const textMatches = Array.from(subtitleData.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g));
-  
-  if (textMatches.length > 0) {
-    console.log(`[Transcript] Format XML standard: ${textMatches.length} segments`);
-    return textMatches
-      .map(match => {
-        const rawText = match[1];
-        if (!rawText) return '';
-        return decodeHtmlEntities(rawText.replace(/<[^>]+>/g, '')).trim();
-      })
-      .filter(text => text.length > 0)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  // Format <p t="ms" d="ms">text</p> (Android)
-  const pTagMatches = Array.from(subtitleData.matchAll(/<p\s+t="(\d+)"\s+d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g));
-  
-  if (pTagMatches.length > 0) {
-    console.log(`[Transcript] Format XML Android: ${pTagMatches.length} segments`);
-    return pTagMatches
-      .map(match => {
-        const rawText = match[3];
-        if (!rawText) return '';
-        return decodeHtmlEntities(rawText.replace(/<[^>]+>/g, '')).trim();
-      })
-      .filter(text => text.length > 0)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  return '';
+interface TranscriptSegment {
+  durationMs: number;
+  startMs: number;
+  text: string;
 }
 
 /**
@@ -315,26 +128,204 @@ function decodeHtmlEntities(text: string): string {
 }
 
 /**
- * Récupère les métadonnées de la vidéo avec support proxy
+ * Parse le format <p t="ms" d="ms">text</p> (Android client)
  */
-async function getYoutubeVideoInfo(videoId: string, fallbackAuthor: string = "Anonyme", retryCount: number = 0): Promise<{ title: string; description: string; author: string }> {
-  const MAX_RETRIES = 3;
+function parsePTagFormat(xml: string): TranscriptSegment[] {
+  const segments: TranscriptSegment[] = [];
+  const pTagRegex = /<p\s+t="(\d+)"\s+d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g;
+
+  let match = pTagRegex.exec(xml);
+  while (match !== null) {
+    const [, startMsStr, durationMsStr, rawText] = match;
+    if (startMsStr && durationMsStr && rawText) {
+      const text = decodeHtmlEntities(rawText.replace(/<[^>]+>/g, '')).trim();
+      if (text) {
+        segments.push({
+          durationMs: parseInt(durationMsStr, 10),
+          startMs: parseInt(startMsStr, 10),
+          text,
+        });
+      }
+    }
+    match = pTagRegex.exec(xml);
+  }
+  return segments;
+}
+
+/**
+ * Parse le format <text start="sec" dur="sec">text</text> (format standard)
+ */
+function parseTextTagFormat(xml: string): TranscriptSegment[] {
+  const segments: TranscriptSegment[] = [];
+  const textTagRegex = /<text\s+start="([\d.]+)"\s+dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
+
+  let match = textTagRegex.exec(xml);
+  while (match !== null) {
+    const [, startStr, durStr, rawText] = match;
+    if (startStr && durStr && rawText) {
+      const text = decodeHtmlEntities(rawText.replace(/<[^>]+>/g, '')).trim();
+      if (text) {
+        segments.push({
+          durationMs: Math.round(parseFloat(durStr) * 1000),
+          startMs: Math.round(parseFloat(startStr) * 1000),
+          text,
+        });
+      }
+    }
+    match = textTagRegex.exec(xml);
+  }
+  return segments;
+}
+
+/**
+ * Parse le XML de transcription YouTube
+ * Supporte les formats <text> (standard) et <p> (Android)
+ */
+function parseTimedTextXml(xml: string): TranscriptSegment[] {
+  // Essayer d'abord le format <p> (Android client)
+  const pSegments = parsePTagFormat(xml);
+  if (pSegments.length > 0) {
+    return pSegments;
+  }
+  // Fallback au format <text>
+  return parseTextTagFormat(xml);
+}
+
+// ============================================================================
+// YOUTUBE CLIENT & TRANSCRIPT FETCHING
+// ============================================================================
+
+// Types pour les caption tracks
+interface CaptionTrack {
+  baseUrl?: string;
+  base_url?: string;
+  languageCode?: string;
+  language_code?: string;
+  name?: { simpleText?: string; text?: string };
+  kind?: string;
+}
+
+/**
+ * Initialise le client YouTube avec proxy Floxy
+ */
+async function initializeYouTube(): Promise<[Innertube | null, Error | null]> {
+  try {
+    console.log('[YouTube] Initialisation du client...');
+    
+    const proxyFetch = getProxyFetch();
+    const usingProxy = proxyFetch ? '(avec proxy Floxy)' : '(sans proxy)';
+    
+    const client = await Innertube.create({
+      generate_session_locally: true,
+      lang: 'fr',
+      location: 'FR',
+      retrieve_player: false,
+      fetch: proxyFetch,
+    });
+    
+    console.log(`[YouTube] ✅ Client créé ${usingProxy}`);
+    return [client, null];
+  } catch (error) {
+    console.error('[YouTube] ❌ Erreur création client:', error);
+    return [null, error as Error];
+  }
+}
+
+/**
+ * Récupère le XML des sous-titres depuis l'URL timedtext
+ */
+async function fetchTimedTextXml(captionUrl: string, videoId: string): Promise<string> {
+  const proxyFetch = getProxyFetch() || fetch;
   
+  console.log(`[Transcript] Récupération des sous-titres via timedtext...`);
+  
+  const response = await proxyFetch(captionUrl, {
+    headers: {
+      'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur HTTP ${response.status} pour la vidéo ${videoId}`);
+  }
+
+  const xml = await response.text();
+  if (!xml || xml.length === 0) {
+    throw new Error(`Réponse vide pour la vidéo ${videoId}`);
+  }
+
+  return xml;
+}
+
+/**
+ * Récupère la transcription d'une vidéo YouTube
+ */
+async function fetchTranscriptForVideo(youtube: Innertube, videoId: string): Promise<{ transcript?: string; error?: string }> {
+  console.log(`[Transcript] Récupération pour ${videoId}`);
+  
+  const info = await youtube.getBasicInfo(videoId);
+  const captionTracks = info.captions?.caption_tracks;
+
+  if (!captionTracks || captionTracks.length === 0) {
+    console.warn(`[Transcript] ⚠️ Pas de sous-titres pour ${videoId}`);
+    return { error: 'Cette vidéo n\'a pas de sous-titres disponibles' };
+  }
+
+  console.log(`[Transcript] ${captionTracks.length} piste(s) trouvée(s)`);
+  console.log(`[Transcript] Langues: ${captionTracks.map((t: CaptionTrack) => t.language_code || t.languageCode).join(', ')}`);
+
+  // Sélectionner la meilleure piste (FR > EN > première)
+  let selectedTrack = captionTracks.find((t: CaptionTrack) => {
+    const langCode = t.language_code || t.languageCode;
+    return langCode === 'fr' || langCode?.startsWith('fr');
+  });
+
+  if (!selectedTrack) {
+    selectedTrack = captionTracks.find((t: CaptionTrack) => {
+      const langCode = t.language_code || t.languageCode;
+      return langCode === 'en' || langCode?.startsWith('en');
+    });
+  }
+
+  if (!selectedTrack) {
+    selectedTrack = captionTracks[0];
+  }
+
+  const trackUrl = selectedTrack?.base_url || (selectedTrack as CaptionTrack)?.baseUrl;
+  const trackLang = selectedTrack?.language_code || (selectedTrack as CaptionTrack)?.languageCode;
+  
+  console.log(`[Transcript] Langue sélectionnée: ${trackLang}`);
+
+  if (!trackUrl) {
+    return { error: 'URL de sous-titres non disponible' };
+  }
+
+  // Récupérer et parser le XML
+  const xml = await fetchTimedTextXml(trackUrl, videoId);
+  const segments = parseTimedTextXml(xml);
+
+  if (segments.length === 0) {
+    console.error(`[Transcript] ❌ Parsing échoué. Données brutes:`, xml.substring(0, 300));
+    throw new Error(`Impossible de parser les sous-titres pour ${videoId}`);
+  }
+
+  // Convertir en texte brut
+  const plainText = segments.map(s => s.text).join(' ').replace(/\s+/g, ' ').trim();
+  
+  console.log(`[Transcript] ✅ Succès: ${plainText.length} caractères (${segments.length} segments)`);
+  
+  return { transcript: plainText };
+}
+
+/**
+ * Récupère les métadonnées de la vidéo
+ */
+async function getYoutubeVideoInfo(youtube: Innertube, videoId: string, fallbackAuthor: string = "Anonyme"): Promise<{ title: string; description: string; author: string }> {
   try {
     console.log(`[VideoInfo] Récupération des métadonnées pour ${videoId}`);
     
-    const innertube = await getInnertubeClient();
-    const videoInfo = await innertube.getBasicInfo(videoId);
-    
-    // Vérifier si YouTube bloque la requête
-    const playabilityStatus = (videoInfo as unknown as { playability_status?: { reason?: string } }).playability_status;
-    if (playabilityStatus?.reason?.includes('bot')) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[VideoInfo] 🔄 Retry ${retryCount + 1}/${MAX_RETRIES} - Bot détecté`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return getYoutubeVideoInfo(videoId, fallbackAuthor, retryCount + 1);
-      }
-    }
+    const videoInfo = await youtube.getBasicInfo(videoId);
     
     const title = videoInfo.basic_info.title || "Vidéo YouTube";
     const author = videoInfo.basic_info.author || fallbackAuthor;
@@ -344,20 +335,66 @@ async function getYoutubeVideoInfo(videoId: string, fallbackAuthor: string = "An
     console.log(`[VideoInfo] ✅ Chaîne: ${author}`);
     
     return { title, description, author };
-    
   } catch (error) {
     console.error("[VideoInfo] ⚠️ Erreur:", error);
-    
-    // Retry en cas d'erreur
-    if (retryCount < MAX_RETRIES) {
-      console.log(`[VideoInfo] 🔄 Retry ${retryCount + 1}/${MAX_RETRIES}`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return getYoutubeVideoInfo(videoId, fallbackAuthor, retryCount + 1);
-    }
-    
     return { title: "Vidéo YouTube", description: "", author: fallbackAuthor };
   }
 }
+
+/**
+ * Récupère la transcription avec cache et retry
+ */
+async function getYoutubeTranscript(videoId: string, retryCount: number = 0): Promise<string> {
+  const MAX_RETRIES = 3;
+  
+  // Vérifier le cache
+  const cacheKey = cacheKeys.youtubeTranscript(videoId);
+  const cached = cache.get<string>(cacheKey);
+  if (cached) {
+    console.log(`[Transcript] ✅ Cache hit pour ${videoId}`);
+    return cached;
+  }
+
+  try {
+    // Créer le client YouTube
+    const [youtube, clientError] = await initializeYouTube();
+    if (clientError || !youtube) {
+      throw clientError || new Error('Impossible de créer le client YouTube');
+    }
+
+    // Récupérer la transcription
+    const result = await fetchTranscriptForVideo(youtube, videoId);
+    
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    if (!result.transcript) {
+      throw new Error('Transcription vide');
+    }
+
+    // Mettre en cache pour 24h
+    cache.set(cacheKey, result.transcript, 1000 * 60 * 60 * 24);
+    
+    return result.transcript;
+
+  } catch (error) {
+    console.error(`[Transcript] ❌ Erreur (tentative ${retryCount + 1}):`, error);
+    
+    // Retry automatique avec backoff exponentiel
+    if (retryCount < MAX_RETRIES) {
+      console.log(`[Transcript] 🔄 Retry ${retryCount + 1}/${MAX_RETRIES}...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+      return getYoutubeTranscript(videoId, retryCount + 1);
+    }
+    
+    throw error;
+  }
+}
+
+// ============================================================================
+// API ROUTE HANDLER
+// ============================================================================
 
 export async function POST(request: NextRequest) {
   try {
@@ -394,9 +431,18 @@ export async function POST(request: NextRequest) {
 
     console.log(`[API] Traitement de la vidéo ${videoId}${metadataOnly ? ' (metadata only)' : ''}`);
 
-    // Si on ne veut que les métadonnées, on retourne juste le titre
+    // Créer le client YouTube
+    const [youtube, clientError] = await initializeYouTube();
+    if (clientError || !youtube) {
+      return NextResponse.json(
+        { error: "Impossible d'initialiser le client YouTube" },
+        { status: 500 }
+      );
+    }
+
+    // Si on ne veut que les métadonnées
     if (metadataOnly) {
-      const videoInfo = await getYoutubeVideoInfo(videoId, userPseudo);
+      const videoInfo = await getYoutubeVideoInfo(youtube, videoId, userPseudo);
       return NextResponse.json({
         title: videoInfo.title,
         description: videoInfo.description,
@@ -404,9 +450,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Sinon, on récupère tout (métadonnées + transcription)
+    // Récupérer tout (métadonnées + transcription)
     const [videoInfo, transcript] = await Promise.all([
-      getYoutubeVideoInfo(videoId, userPseudo),
+      getYoutubeVideoInfo(youtube, videoId, userPseudo),
       getYoutubeTranscript(videoId),
     ]);
 

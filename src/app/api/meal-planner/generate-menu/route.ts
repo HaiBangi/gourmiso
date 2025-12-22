@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Récupérer les recettes spécifiquement demandées
+    // Récupérer les recettes spécifiquement demandées AVEC TOUS LEURS DÉTAILS
     let includedRecipes: any[] = [];
     if (includeRecipes.length > 0) {
       includedRecipes = await db.recipe.findMany({
@@ -62,15 +62,17 @@ export async function POST(request: Request) {
           id: { in: includeRecipes },
           userId: session.user.id,
         },
-        select: {
-          id: true,
-          name: true,
-          category: true,
-          preparationTime: true,
-          cookingTime: true,
-          servings: true,
+        include: {
+          ingredients: {
+            orderBy: { order: "asc" }
+          },
+          steps: {
+            orderBy: { order: "asc" }
+          },
         },
       });
+      
+      console.log(`📌 ${includedRecipes.length} recettes sélectionnées récupérées avec détails complets`);
     }
 
     // Construire le prompt pour ChatGPT
@@ -95,35 +97,48 @@ export async function POST(request: Request) {
 - Créneaux horaires: ${selectedMealTimings.join(", ")}
 ${cuisinePreferences.length > 0 ? `- Cuisines préférées: ${cuisinePreferences.join(", ")}` : ""}
 ${preferences ? `- Autres informations: ${preferences}` : ""}
-${includedRecipes.length > 0 ? `\n**RECETTES À INCLURE OBLIGATOIREMENT:**\n${includedRecipes.map((r: any) => `  * ${r.name}`).join("\n")}` : ""}
+
+**RECETTES DÉJÀ SÉLECTIONNÉES (à placer dans le menu):**
+${includedRecipes.length > 0 ? includedRecipes.map((r: any) => {
+  return `  * "${r.name}" (ID: ${r.id}) - ${r.preparationTime + r.cookingTime}min, ${r.servings} portions
+     → Cette recette existe déjà avec tous ses détails
+     → Place-la dans le menu en indiquant UNIQUEMENT: {"useRecipeId": ${r.id}, "dayOfWeek": "...", "mealType": "..."}`;
+}).join("\n") : "Aucune recette présélectionnée"}
 
 **MODE DE GÉNÉRATION:**
 ${modeInstructions}
-${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mix") ? `\n**Recettes existantes disponibles:**\n${existingRecipes.map((r: any) => `  * ${r.name}`).join("\n")}` : ""}
+${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mix") ? `\n**Autres recettes existantes disponibles (suggère leur nom si pertinent):**\n${existingRecipes.filter((r: any) => !includeRecipes.includes(r.id)).map((r: any) => `  * ${r.name}`).join("\n")}` : ""}
 
 **TRÈS IMPORTANT:**
-- Génère EXACTEMENT ${mealTypes.length * 7} repas au total (${mealTypes.length} par jour × 7 jours)
-- NE génère QUE les types de repas demandés: ${selectedMealLabels.join(", ")}
-- N'ajoute PAS de petit-déjeuner si ce n'est pas demandé
-- N'ajoute PAS de collation si ce n'est pas demandé
-- Varie les recettes pour éviter la répétition
-- Une recette peut servir plusieurs repas (ex: un plat pour 4 portions peut couvrir 2 repas)
-${includedRecipes.length > 0 ? `- IMPORTANT: Inclus OBLIGATOIREMENT ces recettes dans le menu: ${includedRecipes.map((r: any) => r.name).join(", ")}` : ""}
+1. Pour les recettes présélectionnées ci-dessus, utilise le format COURT:
+   {"useRecipeId": <ID>, "dayOfWeek": "Lundi", "timeSlot": "12:00", "mealType": "Déjeuner"}
+   
+2. Pour les nouvelles recettes à créer, utilise le format COMPLET avec ingredients et steps
 
-**Format JSON strict (UNIQUEMENT du JSON, pas de texte avant ou après):**
+3. Génère EXACTEMENT ${mealTypes.length * 7} repas au total (${mealTypes.length} par jour × 7 jours)
+
+4. PLACE OBLIGATOIREMENT toutes les recettes présélectionnées dans le menu
+
+**Format JSON strict:**
 {
   "meals": [
     {
-      "dayOfWeek": "Lundi|Mardi|...",
-      "timeSlot": "08:00|12:00|16:00|19:00",
-      "mealType": "Petit-déjeuner|Déjeuner|Collation|Dîner",
-      "name": "Nom du plat",
+      "useRecipeId": 123,
+      "dayOfWeek": "Lundi",
+      "timeSlot": "12:00",
+      "mealType": "Déjeuner"
+    },
+    {
+      "dayOfWeek": "Lundi",
+      "timeSlot": "19:00",
+      "mealType": "Dîner",
+      "name": "Nouvelle recette",
       "prepTime": 15,
       "cookTime": 30,
       "servings": ${numberOfPeople},
       "calories": 450,
-      "ingredients": ["2 tasses farine", "3 œufs", "..."],
-      "steps": ["Étape 1", "Étape 2", "..."]
+      "ingredients": ["2 tasses farine", "3 œufs"],
+      "steps": ["Étape 1", "Étape 2"]
     }
   ]
 }`;
@@ -156,35 +171,24 @@ ${includedRecipes.length > 0 ? `- IMPORTANT: Inclus OBLIGATOIREMENT ces recettes
     // Créer tous les repas dans la base de données
     const createdMeals = [];
     for (const meal of menuData.meals) {
-      // Chercher si une recette avec le même nom existe déjà (seulement si mode "existing" ou "mix")
-      let matchingRecipe = null;
-      if (recipeMode === "existing" || recipeMode === "mix") {
-        matchingRecipe = await db.recipe.findFirst({
-          where: {
-            userId: session.user.id,
-            name: {
-              equals: meal.name,
-              mode: 'insensitive', // Insensible à la casse
-            },
-          },
-          include: {
-            ingredients: true,
-            steps: { orderBy: { order: "asc" } },
-          },
-        });
-      }
-
       let mealData;
       
-      if (matchingRecipe) {
-        // Utiliser la recette existante
-        console.log(`✅ Recette existante trouvée: ${matchingRecipe.name}`);
+      // Cas 1: L'IA a indiqué d'utiliser une recette présélectionnée via useRecipeId
+      if (meal.useRecipeId) {
+        const selectedRecipe = includedRecipes.find((r: any) => r.id === meal.useRecipeId);
+        
+        if (!selectedRecipe) {
+          console.warn(`⚠️ Recette ID ${meal.useRecipeId} non trouvée dans les recettes présélectionnées`);
+          continue; // Skip ce repas si la recette n'existe pas
+        }
+        
+        console.log(`✅ Utilisation de la recette présélectionnée: ${selectedRecipe.name} (ID: ${selectedRecipe.id})`);
         
         // Calculer le ratio d'ajustement des portions
-        const portionRatio = numberOfPeople / matchingRecipe.servings;
+        const portionRatio = numberOfPeople / selectedRecipe.servings;
 
         // Formater les ingrédients avec quantités ajustées
-        const ingredientsFormatted = matchingRecipe.ingredients.map((ing) => {
+        const ingredientsFormatted = selectedRecipe.ingredients.map((ing: any) => {
           let adjustedQuantity = ing.quantity;
           if (adjustedQuantity && portionRatio !== 1) {
             adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
@@ -204,19 +208,91 @@ ${includedRecipes.length > 0 ? `- IMPORTANT: Inclus OBLIGATOIREMENT ces recettes
           dayOfWeek: meal.dayOfWeek,
           timeSlot: meal.timeSlot,
           mealType: meal.mealType,
-          name: matchingRecipe.name,
-          prepTime: matchingRecipe.preparationTime,
-          cookTime: matchingRecipe.cookingTime,
+          name: selectedRecipe.name,
+          prepTime: selectedRecipe.preparationTime,
+          cookTime: selectedRecipe.cookingTime,
           servings: numberOfPeople,
-          calories: matchingRecipe.caloriesPerServing ? Math.round(matchingRecipe.caloriesPerServing * portionRatio) : null,
+          calories: selectedRecipe.caloriesPerServing ? Math.round(selectedRecipe.caloriesPerServing * portionRatio) : null,
           portionsUsed: numberOfPeople,
           ingredients: ingredientsFormatted,
-          steps: matchingRecipe.steps.map((step) => step.text),
-          recipeId: matchingRecipe.id,
+          steps: selectedRecipe.steps.map((step: any) => step.text),
+          recipeId: selectedRecipe.id,
           isUserRecipe: true,
         };
-      } else {
-        // Utiliser les données générées par l'IA
+      }
+      // Cas 2: Chercher si une recette existante matche le nom (pour mode "existing" ou "mix")
+      else if (recipeMode === "existing" || recipeMode === "mix") {
+        const matchingRecipe = await db.recipe.findFirst({
+          where: {
+            userId: session.user.id,
+            name: {
+              equals: meal.name,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            ingredients: true,
+            steps: { orderBy: { order: "asc" } },
+          },
+        });
+
+        if (matchingRecipe) {
+          console.log(`✅ Recette existante trouvée par nom: ${matchingRecipe.name}`);
+          
+          const portionRatio = numberOfPeople / matchingRecipe.servings;
+          const ingredientsFormatted = matchingRecipe.ingredients.map((ing) => {
+            let adjustedQuantity = ing.quantity;
+            if (adjustedQuantity && portionRatio !== 1) {
+              adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
+            }
+
+            if (adjustedQuantity && ing.unit) {
+              return `${adjustedQuantity} ${ing.unit} ${ing.name}`;
+            } else if (adjustedQuantity) {
+              return `${adjustedQuantity} ${ing.name}`;
+            } else {
+              return ing.name;
+            }
+          });
+
+          mealData = {
+            weeklyMealPlanId: planId,
+            dayOfWeek: meal.dayOfWeek,
+            timeSlot: meal.timeSlot,
+            mealType: meal.mealType,
+            name: matchingRecipe.name,
+            prepTime: matchingRecipe.preparationTime,
+            cookTime: matchingRecipe.cookingTime,
+            servings: numberOfPeople,
+            calories: matchingRecipe.caloriesPerServing ? Math.round(matchingRecipe.caloriesPerServing * portionRatio) : null,
+            portionsUsed: numberOfPeople,
+            ingredients: ingredientsFormatted,
+            steps: matchingRecipe.steps.map((step) => step.text),
+            recipeId: matchingRecipe.id,
+            isUserRecipe: true,
+          };
+        } else {
+          // Utiliser les données générées par l'IA
+          mealData = {
+            weeklyMealPlanId: planId,
+            dayOfWeek: meal.dayOfWeek,
+            timeSlot: meal.timeSlot,
+            mealType: meal.mealType,
+            name: meal.name,
+            prepTime: meal.prepTime || 0,
+            cookTime: meal.cookTime || 0,
+            servings: meal.servings || numberOfPeople,
+            calories: meal.calories || null,
+            portionsUsed: meal.servings || numberOfPeople,
+            ingredients: meal.ingredients || [],
+            steps: meal.steps || [],
+            recipeId: null,
+            isUserRecipe: false,
+          };
+        }
+      }
+      // Cas 3: Utiliser directement les données de l'IA (mode "new" ou pas de match)
+      else {
         mealData = {
           weeklyMealPlanId: planId,
           dayOfWeek: meal.dayOfWeek,
