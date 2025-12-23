@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, ImageIcon, LayoutList } from "lucide-react";
+import { Plus, ImageIcon, LayoutList, RefreshCcw } from "lucide-react";
 import { MealCard } from "./meal-card";
 import { AddMealDialog } from "./add-meal-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -39,6 +40,8 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
   const [draggedMeal, setDraggedMeal] = useState<any>(null);
   const [selectedDay, setSelectedDay] = useState(DAYS[0]);
   const [showImages, setShowImages] = useState(true); // Toggle pour afficher/masquer les images
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const getMealForSlot = (day: string, timeSlot: string) => {
     return plan.meals?.find(
@@ -107,10 +110,51 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
     return TIME_SLOTS.filter(slot => getMealForSlot(day, slot.time)).length;
   };
 
+  const handleResetMenu = async () => {
+    setIsResetting(true);
+    try {
+      // Supprimer tous les repas du plan
+      const mealIds = plan.meals?.map((meal: any) => meal.id) || [];
+      
+      for (const mealId of mealIds) {
+        const res = await fetch(`/api/meal-planner/meal/${mealId}`, {
+          method: "DELETE",
+        });
+        
+        if (!res.ok) {
+          throw new Error("Erreur lors de la suppression d'un repas");
+        }
+      }
+      
+      // Rafraîchir le plan
+      onRefresh();
+      setShowResetDialog(false);
+    } catch (error) {
+      console.error("Erreur lors de la réinitialisation:", error);
+      alert("Erreur lors de la réinitialisation du menu");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <>
-      {/* Bouton Toggle pour afficher/masquer les images - DESKTOP UNIQUEMENT */}
-      <div className="mb-4 hidden lg:flex lg:justify-end">
+      {/* Boutons de contrôle - DESKTOP UNIQUEMENT */}
+      <div className="mb-4 hidden lg:flex lg:justify-end lg:gap-2">
+        {/* Bouton de réinitialisation - Uniquement si l'utilisateur peut éditer ET qu'il y a des repas */}
+        {canEdit && plan.meals && plan.meals.length > 0 && (
+          <Button
+            onClick={() => setShowResetDialog(true)}
+            variant="outline"
+            size="sm"
+            className="gap-2 border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+          >
+            <RefreshCcw className="h-4 w-4" />
+            Réinitialiser le menu
+          </Button>
+        )}
+        
+        {/* Bouton Toggle pour afficher/masquer les images */}
         <Button
           onClick={() => setShowImages(!showImages)}
           variant="outline"
@@ -307,6 +351,36 @@ export function WeeklyCalendar({ plan, onRefresh, readOnly = false, canEdit = fa
           }}
         />
       )}
+
+      {/* Dialog de confirmation de réinitialisation */}
+      <ConfirmDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        onConfirm={handleResetMenu}
+        title="Réinitialiser le menu"
+        description={
+          <div className="space-y-3">
+            <p className="text-stone-600 dark:text-stone-400">
+              Êtes-vous sûr de vouloir réinitialiser ce menu ?
+            </p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                ⚠️ Attention : Cette action est irréversible
+              </p>
+              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                Tous les repas de ce menu ({plan.meals?.length || 0} repas) seront définitivement supprimés.
+              </p>
+            </div>
+            <p className="text-sm text-stone-500 dark:text-stone-400">
+              Le menu sera vide et vous pourrez recommencer à zéro.
+            </p>
+          </div>
+        }
+        confirmLabel="Oui, réinitialiser"
+        cancelLabel="Annuler"
+        isLoading={isResetting}
+        variant="destructive"
+      />
     </>
   );
 }

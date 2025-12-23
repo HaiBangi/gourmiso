@@ -14,7 +14,7 @@ interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: string | React.ReactNode;
   onConfirm: () => void;
   confirmLabel?: string;
   cancelLabel?: string;
@@ -42,9 +42,15 @@ export function ConfirmDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="text-left">
-            {description}
-          </DialogDescription>
+          {typeof description === 'string' ? (
+            <DialogDescription className="text-left">
+              {description}
+            </DialogDescription>
+          ) : (
+            <div className="text-sm text-stone-600 dark:text-stone-400 text-left mt-2">
+              {description}
+            </div>
+          )}
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
