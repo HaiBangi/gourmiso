@@ -135,6 +135,14 @@ function MealPlannerContent() {
     router.push(`/meal-planner?plan=${planId}`, { scroll: false });
   };
 
+  const handleCreatePlan = async (newPlanId?: number) => {
+    await fetchPlans();
+    if (newPlanId) {
+      // Rediriger vers le nouveau plan créé
+      selectPlan(newPlanId);
+    }
+  };
+
   const togglePublic = async () => {
     if (!selectedPlan || !selectedPlan.isOwner) return;
     
@@ -715,7 +723,7 @@ function MealPlannerContent() {
       <MealPlannerDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        onSuccess={fetchPlans}
+        onSuccess={handleCreatePlan}
       />
       
       {selectedPlan && (

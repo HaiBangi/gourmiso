@@ -57,11 +57,20 @@ export async function POST(request: Request) {
     plan.meals.forEach((meal) => {
       if (Array.isArray(meal.ingredients)) {
         meal.ingredients.forEach((ing: any) => {
-          const ingredientStr = typeof ing === 'string' ? ing : (ing?.name || String(ing));
-          if (!ingredientStr || ingredientStr === 'undefined' || ingredientStr === 'null' || ingredientStr === '[object Object]') return;
-          
-          // Ajouter l'ingrédient tel quel, sans modification
-          allIngredients.push(ingredientStr.trim());
+          // Vérifier si c'est un format groupé ou simple
+          if (typeof ing === 'object' && ing.name && Array.isArray(ing.items)) {
+            // Format groupé: {name: "Farce", items: ["...", "..."]}
+            ing.items.forEach((item: string) => {
+              if (item && item !== 'undefined' && item !== 'null' && item !== '[object Object]') {
+                allIngredients.push(item.trim());
+              }
+            });
+          } else {
+            // Format simple: string
+            const ingredientStr = typeof ing === 'string' ? ing : (ing?.name || String(ing));
+            if (!ingredientStr || ingredientStr === 'undefined' || ingredientStr === 'null' || ingredientStr === '[object Object]') return;
+            allIngredients.push(ingredientStr.trim());
+          }
         });
       }
     });

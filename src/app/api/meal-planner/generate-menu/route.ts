@@ -125,7 +125,11 @@ export async function POST(request: Request) {
     } else if (recipeMode === "existing") {
       modeInstructions = "- Utilise UNIQUEMENT les recettes existantes listées ci-dessous";
     } else {
-      modeInstructions = "- Combine les recettes existantes ET de nouvelles suggestions créatives";
+      const minRecipesToUse = Math.ceil(existingRecipes.length * 0.5); // 50% des recettes existantes
+      const totalMeals = mealTypes.length * 7;
+      modeInstructions = `- UTILISE EXACTEMENT ${Math.min(minRecipesToUse, Math.floor(totalMeals * 0.5))} DE MES RECETTES EXISTANTES listées ci-dessous (environ 50% du menu)
+- COMBINE-les avec ${Math.ceil(totalMeals * 0.5)} nouvelles recettes créatives pour compléter le menu
+- Équilibre 50/50 entre mes recettes et les nouvelles créations`;
     }
     
     const prompt = `Génère un menu de repas pour une semaine complète.
@@ -146,22 +150,54 @@ ${includedRecipes.length > 0 ? includedRecipes.map((r: any) => {
 
 **MODE DE GÉNÉRATION:**
 ${modeInstructions}
-${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mix") ? `\n**Autres recettes existantes disponibles (suggère leur nom si pertinent):**\n${existingRecipes.filter((r: any) => !includeRecipes.includes(r.id)).map((r: any) => `  * ${r.name}`).join("\n")}` : ""}
+${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mix") ? `\n**MES RECETTES EXISTANTES À UTILISER (${existingRecipes.length} disponibles):**\n${existingRecipes.filter((r: any) => !includeRecipes.includes(r.id)).map((r: any) => `  * "${r.name}" (ID: ${r.id}) - ${r.preparationTime + r.cookingTime}min, ${r.servings} portions`).join("\n")}\n\n**COMMENT UTILISER MES RECETTES:**\nPour chaque recette existante que tu veux placer dans le menu, utilise le format COURT:\n{"useRecipeId": <ID>, "dayOfWeek": "...", "timeSlot": "...", "mealType": "..."}` : ""}
 
 **TRÈS IMPORTANT:**
 1. Pour les recettes présélectionnées ci-dessus, utilise le format COURT:
    {"useRecipeId": <ID>, "dayOfWeek": "Lundi", "timeSlot": "12:00", "mealType": "Déjeuner"}
    
-2. Pour les nouvelles recettes à créer, utilise le format COMPLET avec ingredients et steps
+2. Pour les nouvelles recettes à créer, utilise le format COMPLET avec ingredients et steps DÉTAILLÉS
 
 3. Génère EXACTEMENT ${mealTypes.length * 7} repas au total (${mealTypes.length} par jour × 7 jours)
 
 4. PLACE OBLIGATOIREMENT toutes les recettes présélectionnées dans le menu
 
-5. **Pour les quantités dans les étapes**: Ne jamais écrire de décimales inutiles (.0). Exemples :
-   ✅ "cuire 300g de riz" (PAS 300.0g)
-   ✅ "ajouter 2 c.à.s de sauce" (PAS 2.0 c.à.s)
-   ✅ "incorporer 8.5g de sel" (8.5 est OK car c'est une vraie décimale)
+**INSTRUCTIONS POUR LES RECETTES DÉTAILLÉES:**
+
+A. **Ingrédients groupés par catégories logiques:**
+   - Regroupe les ingrédients par étapes de préparation ou par fonction
+   - Exemples de groupes: "Farce", "Sauce", "Marinade", "Garniture", "Pâte", "Friture", "Assaisonnement", "Pour servir", etc.
+   - Format attendu (exemple):
+   
+   "ingredientGroups": [
+     {
+       "name": "Farce",
+       "items": ["300g de porc haché", "100g de crevettes", "1 oignon émincé"]
+     },
+     {
+       "name": "Galettes",
+       "items": ["20 galettes de riz", "1 bol d'eau tiède"]
+     },
+     {
+       "name": "Friture",
+       "items": ["1 litre d'huile de tournesol"]
+     }
+   ]
+
+B. **Étapes détaillées et complètes:**
+   - Sois TRÈS précis dans les étapes (température, temps exacts, techniques)
+   - Inclus des conseils et astuces quand pertinent
+   - Décris bien les textures et résultats attendus
+   - Minimum 5-8 étapes pour un plat principal, 3-5 pour entrée/dessert
+   - Exemples d'étapes détaillées:
+     ✅ "Préchauffer le four à 180°C (chaleur tournante). Dans un grand bol, mélanger la farine, le sucre et le sel."
+     ✅ "Faire chauffer l'huile à 170°C dans une grande poêle. Déposer délicatement les nems et les faire frire pendant 3-4 minutes de chaque côté jusqu'à ce qu'ils soient dorés et croustillants."
+     ❌ "Cuire au four" (trop vague)
+     ❌ "Mélanger les ingrédients" (pas assez précis)
+
+C. **Quantités dans les étapes:**
+   - Ne jamais écrire de décimales inutiles (.0)
+   - Exemples: "300g de riz" (PAS 300.0g), "2 c.à.s" (PAS 2.0 c.à.s)
 
 **Format JSON strict:**
 {
@@ -176,13 +212,36 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
       "dayOfWeek": "Lundi",
       "timeSlot": "19:00",
       "mealType": "Dîner",
-      "name": "Nouvelle recette",
-      "prepTime": 15,
-      "cookTime": 30,
+      "name": "Nems au porc et crevettes",
+      "prepTime": 30,
+      "cookTime": 15,
       "servings": ${numberOfPeople},
-      "calories": 450,
-      "ingredients": ["2 tasses farine", "3 œufs"],
-      "steps": ["Étape 1", "Étape 2"]
+      "calories": 320,
+      "ingredientGroups": [
+        {
+          "name": "Farce",
+          "items": ["300g de porc haché", "100g de crevettes décortiquées", "1 oignon émincé", "2 gousses d'ail hachées", "50g de vermicelles de riz", "1 carotte râpée", "2 c.à.s de sauce soja", "1 c.à.s de nuoc mâm", "Poivre noir"]
+        },
+        {
+          "name": "Galettes et assemblage",
+          "items": ["20 galettes de riz", "1 bol d'eau tiède"]
+        },
+        {
+          "name": "Friture",
+          "items": ["1 litre d'huile de tournesol"]
+        }
+      ],
+      "steps": [
+        "Réhydrater les vermicelles de riz dans de l'eau chaude pendant 10 minutes, puis les égoutter et les couper en tronçons de 2-3 cm.",
+        "Dans une grande poêle, faire revenir l'oignon et l'ail dans 1 c.à.s d'huile pendant 2 minutes jusqu'à ce qu'ils deviennent translucides.",
+        "Ajouter le porc haché et les crevettes hachées grossièrement. Faire cuire à feu vif pendant 5 minutes en remuant régulièrement.",
+        "Incorporer les vermicelles, la carotte râpée, la sauce soja et le nuoc mâm. Mélanger et cuire 2 minutes supplémentaires. Assaisonner de poivre. Laisser refroidir complètement.",
+        "Tremper une galette de riz dans l'eau tiède pendant 10 secondes jusqu'à ce qu'elle soit souple. La poser à plat sur le plan de travail.",
+        "Déposer 2 c.à.s de farce au centre, rabattre les côtés puis rouler fermement pour former un nem. Répéter l'opération.",
+        "Faire chauffer l'huile à 170°C dans une grande casserole. Vérifier la température en y plongeant un petit morceau de galette : il doit grésiller immédiatement.",
+        "Faire frire les nems par 4-5 à la fois pendant 3-4 minutes de chaque côté jusqu'à ce qu'ils soient bien dorés et croustillants. Les égoutter sur du papier absorbant.",
+        "Servir immédiatement avec de la sauce nuoc mâm sucrée, des feuilles de laitue et des herbes fraîches (menthe, coriandre)."
+      ]
     }
   ]
 }`;
@@ -217,31 +276,35 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
     for (const meal of menuData.meals) {
       let mealData;
       
-      // Cas 1: L'IA a indiqué d'utiliser une recette présélectionnée via useRecipeId
+      // Cas 1: L'IA a indiqué d'utiliser une recette existante via useRecipeId
       if (meal.useRecipeId) {
-        const selectedRecipe = includedRecipes.find((r: any) => r.id === meal.useRecipeId);
+        // Chercher d'abord dans les recettes présélectionnées
+        let selectedRecipe = includedRecipes.find((r: any) => r.id === meal.useRecipeId);
+        
+        // Si pas trouvé, chercher dans toutes les recettes existantes
+        if (!selectedRecipe) {
+          selectedRecipe = await db.recipe.findUnique({
+            where: { id: meal.useRecipeId, userId: session.user.id },
+            include: {
+              ingredients: { orderBy: { order: "asc" } },
+              steps: { orderBy: { order: "asc" } },
+            },
+          });
+        }
         
         if (!selectedRecipe) {
-          console.warn(`⚠️ Recette ID ${meal.useRecipeId} non trouvée dans les recettes présélectionnées`);
+          console.warn(`⚠️ Recette ID ${meal.useRecipeId} non trouvée`);
           continue; // Skip ce repas si la recette n'existe pas
         }
         
-        console.log(`✅ Utilisation de la recette présélectionnée: ${selectedRecipe.name} (ID: ${selectedRecipe.id})`);
+        console.log(`✅ Utilisation de la recette existante: ${selectedRecipe.name} (ID: ${selectedRecipe.id})`);
         
-        // Calculer le ratio d'ajustement des portions
-        const portionRatio = numberOfPeople / selectedRecipe.servings;
-
-        // Formater les ingrédients avec quantités ajustées
+        // Formater les ingrédients SANS ajustement (utiliser les quantités exactes de la recette)
         const ingredientsFormatted = selectedRecipe.ingredients.map((ing: any) => {
-          let adjustedQuantity = ing.quantity;
-          if (adjustedQuantity && portionRatio !== 1) {
-            adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
-          }
-
-          if (adjustedQuantity && ing.unit) {
-            return `${adjustedQuantity} ${ing.unit} ${ing.name}`;
-          } else if (adjustedQuantity) {
-            return `${adjustedQuantity} ${ing.name}`;
+          if (ing.quantity && ing.unit) {
+            return `${ing.quantity} ${ing.unit} ${ing.name}`;
+          } else if (ing.quantity) {
+            return `${ing.quantity} ${ing.name}`;
           } else {
             return ing.name;
           }
@@ -255,9 +318,9 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
           name: selectedRecipe.name,
           prepTime: selectedRecipe.preparationTime,
           cookTime: selectedRecipe.cookingTime,
-          servings: numberOfPeople,
-          calories: selectedRecipe.caloriesPerServing ? Math.round(selectedRecipe.caloriesPerServing * portionRatio) : null,
-          portionsUsed: numberOfPeople,
+          servings: selectedRecipe.servings, // Utiliser les portions de la recette d'origine
+          calories: selectedRecipe.caloriesPerServing, // Calories exactes sans multiplication
+          portionsUsed: selectedRecipe.servings, // Garder le nombre de portions de la recette
           ingredients: ingredientsFormatted,
           steps: selectedRecipe.steps.map((step: any) => step.text),
           recipeId: selectedRecipe.id,
@@ -317,6 +380,21 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
           };
         } else {
           // Utiliser les données générées par l'IA
+          // Convertir ingredientGroups en liste plate pour compatibility
+          let ingredientsList: string[] = [];
+          let hasGroups = false;
+          
+          if (meal.ingredientGroups && Array.isArray(meal.ingredientGroups)) {
+            hasGroups = true;
+            meal.ingredientGroups.forEach((group: any) => {
+              if (Array.isArray(group.items)) {
+                ingredientsList.push(...group.items);
+              }
+            });
+          } else if (meal.ingredients && Array.isArray(meal.ingredients)) {
+            ingredientsList = meal.ingredients;
+          }
+          
           mealData = {
             weeklyMealPlanId: planId,
             dayOfWeek: meal.dayOfWeek,
@@ -328,7 +406,8 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
             servings: meal.servings || numberOfPeople,
             calories: meal.calories || null,
             portionsUsed: meal.servings || numberOfPeople,
-            ingredients: meal.ingredients || [],
+            // Stocker les groupes si présents, sinon juste la liste
+            ingredients: hasGroups ? meal.ingredientGroups : ingredientsList,
             steps: meal.steps || [],
             recipeId: null,
             isUserRecipe: false,
@@ -339,6 +418,23 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
       else {
         // Récupérer une image pour la nouvelle recette
         const imageUrl = await fetchRecipeImage(meal.name);
+        
+        // Convertir ingredientGroups en liste plate pour compatibility
+        let ingredientsList: string[] = [];
+        let hasGroups = false;
+        
+        if (meal.ingredientGroups && Array.isArray(meal.ingredientGroups)) {
+          hasGroups = true;
+          // Fusionner tous les groupes en une liste plate
+          meal.ingredientGroups.forEach((group: any) => {
+            if (Array.isArray(group.items)) {
+              ingredientsList.push(...group.items);
+            }
+          });
+        } else if (meal.ingredients && Array.isArray(meal.ingredients)) {
+          // Fallback sur l'ancien format
+          ingredientsList = meal.ingredients;
+        }
         
         mealData = {
           weeklyMealPlanId: planId,
@@ -351,11 +447,12 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
           servings: meal.servings || numberOfPeople,
           calories: meal.calories || null,
           portionsUsed: meal.servings || numberOfPeople,
-          ingredients: meal.ingredients || [],
+          // Stocker les groupes si présents, sinon juste la liste
+          ingredients: hasGroups ? meal.ingredientGroups : ingredientsList,
           steps: meal.steps || [],
           recipeId: null,
           isUserRecipe: false,
-          imageUrl: imageUrl, // Ajouter l'image récupérée
+          imageUrl: imageUrl,
         };
       }
 
@@ -388,9 +485,20 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
         updatedPlan.meals.forEach((meal) => {
           if (Array.isArray(meal.ingredients)) {
             meal.ingredients.forEach((ing: any) => {
-              const ingredientStr = typeof ing === 'string' ? ing : (ing?.name || String(ing));
-              if (!ingredientStr || ingredientStr === 'undefined' || ingredientStr === 'null' || ingredientStr === '[object Object]') return;
-              allIngredients.push(ingredientStr.trim());
+              // Vérifier si c'est un format groupé ou simple
+              if (typeof ing === 'object' && ing.name && Array.isArray(ing.items)) {
+                // Format groupé: {name: "Farce", items: ["...", "..."]}
+                ing.items.forEach((item: string) => {
+                  if (item && item !== 'undefined' && item !== 'null' && item !== '[object Object]') {
+                    allIngredients.push(item.trim());
+                  }
+                });
+              } else {
+                // Format simple: string
+                const ingredientStr = typeof ing === 'string' ? ing : (ing?.name || String(ing));
+                if (!ingredientStr || ingredientStr === 'undefined' || ingredientStr === 'null' || ingredientStr === '[object Object]') return;
+                allIngredients.push(ingredientStr.trim());
+              }
             });
           }
         });

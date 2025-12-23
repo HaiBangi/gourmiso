@@ -55,6 +55,7 @@ const CUISINE_TYPES = [
 export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: GenerateMenuDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [numberOfPeople, setNumberOfPeople] = useState(2);
   const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>(["lunch", "dinner"]);
@@ -175,8 +176,12 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
     }
 
     setIsGenerating(true);
+    setGenerationStep("🤖 Préparation de la requête...");
     setError(null);
+    
     try {
+      setGenerationStep("🧠 ChatGPT génère votre menu personnalisé...");
+      
       const res = await fetch("/api/meal-planner/generate-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -201,8 +206,15 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
         );
       }
 
-      onSuccess();
-      onOpenChange(false);
+      setGenerationStep("✅ Menu créé avec succès !");
+      
+      setTimeout(() => {
+        onSuccess();
+        onOpenChange(false);
+        setGenerationStep("");
+        // Scroll vers le haut pour voir le menu généré
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 500);
     } catch (error) {
       console.error('❌ Erreur complète:', error);
       setError(
@@ -210,6 +222,7 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
           error instanceof Error ? error.message : String(error)
         }`
       );
+      setGenerationStep("");
     } finally {
       setIsGenerating(false);
     }
@@ -398,20 +411,54 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
 
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
 
+      {/* Zone de progression */}
+      {isGenerating && (
+        <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 border border-emerald-200 dark:border-emerald-800 rounded-lg p-6">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="h-16 w-16 rounded-full border-4 border-emerald-200 dark:border-emerald-800"></div>
+              <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin"></div>
+              <Sparkles className="absolute inset-0 m-auto h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+            </div>
+            
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                {generationStep}
+              </p>
+              <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                Veuillez patienter, cela peut prendre jusqu&apos;à 30 secondes...
+              </p>
+            </div>
+
+            <div className="flex gap-2 flex-wrap justify-center">
+              <Badge variant="secondary" className="text-xs">
+                🍳 Création des recettes
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                📋 Organisation du menu
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                🛒 Liste de courses
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-2 justify-end pt-2">
         <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating} size="sm">
           Annuler
         </Button>
-        <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2" size="sm">
+        <Button onClick={handleGenerate} disabled={isGenerating || selectedMealTypes.length === 0} className="gap-2" size="sm">
           {isGenerating ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Génération...
+              Génération en cours...
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              Générer
+              Générer le menu
             </>
           )}
         </Button>
@@ -616,20 +663,54 @@ export function GenerateMenuDialog({ open, onOpenChange, planId, onSuccess }: Ge
 
             {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
 
+            {/* Zone de progression */}
+            {isGenerating && (
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 border border-emerald-200 dark:border-emerald-800 rounded-lg p-6">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                    <div className="h-16 w-16 rounded-full border-4 border-emerald-200 dark:border-emerald-800"></div>
+                    <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin"></div>
+                    <Sparkles className="absolute inset-0 m-auto h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                  </div>
+                  
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                      {generationStep}
+                    </p>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                      Veuillez patienter, cela peut prendre jusqu&apos;à 30 secondes...
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <Badge variant="secondary" className="text-xs">
+                      🍳 Création des recettes
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      📋 Organisation du menu
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      🛒 Liste de courses
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating} size="sm">
                 Annuler
               </Button>
-              <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2" size="sm">
+              <Button onClick={handleGenerate} disabled={isGenerating || selectedMealTypes.length === 0} className="gap-2" size="sm">
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Génération...
+                    Génération en cours...
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Générer
+                    Générer le menu
                   </>
                 )}
               </Button>

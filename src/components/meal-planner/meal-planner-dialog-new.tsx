@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 interface MealPlannerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (newPlanId?: number) => void;
 }
 
 export function MealPlannerDialog({ open, onOpenChange, onSuccess }: MealPlannerDialogProps) {
@@ -39,7 +39,8 @@ export function MealPlannerDialog({ open, onOpenChange, onSuccess }: MealPlanner
       });
 
       if (res.ok) {
-        onSuccess();
+        const createdPlan = await res.json();
+        onSuccess(createdPlan.id); // Passer l'ID du nouveau plan
         onOpenChange(false);
         setFormData({
           name: `Menu du ${new Date().toLocaleDateString("fr-FR")}`,

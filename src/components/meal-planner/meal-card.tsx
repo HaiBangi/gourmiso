@@ -37,6 +37,22 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Helper pour extraire la valeur de calories (peut être un nombre ou un objet)
+  const getCaloriesValue = (calories: any): number | null => {
+    if (typeof calories === 'number') return calories;
+    if (typeof calories === 'object' && calories !== null) {
+      // Si c'est un objet, essayer d'extraire une valeur numérique
+      if ('value' in calories) return Number(calories.value) || null;
+      if ('amount' in calories) return Number(calories.amount) || null;
+      // Sinon, retourner null
+      return null;
+    }
+    if (typeof calories === 'string') return parseFloat(calories) || null;
+    return null;
+  };
+
+  const caloriesValue = getCaloriesValue(meal.calories);
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -121,19 +137,19 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
                     </Button>
                   </div>
                   
-                  {meal.calories && (
+                  {caloriesValue && (
                     <div className="flex items-center gap-1">
                       <span className="text-sm">🔥</span>
-                      <span className="text-sm font-bold text-white drop-shadow-md">{meal.calories}</span>
+                      <span className="text-sm font-bold text-white drop-shadow-md">{caloriesValue}</span>
                     </div>
                   )}
                 </div>
               ) : (
-                meal.calories && (
+                caloriesValue && (
                   <div className="flex items-center justify-end">
                     <div className="flex items-center gap-1">
                       <span className="text-sm">🔥</span>
-                      <span className="text-sm font-bold text-white drop-shadow-md">{meal.calories}</span>
+                      <span className="text-sm font-bold text-white drop-shadow-md">{caloriesValue}</span>
                     </div>
                   </div>
                 )
@@ -179,19 +195,19 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
                   </Button>
                 </div>
                 
-                {meal.calories && (
+                {caloriesValue && (
                   <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
                     <span>🔥</span>
-                    <span className="font-medium">{meal.calories} kcal</span>
+                    <span className="font-medium">{caloriesValue} kcal</span>
                   </div>
                 )}
               </div>
             ) : (
-              meal.calories && (
+              caloriesValue && (
                 <div className="mt-auto flex items-center justify-end pt-1">
                   <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
                     <span>🔥</span>
-                    <span className="font-medium">{meal.calories} kcal</span>
+                    <span className="font-medium">{caloriesValue} kcal</span>
                   </div>
                 </div>
               )

@@ -373,27 +373,69 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                   })}
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  {Array.isArray(meal.ingredients) && meal.ingredients.map((ing: string, idx: number) => {
-                    const isChecked = checkedIngredients.has(idx);
-                    return (
-                      <label
-                        key={idx}
-                        className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-                          isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                        }`}
-                      >
-                        <Checkbox
-                          checked={isChecked}
-                          onCheckedChange={() => toggleIngredient(idx)}
-                          className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                        />
-                        <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
-                          {ing}
-                        </span>
-                      </label>
-                    );
-                  })}
+                <div className="space-y-3">
+                  {Array.isArray(meal.ingredients) && meal.ingredients.length > 0 ? meal.ingredients.map((ing: any, idx: number) => {
+                    // Vérifier si c'est un groupe d'ingrédients
+                    if (typeof ing === 'object' && ing.name && Array.isArray(ing.items)) {
+                      // Format groupé: {name: "Farce", items: [...]}
+                      return (
+                        <div key={idx} className="space-y-2">
+                          <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                            {ing.name}
+                          </h4>
+                          <hr className="border-t border-emerald-200 dark:border-emerald-800 pb-1" />
+                          <div className="space-y-1.5 pl-2">
+                            {ing.items.map((item: string, itemIdx: number) => {
+                              const itemKey = `${idx}-${itemIdx}`;
+                              const isChecked = checkedIngredients.has(itemKey as any);
+                              return (
+                                <label
+                                  key={itemKey}
+                                  className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                                    isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                  }`}
+                                >
+                                  <Checkbox
+                                    checked={isChecked}
+                                    onCheckedChange={() => toggleIngredient(itemKey as any)}
+                                    className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                  />
+                                  <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                                    {item}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      // Format simple: string
+                      const ingredientStr = typeof ing === 'string' ? ing : String(ing);
+                      const isChecked = checkedIngredients.has(idx);
+                      return (
+                        <label
+                          key={idx}
+                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                            isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => toggleIngredient(idx)}
+                            className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                          />
+                          <span className={`flex-1 text-sm ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                            {ingredientStr}
+                          </span>
+                        </label>
+                      );
+                    }
+                  }) : (
+                    <p className="text-sm text-stone-500 text-center py-4">
+                      Aucun ingrédient disponible
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -786,26 +828,68 @@ export function RecipeDetailSheet({ open, onOpenChange, meal }: RecipeDetailShee
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        {Array.isArray(meal.ingredients) && meal.ingredients.map((ing: string, idx: number) => {
-                          const isChecked = checkedIngredients.has(idx);
-                          return (
-                            <label
-                              key={idx}
-                              className={`flex items-start gap-2 p-2.5 rounded cursor-pointer transition-all text-base ${
-                                isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                              }`}
-                            >
-                              <Checkbox
-                                checked={isChecked}
-                                onCheckedChange={() => toggleIngredient(idx)}
-                                className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                              />
-                              <span className={`flex-1 ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
-                                {ing}
-                              </span>
-                            </label>
-                          );
-                        })}
+                        {Array.isArray(meal.ingredients) && meal.ingredients.length > 0 ? meal.ingredients.map((ing: any, idx: number) => {
+                          // Vérifier si c'est un groupe d'ingrédients
+                          if (typeof ing === 'object' && ing.name && Array.isArray(ing.items)) {
+                            // Format groupé: {name: "Farce", items: [...]}
+                            return (
+                              <div key={idx} className="space-y-2 mb-4">
+                                <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                                  {ing.name}
+                                </h4>
+                                <hr className="border-t border-emerald-200 dark:border-emerald-800 pb-1" />
+                                <div className="space-y-1 pl-2">
+                                  {ing.items.map((item: string, itemIdx: number) => {
+                                    const itemKey = `${idx}-${itemIdx}`;
+                                    const isChecked = checkedIngredients.has(itemKey as any);
+                                    return (
+                                      <label
+                                        key={itemKey}
+                                        className={`flex items-start gap-2 p-2.5 rounded cursor-pointer transition-all text-base ${
+                                          isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                        }`}
+                                      >
+                                        <Checkbox
+                                          checked={isChecked}
+                                          onCheckedChange={() => toggleIngredient(itemKey as any)}
+                                          className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                        />
+                                        <span className={`flex-1 ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                                          {item}
+                                        </span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          } else {
+                            // Format simple: string
+                            const ingredientStr = typeof ing === 'string' ? ing : String(ing);
+                            const isChecked = checkedIngredients.has(idx);
+                            return (
+                              <label
+                                key={idx}
+                                className={`flex items-start gap-2 p-2.5 rounded cursor-pointer transition-all text-base ${
+                                  isChecked ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                }`}
+                              >
+                                <Checkbox
+                                  checked={isChecked}
+                                  onCheckedChange={() => toggleIngredient(idx)}
+                                  className="h-5 w-5 mt-0.5 flex-shrink-0 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                />
+                                <span className={`flex-1 ${isChecked ? "line-through text-stone-400 dark:text-stone-500" : "text-stone-700 dark:text-stone-200"}`}>
+                                  {ingredientStr}
+                                </span>
+                              </label>
+                            );
+                          }
+                        }) : (
+                          <p className="text-sm text-stone-500 text-center py-4">
+                            Aucun ingrédient disponible
+                          </p>
+                        )}
                       </div>
                     )}
                   </CardContent>
