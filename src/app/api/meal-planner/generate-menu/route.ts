@@ -364,17 +364,98 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
     }
 
     console.log("✅ Menu généré avec succès:", createdMeals.length, "repas");
+    console.log("📊 Détails des repas créés par jour/type:");
+    const mealsByDay: Record<string, any[]> = {};
+    createdMeals.forEach(meal => {
+      if (!mealsByDay[meal.dayOfWeek]) {
+        mealsByDay[meal.dayOfWeek] = [];
+      }
+      mealsByDay[meal.dayOfWeek].push({ type: meal.mealType, time: meal.timeSlot, name: meal.name });
+    });
+    console.log(JSON.stringify(mealsByDay, null, 2));
 
     // Recalculer automatiquement la liste de courses
     try {
-      const shoppingListRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/meal-planner/recalculate-shopping-list`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
+      // Récupérer le plan avec tous les repas
+      const updatedPlan = await db.weeklyMealPlan.findUnique({
+        where: { id: planId },
+        include: { meals: true },
       });
-      
-      if (shoppingListRes.ok) {
-        console.log("✅ Liste de courses recalculée automatiquement");
+
+      if (updatedPlan) {
+        // Collecter tous les ingrédients bruts
+        const allIngredients: string[] = [];
+        updatedPlan.meals.forEach((meal) => {
+          if (Array.isArray(meal.ingredients)) {
+            meal.ingredients.forEach((ing: any) => {
+              const ingredientStr = typeof ing === 'string' ? ing : (ing?.name || String(ing));
+              if (!ingredientStr || ingredientStr === 'undefined' || ingredientStr === 'null' || ingredientStr === '[object Object]') return;
+              allIngredients.push(ingredientStr.trim());
+            });
+          }
+        });
+
+        // Catégoriser les ingrédients
+        const categorized: Record<string, string[]> = {
+          "Légumes": [],
+          "Viandes & Poissons": [],
+          "Produits Laitiers": [],
+          "Épicerie": [],
+          "Condiments & Sauces": [],
+          "Autres": [],
+        };
+
+        const categories = {
+          légumes: ["tomate", "carotte", "oignon", "ail", "poivron", "courgette", "aubergine", "salade", "laitue", "épinard", "chou", "brocoli", "champignon", "poireau", "céleri", "concombre", "radis", "navet", "betterave", "courge", "potiron", "citrouille", "haricot vert", "petit pois", "fève", "artichaut", "asperge", "endive", "fenouil", "patate douce", "pomme de terre"],
+          viandes: ["poulet", "bœuf", "porc", "agneau", "veau", "canard", "dinde", "lapin", "saucisse", "jambon", "bacon", "lard", "poisson", "saumon", "thon", "cabillaud", "morue", "sole", "truite", "bar", "daurade", "maquereau", "sardine", "hareng", "anchois", "crevette", "crabe", "homard", "langouste", "moule", "huître", "coquille", "calmar", "seiche", "poulpe"],
+          laitiers: ["lait", "crème", "beurre", "fromage", "yaourt", "yogourt", "mozzarella", "parmesan", "gruyère", "emmental", "chèvre", "brebis", "camembert", "roquefort", "comté", "raclette", "ricotta", "mascarpone", "feta", "cottage"],
+          épicerie: ["riz", "pâte", "farine", "sucre", "sel", "poivre", "huile", "vinaigre", "pâte", "nouille", "vermicelle", "semoule", "couscous", "quinoa", "boulgour", "lentille", "pois chiche", "haricot", "fève", "maïs", "avoine", "céréale", "pain", "biscuit", "gâteau", "chocolat", "cacao", "café", "thé", "miel", "confiture", "pâte à tartiner"],
+          condiments: ["sauce", "ketchup", "mayonnaise", "moutarde", "vinaigre", "huile", "soja", "nuoc mam", "mirin", "saké", "wasabi", "gingembre", "curry", "curcuma", "paprika", "piment", "harissa", "tabasco", "sriracha", "bouillon", "fond", "concentré", "pâte", "purée", "coulis"],
+        };
+
+        allIngredients.forEach((ingredient) => {
+          const ingredientLower = ingredient.toLowerCase();
+          let placed = false;
+
+          if (categories.légumes.some(v => ingredientLower.includes(v))) {
+            categorized["Légumes"].push(ingredient);
+            placed = true;
+          } else if (categories.viandes.some(v => ingredientLower.includes(v))) {
+            categorized["Viandes & Poissons"].push(ingredient);
+            placed = true;
+          } else if (categories.laitiers.some(v => ingredientLower.includes(v))) {
+            categorized["Produits Laitiers"].push(ingredient);
+            placed = true;
+          } else if (categories.épicerie.some(v => ingredientLower.includes(v))) {
+            categorized["Épicerie"].push(ingredient);
+            placed = true;
+          } else if (categories.condiments.some(v => ingredientLower.includes(v))) {
+            categorized["Condiments & Sauces"].push(ingredient);
+            placed = true;
+          }
+
+          if (!placed) {
+            categorized["Autres"].push(ingredient);
+          }
+        });
+
+        // Nettoyer les catégories vides
+        Object.keys(categorized).forEach(key => {
+          if (categorized[key].length === 0) {
+            delete categorized[key];
+          }
+        });
+
+        // Sauvegarder
+        await db.weeklyMealPlan.update({
+          where: { id: planId },
+          data: {
+            optimizedShoppingList: categorized,
+            updatedAt: new Date(),
+          },
+        });
+
+        console.log("✅ Liste de courses recalculée automatiquement avec", allIngredients.length, "ingrédients");
       }
     } catch (error) {
       console.error("⚠️ Erreur recalcul liste de courses (non bloquant):", error);
