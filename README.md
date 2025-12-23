@@ -11,10 +11,39 @@ Application moderne de gestion de recettes construite avec Next.js 16, proposant
 
 ### 📖 Gestion des recettes
 - ✅ **CRUD complet** - Créer, lire, modifier et supprimer des recettes
+- ✅ **Ingrédients groupés** - Organisation par catégories (Farce, Sauce, Garniture...)
 - ✅ **Ingrédients dynamiques** - Ajout/suppression d'ingrédients avec quantités et unités
 - ✅ **Étapes de préparation** - Instructions numérotées et ordonnées
-- ✅ **Images & Vidéos** - URLs d'images avec fallback chef, liens YouTube
-- ✅ **Ajustement des portions** - Recalcul automatique des quantités d'ingrédients
+- ✅ **Images & Vidéos** - Intégration Unsplash API, liens YouTube/TikTok
+- ✅ **Ajustement des portions** - Recalcul automatique des quantités d'ingrédients (1-20 personnes)
+- ✅ **Collections** - Organiser ses recettes par thématique
+- ✅ **Notes personnelles** - Ajouter des commentaires privés sur chaque recette
+
+### 🤖 Intelligence Artificielle (Premium)
+- ✅ **Import YouTube** - Génération automatique de recettes depuis transcriptions YouTube
+- ✅ **Import TikTok** - Extraction de recettes depuis vidéos TikTok
+- ✅ **Import Multi-URL** - Traitement parallélisé de plusieurs vidéos (max 3 simultanés)
+- ✅ **Import Vocal/Texte** - Créer une recette depuis description textuelle ou vocale
+- ✅ **Optimisation IA** - Amélioration automatique des ingrédients et étapes
+- ✅ **Traduction automatique** - Pour recherche d'images Unsplash
+- ✅ **Génération d'images** - Recherche automatique d'images pertinentes
+
+### 📅 Planificateur de repas
+- ✅ **Menus hebdomadaires** - Planification complète sur 7 jours
+- ✅ **Génération IA de menus** - Création automatique de menus équilibrés
+- ✅ **Mode mixte** - Combinaison recettes existantes + nouvelles recettes IA
+- ✅ **Repas personnalisés** - Petit-déjeuner, déjeuner, dîner, collations
+- ✅ **Calcul des calories** - Affichage du total par jour
+- ✅ **Drag & Drop** - Réorganisation des repas par glisser-déposer
+- ✅ **Partage de menus** - Inviter des contributeurs avec rôles (Lecteur/Contributeur)
+- ✅ **Menus publics/privés** - Contrôle de visibilité
+
+### 🛒 Liste de courses
+- ✅ **Génération automatique** - À partir des menus planifiés
+- ✅ **Optimisation IA** - Regroupement et addition intelligente des ingrédients
+- ✅ **Temps réel** - Synchronisation multi-utilisateurs pour courses partagées
+- ✅ **Catégorisation** - Organisation par rayon (Légumes, Viandes, Épicerie...)
+- ✅ **Checkbox interactives** - Cocher les articles achetés avec sauvegarde locale
 
 ### 🏷️ Organisation
 - ✅ **Catégories** - Plat principal, Entrée, Dessert, Boisson, etc.
@@ -22,31 +51,46 @@ Application moderne de gestion de recettes construite avec Next.js 16, proposant
 - ✅ **Filtres rapides** - Badges cliquables pour les catégories principales
 - ✅ **Recherche avancée** - Par nom, description, auteur ou tags
 - ✅ **Tri personnalisé** - Par date, note, temps de préparation, nom
+- ✅ **Pagination** - Navigation fluide avec préférence de tri sauvegardée
 
 ### 🔐 Authentification & Utilisateurs
 - ✅ **Google OAuth** - Connexion sécurisée avec NextAuth.js v5
-- ✅ **Rôles utilisateurs** - Admin / Contributeur / Lecteur avec permissions granulaires
+- ✅ **Rôles utilisateurs** - ADMIN / OWNER (Premium) / CONTRIBUTOR / READER
 - ✅ **Profils personnalisés** - Pseudo modifiable, tableau de bord personnel
-- ✅ **Gestion admin** - Page d'administration pour gérer les rôles des utilisateurs
+- ✅ **Gestion admin** - Page d'administration pour gérer les rôles
+- ✅ **Protection des routes** - Middleware de sécurité pour les pages sensibles
 
 ### ⭐ Social & Engagement
 - ✅ **Favoris** - Sauvegarder ses recettes préférées (❤️)
 - ✅ **Commentaires** - Ajouter des avis avec notation étoiles
 - ✅ **Partage social** - Twitter, Facebook, WhatsApp, copier le lien
 - ✅ **Publication anonyme** - Option pour masquer son pseudo
+- ✅ **Pages utilisateurs** - Profil public avec recettes créées
 
 ### 🎨 Interface & UX
-- ✅ **Design moderne** - Composants ShadCN UI avec Tailwind CSS
+- ✅ **Design moderne** - Composants ShadCN UI avec Tailwind CSS 4
 - ✅ **100% Responsive** - Optimisé mobile, tablette et desktop
+- ✅ **Bottom Sheets mobiles** - Formulaires adaptés aux petits écrans
 - ✅ **Mode sombre** - Toggle thème clair/sombre/système
 - ✅ **Animations fluides** - Transitions et hover states soignés
 - ✅ **Loading states** - Skeletons et indicateurs de chargement
+- ✅ **Tooltips contextuels** - Aide instantanée sur les fonctionnalités
+- ✅ **PWA Ready** - Installation comme application native
 
-### ⚡ Performance
-- ✅ **Server-side rendering** - Next.js App Router avec Server Components
-- ✅ **Prisma Accelerate** - Connection pooling pour performances optimales
+### ⚡ Performance & SEO
+- ✅ **Server-side rendering** - Next.js 16 App Router avec Server Components
+- ✅ **Prisma ORM** - Requêtes optimisées avec connection pooling
 - ✅ **Images optimisées** - Next/Image avec lazy loading
 - ✅ **Revalidation automatique** - Server actions avec cache intelligent
+- ✅ **Metadata dynamiques** - SEO optimisé pour chaque page
+- ✅ **Service Worker** - Cache offline et performances améliorées
+
+### 🔧 Développement & Maintenance
+- ✅ **TypeScript strict** - Typage complet pour éviter les bugs
+- ✅ **Backups automatiques** - Export JSON/SQL/CSV de la base de données
+- ✅ **Scripts d'import** - Restauration facile depuis backups
+- ✅ **Migration Prisma** - Gestion des changements de schéma
+- ✅ **Logs détaillés** - Debugging facilité pour import YouTube/TikTok
 
 ## 🛠️ Stack Technique
 
@@ -67,6 +111,32 @@ Application moderne de gestion de recettes construite avec Next.js 16, proposant
 ### Prérequis
 - [Node.js](https://nodejs.org/) 18+ 
 - npm, yarn ou pnpm
+
+### Variables d'environnement
+
+Créer un fichier `.env.local` à la racine du projet :
+
+```bash
+# Base de données
+DATABASE_URL="file:./dev.db"  # SQLite en dev
+
+# NextAuth.js
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="votre-secret-aleatoire"
+
+# Google OAuth
+GOOGLE_CLIENT_ID="votre-client-id"
+GOOGLE_CLIENT_SECRET="votre-client-secret"
+
+# OpenAI API (pour fonctionnalités IA)
+OPENAI_API_KEY="sk-..."
+
+# Unsplash API (pour images automatiques)
+UNSPLASH_ACCESS_KEY="votre-access-key"
+
+# Proxy YouTube (optionnel - pour import YouTube en production)
+PROXY_URL="http://user:pass@proxy.example.com:port"
+```
 
 ### Installation
 
@@ -143,29 +213,31 @@ Ouvrir [http://localhost:3000](http://localhost:3000) 🎉
 | `BEVERAGE` | Boisson |
 | `SNACK` | En-cas |
 
-## 🗺️ Roadmap
+---
 
-### ✅ Implémenté
-- [x] CRUD complet des recettes
-- [x] Authentification Google OAuth
-- [x] Rôles utilisateurs (Admin/Contributeur/Lecteur)
-- [x] Favoris avec coeur animé
-- [x] Commentaires avec notation
-- [x] Tags avec autocomplétion
-- [x] Partage social (Twitter, Facebook, WhatsApp)
-- [x] Mode sombre
-- [x] Ajustement des portions
-- [x] Profils utilisateurs personnalisés
-- [x] Administration des utilisateurs
+## 👑 Fonctionnalités Premium
 
-### 🔜 À venir
-- [ ] PWA (installation mobile)
-- [ ] Mode cuisine (écran allumé, navigation étapes)
-- [ ] Liste de courses automatique
-- [ ] Planificateur de repas hebdomadaire
-- [ ] Import par URL (Marmiton, 750g...)
-- [ ] Collections personnalisées
-- [ ] Notifications (nouveaux commentaires, etc.)
+### Rôles utilisateurs
+- **READER** - Consultation uniquement
+- **CONTRIBUTOR** - Création et modification de recettes
+- **OWNER** (Premium) - Accès complet aux fonctionnalités IA
+- **ADMIN** - Gestion complète de l'application
+
+### Fonctionnalités réservées OWNER/ADMIN
+Toutes les fonctionnalités IA sont protégées côté **serveur** (API routes) et **client** (UI) :
+
+✨ **Import YouTube/TikTok** - Génération depuis vidéos  
+✨ **Import Multi-URL** - Traitement parallélisé  
+✨ **Import Vocal/Texte** - Création depuis description  
+✨ **Génération de menus** - Création automatique de menus équilibrés  
+✨ **Génération de repas** - Création de repas personnalisés  
+✨ **Optimisation IA** - Amélioration des recettes et listes de courses
+
+**Sécurité** :
+- ✅ Vérification du rôle sur chaque endpoint API (`/api/*`)
+- ✅ Boutons désactivés avec tooltips explicatifs pour non-Premium
+- ✅ Messages d'erreur 403 si tentative d'accès direct
+- ✅ Badge "�� Premium" visible sur l'interface
 
 ---
 
