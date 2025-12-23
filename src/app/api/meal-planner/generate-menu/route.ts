@@ -158,6 +158,11 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
 
 4. PLACE OBLIGATOIREMENT toutes les recettes présélectionnées dans le menu
 
+5. **Pour les quantités dans les étapes**: Ne jamais écrire de décimales inutiles (.0). Exemples :
+   ✅ "cuire 300g de riz" (PAS 300.0g)
+   ✅ "ajouter 2 c.à.s de sauce" (PAS 2.0 c.à.s)
+   ✅ "incorporer 8.5g de sel" (8.5 est OK car c'est une vraie décimale)
+
 **Format JSON strict:**
 {
   "meals": [

@@ -75,7 +75,13 @@ Règles essentielles :
 - 2 ingrédients → phrase avec "et".  
 - 3 ingrédients ou plus → format liste avec tirets et retour à la ligne.  
 - Jamais utiliser des virgules pour séparer 3+ ingrédients dans une phrase, il faut utiliser une liste à puces avec des tirets.  
-- Numérote les étapes dans l’ordre exact du transcript.  
+- Numérote les étapes dans l'ordre exact du transcript.  
+- **IMPORTANT pour les quantités dans les étapes** : Ne jamais écrire de décimales inutiles (.0). Exemples :  
+  ✅ "cuire 300g de riz" (PAS 300.0g)  
+  ✅ "ajouter 2 c.à.s de sauce" (PAS 2.0 c.à.s)  
+  ✅ "verser 450ml d'eau" (PAS 450.0ml)  
+  ✅ "incorporer 8.5g de sel" (8.5 est OK car c'est une vraie décimale)  
+  ✅ "utiliser 0.5 c.à.c de poivre" (0.5 est OK)  
 
 **Calories**  
 - Estime en fonction des ingrédients et cuisson.  
