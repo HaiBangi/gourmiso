@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Toast } from "@/components/ui/toast";
-import { Clock, Users, Star, Play, Coins, Flame, MoreVertical, Share2, Download, Edit, Trash2 } from "lucide-react";
+import { Clock, Users, Star, Play, Coins, Flame, MoreVertical, Share2, Download, Edit, Trash2, Eye } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -417,6 +417,21 @@ export function RecipeDetail({
                 </div>
               </div>
             )}
+            
+            {/* Row 7: Vues */}
+            {recipe.viewsCount !== undefined && recipe.viewsCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="p-1.5 rounded-full bg-sky-100 dark:bg-sky-900/40 flex-shrink-0">
+                  <Eye className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] text-stone-500 dark:text-stone-400 uppercase tracking-wide">Vues</p>
+                  <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                    {recipe.viewsCount.toLocaleString('fr-FR')}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -505,6 +520,21 @@ export function RecipeDetail({
                 </p>
                 <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
                   {recipe.rating.toFixed(1)}/10
+                </p>
+              </div>
+            </div>
+          )}
+          {recipe.viewsCount !== undefined && recipe.viewsCount > 0 && (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 rounded-full bg-sky-100 dark:bg-sky-900/40">
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-sky-600 dark:text-sky-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                  Vues
+                </p>
+                <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
+                  {recipe.viewsCount.toLocaleString('fr-FR')}
                 </p>
               </div>
             </div>

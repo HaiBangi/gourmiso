@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Edit2 } from "lucide-react";
+import { Trash2, Edit2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeDetailSheet } from "./recipe-detail-sheet";
 import { EditMealDialog } from "./edit-meal-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { formatTime } from "@/lib/utils";
 import Image from "next/image";
 
 // Fonction helper pour recalculer la liste de courses
@@ -52,6 +51,9 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
   };
 
   const caloriesValue = getCaloriesValue(meal.calories);
+  
+  // Helper pour obtenir le nombre de vues (depuis la recette liée si disponible)
+  const viewsCount = meal.recipe?.viewsCount || null;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -224,12 +226,20 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
                 )}
               </div>
             ) : (
-              caloriesValue && (
-                <div className="mt-auto flex items-center justify-end pt-1">
-                  <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
-                    <span>🔥</span>
-                    <span className="font-medium">{caloriesValue} kcal</span>
-                  </div>
+              (caloriesValue || (viewsCount && viewsCount > 0)) && (
+                <div className="mt-auto flex items-center justify-end gap-2 pt-1">
+                  {caloriesValue && (
+                    <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
+                      <span>🔥</span>
+                      <span className="font-medium">{caloriesValue} kcal</span>
+                    </div>
+                  )}
+                  {viewsCount && viewsCount > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400">
+                      <Eye className="h-3 w-3" />
+                      <span className="font-medium">{viewsCount.toLocaleString('fr-FR')}</span>
+                    </div>
+                  )}
                 </div>
               )
             )}

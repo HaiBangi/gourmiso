@@ -63,6 +63,7 @@ export type CostEstimate = "CHEAP" | "MEDIUM" | "EXPENSIVE" | null;
 
 export interface Recipe {
   id: number;
+  slug?: string;
   name: string;
   description: string | null;
   category: Category;
@@ -75,6 +76,7 @@ export interface Recipe {
   servings: number;
   caloriesPerServing?: number | null;
   costEstimate: CostEstimate;
+  viewsCount?: number;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;

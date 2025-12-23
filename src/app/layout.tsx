@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Source_Sans_3 } from "next/font/google";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { RecipeProvider } from "@/components/recipes/recipe-context";
 import { AppHeader } from "@/components/layout/app-header";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
-import { WebVitals } from "@/components/analytics/web-vitals";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
@@ -20,18 +19,19 @@ const sourceSans = Source_Sans_3({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Yumiso | Recettes de cuisine",
   description: "Découvrez et gérez vos recettes de cuisine préférées",
   icons: {
     icon: "/chef-icon.png",
     apple: "/chef-icon.png",
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
   },
 };
 
@@ -71,7 +71,6 @@ export default function RootLayout({
         <PWAProvider>
           <SessionProvider>
             <RecipeProvider recipe={null}>
-              <WebVitals />
               <Toaster />
               <AppHeader />
               <main id="main-content">
