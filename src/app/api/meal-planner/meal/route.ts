@@ -53,20 +53,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Recette non trouvée" }, { status: 404 });
       }
 
-      // Calculer le ratio d'ajustement des portions
-      const portionRatio = (portionsUsed || 1) / recipe.servings;
-
-      // Formater les ingrédients avec quantités ajustées
+      // Formater les ingrédients SANS ajustement (utiliser les quantités exactes de la recette)
       const ingredientsFormatted = recipe.ingredients.map((ing) => {
-        let adjustedQuantity = ing.quantity;
-        if (adjustedQuantity && portionRatio !== 1) {
-          adjustedQuantity = Math.round((adjustedQuantity * portionRatio) * 100) / 100;
-        }
-
-        if (adjustedQuantity && ing.unit) {
-          return `${adjustedQuantity} ${ing.unit} ${ing.name}`;
-        } else if (adjustedQuantity) {
-          return `${adjustedQuantity} ${ing.name}`;
+        if (ing.quantity && ing.unit) {
+          return `${ing.quantity} ${ing.unit} ${ing.name}`;
+        } else if (ing.quantity) {
+          return `${ing.quantity} ${ing.name}`;
         } else {
           return ing.name;
         }
@@ -81,9 +73,9 @@ export async function POST(request: Request) {
           name: recipe.name,
           prepTime: recipe.preparationTime,
           cookTime: recipe.cookingTime,
-          servings: portionsUsed || recipe.servings,
-          calories: recipe.caloriesPerServing ? Math.round(recipe.caloriesPerServing * portionRatio) : null,
-          portionsUsed: portionsUsed || 1,
+          servings: recipe.servings, // Utiliser les portions de la recette d'origine
+          calories: recipe.caloriesPerServing, // Utiliser les calories exactes (sans multiplication)
+          portionsUsed: recipe.servings, // Garder le nombre de portions de la recette
           ingredients: ingredientsFormatted,
           steps: recipe.steps.map((step) => step.text),
           recipeId: recipe.id,

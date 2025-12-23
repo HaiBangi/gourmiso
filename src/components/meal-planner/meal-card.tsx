@@ -9,6 +9,20 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatTime } from "@/lib/utils";
 import Image from "next/image";
 
+// Fonction helper pour recalculer la liste de courses
+async function recalculateShoppingList(planId: number) {
+  try {
+    await fetch("/api/meal-planner/recalculate-shopping-list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId }),
+    });
+    console.log("✅ Liste de courses recalculée");
+  } catch (error) {
+    console.error("❌ Erreur recalcul liste de courses:", error);
+  }
+}
+
 interface MealCardProps {
   meal: any;
   planId: number;
@@ -31,6 +45,9 @@ export function MealCard({ meal, onRefresh, canEdit = false, showImages = true }
       });
       
       if (res.ok) {
+        // Recalculer la liste de courses après suppression
+        await recalculateShoppingList(meal.weeklyMealPlanId);
+        // Rafraîchir les données APRÈS le recalcul
         onRefresh();
       }
     } catch (error) {

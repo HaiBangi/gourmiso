@@ -17,6 +17,20 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatTime } from "@/lib/utils";
 
+// Fonction helper pour recalculer la liste de courses
+async function recalculateShoppingList(planId: number) {
+  try {
+    await fetch("/api/meal-planner/recalculate-shopping-list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId }),
+    });
+    console.log("✅ Liste de courses recalculée");
+  } catch (error) {
+    console.error("❌ Erreur recalcul liste de courses:", error);
+  }
+}
+
 interface AddMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -115,6 +129,10 @@ export function AddMealDialog({
         return;
       }
 
+      // Recalculer la liste de courses après ajout
+      await recalculateShoppingList(planId);
+      
+      // Rafraîchir les données APRÈS le recalcul
       onSuccess();
       onOpenChange(false);
       resetForm();
@@ -154,6 +172,9 @@ export function AddMealDialog({
 
       const data = await res.json();
       console.log("✅ Recette générée:", data);
+
+      // Recalculer la liste de courses après génération IA
+      await recalculateShoppingList(planId);
 
       onSuccess();
       onOpenChange(false);
@@ -231,36 +252,6 @@ export function AddMealDialog({
               </Card>
             ))
           )}
-        </div>
-
-        {/* Portions Selector */}
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap">Portions désirées:</Label>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPortionsDesired((prev) => Math.max(1, prev - 1))}
-            disabled={isLoading}
-            className="h-8 px-3"
-          >
-            -
-          </Button>
-          <Input
-            type="number"
-            value={portionsDesired}
-            onChange={(e) => setPortionsDesired(Math.max(1, Number(e.target.value)))}
-            className="w-16 h-8 text-center"
-            disabled={isLoading}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPortionsDesired((prev) => prev + 1)}
-            disabled={isLoading}
-            className="h-8 px-3"
-          >
-            +
-          </Button>
         </div>
 
         <Button

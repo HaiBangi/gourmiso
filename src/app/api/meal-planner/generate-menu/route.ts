@@ -365,6 +365,21 @@ ${existingRecipes.length > 0 && (recipeMode === "existing" || recipeMode === "mi
 
     console.log("✅ Menu généré avec succès:", createdMeals.length, "repas");
 
+    // Recalculer automatiquement la liste de courses
+    try {
+      const shoppingListRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/meal-planner/recalculate-shopping-list`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId }),
+      });
+      
+      if (shoppingListRes.ok) {
+        console.log("✅ Liste de courses recalculée automatiquement");
+      }
+    } catch (error) {
+      console.error("⚠️ Erreur recalcul liste de courses (non bloquant):", error);
+    }
+
     return NextResponse.json({
       success: true,
       mealsCreated: createdMeals.length,

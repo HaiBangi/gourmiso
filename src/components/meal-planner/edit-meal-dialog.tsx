@@ -14,6 +14,20 @@ import { Search, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatTime } from "@/lib/utils";
 
+// Fonction helper pour recalculer la liste de courses
+async function recalculateShoppingList(planId: number) {
+  try {
+    await fetch("/api/meal-planner/recalculate-shopping-list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId }),
+    });
+    console.log("✅ Liste de courses recalculée");
+  } catch (error) {
+    console.error("❌ Erreur recalcul liste de courses:", error);
+  }
+}
+
 interface EditMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -96,6 +110,9 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
         throw new Error("Erreur lors de la mise à jour");
       }
 
+      // Recalculer la liste de courses après modification
+      await recalculateShoppingList(meal.weeklyMealPlanId);
+
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -159,35 +176,6 @@ export function EditMealDialog({ open, onOpenChange, meal, onSuccess }: EditMeal
                 </Card>
               ))
             )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Label className="whitespace-nowrap">Portions désirées:</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPortionsDesired((prev: number) => Math.max(1, prev - 1))}
-              disabled={isLoading}
-              className="h-8 px-3"
-            >
-              -
-            </Button>
-            <Input
-              type="number"
-              value={portionsDesired}
-              onChange={(e) => setPortionsDesired(Math.max(1, Number(e.target.value)))}
-              className="w-16 h-8 text-center"
-              disabled={isLoading}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPortionsDesired((prev: number) => prev + 1)}
-              disabled={isLoading}
-              className="h-8 px-3"
-            >
-              +
-            </Button>
           </div>
 
           <div className="flex gap-2 justify-end pt-4">

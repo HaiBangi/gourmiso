@@ -298,7 +298,7 @@ export function TikTokImportForm({
           description: extractData.description,
           transcript: extractData.description,
           videoUrl: videoUrl,
-          imageUrl: extractData.thumbnail,
+          imageUrl: null, // Pas d'image pour TikTok
           author: extractData.author || "TikTok",
         }),
       });
