@@ -148,6 +148,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    // Vérifier que l'utilisateur est ADMIN ou OWNER
+    if (session.user.role !== "ADMIN" && session.user.role !== "OWNER") {
+      return NextResponse.json(
+        { error: "Fonctionnalité réservée aux utilisateurs Premium (OWNER) et ADMIN" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
       planId,

@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +53,7 @@ export function AddMealDialog({
   slots,
   onSuccess,
 }: AddMealDialogProps) {
+  const { data: session } = useSession();
   const [tab, setTab] = useState<"existing" | "generate">("existing");
   const [recipes, setRecipes] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -200,9 +208,15 @@ export function AddMealDialog({
     <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="existing">Recettes Existantes</TabsTrigger>
-        <TabsTrigger value="generate">
+        <TabsTrigger 
+          value="generate" 
+          disabled={session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER"}
+        >
           <Sparkles className="h-4 w-4 mr-2" />
-          Générer avec IA
+          Générer
+          {session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER" && (
+            <span className="text-xs text-amber-500 ml-1">⭐</span>
+          )}
         </TabsTrigger>
       </TabsList>
 

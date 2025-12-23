@@ -31,6 +31,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus, Trash2, ChefHat, Clock, Image, ListOrdered,
@@ -923,19 +929,27 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
               </div>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-              {/* Optimize button - only for existing recipes */}
-              {recipe && recipe.id > 0 && (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleOptimizeWithAI}
-                  disabled={loading || !name.trim()}
-                  className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 rounded-lg shadow-sm transition-all"
-                >
-                  <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">Optimiser avec IA</span>
-                  <span className="md:hidden">IA</span>
-                </Button>
+              {/* Optimize button - only for existing recipes and OWNER/ADMIN */}
+              {recipe && recipe.id > 0 && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleOptimizeWithAI}
+                        disabled={loading || !name.trim()}
+                        className="h-8 md:h-9 px-2 md:px-4 text-xs md:text-sm font-medium bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 rounded-lg shadow-sm transition-all"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4 md:mr-2" />
+                        <span className="hidden md:inline">Optimiser</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs hidden md:block">
+                      <p>Améliorer et normaliser automatiquement les ingrédients, étapes et quantités de la recette</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
               {/* Import Social buttons - only for new recipes and admins/owners */}
               {!recipe && !isYouTubeImport && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (

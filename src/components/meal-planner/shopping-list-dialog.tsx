@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Dialog,
@@ -13,6 +14,12 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Check, Sparkles, Loader2, X } from "lucide-react";
@@ -46,6 +53,7 @@ export function ShoppingListDialog({
   realtimeToggle,
   realtimeItems = [],
 }: ShoppingListDialogProps) {
+  const { data: session } = useSession();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -324,25 +332,37 @@ export function ShoppingListDialog({
                 </p>
               </div>
               {canOptimize && (
-                <Button
-                  onClick={generateAIShoppingList}
-                  disabled={isGeneratingAI}
-                  size="sm"
-                  variant="outline"
-                  className="gap-2 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 flex-shrink-0"
-                >
-                  {isGeneratingAI ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="hidden sm:inline">Optimisation...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      <span className="hidden sm:inline">Optimiser avec IA</span>
-                    </>
-                  )}
-                </Button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={generateAIShoppingList}
+                        disabled={isGeneratingAI || (session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER")}
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600 flex-shrink-0"
+                      >
+                        {isGeneratingAI ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="hidden sm:inline">Optimisation...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span className="hidden sm:inline">Optimiser</span>
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs z-[100]">
+                      <p>Regrouper, additionner et organiser intelligemment les ingrédients par catégories</p>
+                      {session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER" && (
+                        <p className="text-amber-400 mt-1">⭐ Fonctionnalité Premium</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </DialogHeader>
@@ -382,25 +402,37 @@ export function ShoppingListDialog({
           </div>
           
           {canOptimize && (
-            <Button
-              onClick={generateAIShoppingList}
-              disabled={isGeneratingAI}
-              size="sm"
-              variant="outline"
-              className="w-full gap-2 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600"
-            >
-              {isGeneratingAI ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Optimisation...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Optimiser avec IA
-                </>
-              )}
-            </Button>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={generateAIShoppingList}
+                    disabled={isGeneratingAI || (session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER")}
+                    size="sm"
+                    variant="outline"
+                    className="w-full gap-2 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-white dark:border-stone-600"
+                  >
+                    {isGeneratingAI ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Optimisation...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Optimiser
+                        {session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER" && (
+                          <span className="text-xs text-amber-500 ml-1">⭐ Premium</span>
+                        )}
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs z-[60]">
+                  <p>Regrouper, additionner et organiser intelligemment les ingrédients par catégories</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
 

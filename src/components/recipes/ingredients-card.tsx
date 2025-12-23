@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, RotateCcw } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Users, RotateCcw, Sparkles } from "lucide-react";
 
 interface Ingredient {
   id: number;
@@ -34,6 +41,8 @@ interface IngredientsCardProps {
   ingredientGroups?: IngredientGroup[];
   originalServings: number;
   recipeId?: number;
+  onOptimize?: () => void;
+  isOptimizing?: boolean;
 }
 
 function formatQuantity(quantity: number | null, multiplier: number): string {
@@ -54,7 +63,8 @@ function getStorageKey(recipeId: number | undefined): string {
   return `yumiso-checked-ingredients-${recipeId || 'unknown'}`;
 }
 
-export function IngredientsCard({ ingredients, ingredientGroups, originalServings, recipeId }: IngredientsCardProps) {
+export function IngredientsCard({ ingredients, ingredientGroups, originalServings, recipeId, onOptimize, isOptimizing = false }: IngredientsCardProps) {
+  const { data: session } = useSession();
   const [servings, setServings] = useState(originalServings);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
   const [isHydrated, setIsHydrated] = useState(false);
@@ -190,6 +200,31 @@ export function IngredientsCard({ ingredients, ingredientGroups, originalServing
           </CardTitle>
 
           <div className="flex items-center gap-2">
+            {/* Optimize button (only if handler provided and user is OWNER/ADMIN) */}
+            {onOptimize && (session?.user?.role === "ADMIN" || session?.user?.role === "OWNER") && (
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onOptimize}
+                      disabled={isOptimizing}
+                      className="h-8 px-2 gap-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span className="hidden sm:inline text-xs font-medium">
+                        {isOptimizing ? "..." : "Optimiser"}
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs hidden sm:block">
+                    <p>Améliorer et normaliser automatiquement les ingrédients et leurs quantités</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            
             {/* Reset button */}
             {checkedCount > 0 && (
               <Button

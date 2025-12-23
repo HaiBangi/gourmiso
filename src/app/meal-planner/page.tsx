@@ -14,6 +14,12 @@ import { GenerateMenuDialog } from "@/components/meal-planner/generate-menu-dial
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ContributorsDialog } from "@/components/meal-planner/contributors-dialog";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -346,15 +352,28 @@ function MealPlannerContent() {
             {/* Boutons d'action sur mobile - scroll horizontal */}
             {selectedPlan && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
-                <Button 
-                  onClick={() => setShowGenerateMenu(true)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20 flex-shrink-0"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  <span>Générer</span>
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={() => setShowGenerateMenu(true)}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20 flex-shrink-0"
+                        disabled={session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER"}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        <span>Générer le menu</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Créer automatiquement un menu complet de la semaine avec des recettes variées et équilibrées</p>
+                      {session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER" && (
+                        <p className="text-amber-400 mt-1">⭐ Fonctionnalité Premium</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <Button 
                   onClick={() => setShowShoppingList(true)}
                   variant="outline"
@@ -535,15 +554,28 @@ function MealPlannerContent() {
                 <>
                   <div className="h-8 w-px bg-stone-200 dark:bg-stone-700" />
 
-                  <Button 
-                    onClick={() => setShowGenerateMenu(true)}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20 flex-shrink-0"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Générer</span>
-                  </Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          onClick={() => setShowGenerateMenu(true)}
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20 flex-shrink-0"
+                          disabled={session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER"}
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          <span>Générer le menu</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <p>Créer automatiquement un menu complet de la semaine avec des recettes variées et équilibrées</p>
+                        {session?.user?.role !== "ADMIN" && session?.user?.role !== "OWNER" && (
+                          <p className="text-amber-400 mt-1">⭐ Fonctionnalité Premium</p>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <Button 
                     onClick={() => setShowShoppingList(true)}
                     variant="outline"
