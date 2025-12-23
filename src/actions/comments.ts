@@ -133,7 +133,10 @@ export async function updateComment(commentId: number, text: string, rating?: nu
 
 export async function getRecipeComments(recipeId: number) {
   const comments = await db.comment.findMany({
-    where: { recipeId },
+    where: {
+      recipeId,
+      deletedAt: null, // Exclure les commentaires soft-deleted
+    },
     include: {
       user: {
         select: {

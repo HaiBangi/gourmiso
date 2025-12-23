@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
 
     const recipes = await db.recipe.findMany({
-      where: category ? { category } : undefined,
+      where: {
+        deletedAt: null, // Exclure les recettes soft-deleted
+        ...(category ? { category } : {}),
+      },
       include: {
         ingredients: {
           orderBy: { order: "asc" },

@@ -18,7 +18,10 @@ interface RecipeWithUserId extends Recipe {
 
 async function getRecipe(id: number) {
   const recipe = await db.recipe.findUnique({
-    where: { id },
+    where: {
+      id,
+      deletedAt: null, // Exclure les recettes soft-deleted
+    },
     include: {
       ingredients: {
         orderBy: { order: "asc" },
@@ -33,6 +36,7 @@ async function getRecipe(id: number) {
       },
       steps: { orderBy: { order: "asc" } },
       comments: {
+        where: { deletedAt: null }, // Exclure les commentaires soft-deleted
         include: {
           user: {
             select: {

@@ -13,6 +13,7 @@ export interface AuthorInfo {
 export async function getAuthors(): Promise<AuthorInfo[]> {
   // Get all recipes with their authors
   const recipes = await db.recipe.findMany({
+    where: { deletedAt: null },
     select: {
       author: true,
       userId: true,

@@ -173,7 +173,10 @@ export async function POST(request: Request) {
     let existingRecipes: any[] = [];
     if (recipeMode === "existing" || recipeMode === "mix") {
       existingRecipes = await db.recipe.findMany({
-        where: { userId: session.user.id },
+        where: {
+          userId: session.user.id,
+          deletedAt: null,
+        },
         select: {
           id: true,
           name: true,
@@ -193,6 +196,7 @@ export async function POST(request: Request) {
         where: {
           id: { in: includeRecipes },
           userId: session.user.id,
+          deletedAt: null,
         },
         include: {
           ingredients: {
@@ -390,7 +394,11 @@ C. **Quantités dans les étapes:**
         // Si pas trouvé, chercher dans toutes les recettes existantes
         if (!selectedRecipe) {
           selectedRecipe = await db.recipe.findUnique({
-            where: { id: meal.useRecipeId, userId: session.user.id },
+            where: {
+              id: meal.useRecipeId,
+              userId: session.user.id,
+              deletedAt: null,
+            },
             include: {
               ingredients: { orderBy: { order: "asc" } },
               steps: { orderBy: { order: "asc" } },

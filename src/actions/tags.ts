@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 
 export async function getAllTags(): Promise<string[]> {
   const recipes = await db.recipe.findMany({
+    where: { deletedAt: null },
     select: { tags: true },
   });
 

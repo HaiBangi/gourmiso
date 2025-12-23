@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       const userRecipes = await db.recipe.findMany({
         where: {
           userId: session.user.id,
+          deletedAt: null,
         },
         select: {
           id: true,

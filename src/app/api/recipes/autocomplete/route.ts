@@ -69,6 +69,7 @@ export async function GET(request: Request) {
 
     // Fetch recipes with additional info for display
     const recipes = await db.recipe.findMany({
+      where: { deletedAt: null },
       select: {
         id: true,
         name: true,

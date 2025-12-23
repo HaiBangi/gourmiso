@@ -60,6 +60,7 @@ async function getRecipes(searchParams: SearchParams, userId?: string): Promise<
   // Récupérer toutes les recettes (on filtre manuellement la recherche pour supporter les accents)
   let recipes = await db.recipe.findMany({
     where: {
+      deletedAt: null, // Exclure les recettes soft-deleted
       AND: [
         // Multiple categories
         categories.length > 0 ? { category: { in: categories } } : {},
@@ -189,6 +190,7 @@ async function getUserCollections(userId?: string): Promise<Array<{ id: number; 
 async function getPopularTags(limit: number = 15): Promise<Array<{ value: string; label: string; count: number }>> {
   // Get all recipes with their tags
   const recipes = await db.recipe.findMany({
+    where: { deletedAt: null },
     select: { tags: true },
   });
 
@@ -215,6 +217,7 @@ async function getPopularTags(limit: number = 15): Promise<Array<{ value: string
 async function getAllAuthors(): Promise<Array<{ id: string; name: string; count: number }>> {
   // Get all recipes with their authors
   const recipes = await db.recipe.findMany({
+    where: { deletedAt: null },
     select: { 
       author: true,
     },

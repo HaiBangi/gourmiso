@@ -8,7 +8,7 @@ import type { RecipeCreateInput } from "@/lib/validations";
 
 export type ActionResult<T = void> = 
   | { success: true; data: T }
-  | { success: false; error: string };
+  | { success: false, error: string };
 
 export async function createRecipe(
   input: RecipeCreateInput
@@ -234,8 +234,12 @@ export async function deleteRecipe(id: number): Promise<ActionResult> {
       return { success: false, error: "Vous n'avez pas la permission de supprimer cette recette" };
     }
 
-    await db.recipe.delete({ where: { id } });
-    console.log("[deleteRecipe] Recipe deleted successfully");
+    // Soft delete - marquer comme supprimé au lieu de supprimer définitivement
+    await db.recipe.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    console.log("[deleteRecipe] Recipe soft-deleted successfully");
     revalidatePath("/recipes");
     revalidatePath("/profile/recipes");
     return { success: true, data: undefined };
@@ -263,13 +267,14 @@ export async function deleteMultipleRecipes(ids: number[]): Promise<ActionResult
       return { success: false, error: "Seuls les administrateurs peuvent supprimer plusieurs recettes" };
     }
 
-    // Delete all recipes with the given IDs
-    const result = await db.recipe.deleteMany({
+    // Soft delete all recipes with the given IDs
+    const result = await db.recipe.updateMany({
       where: {
         id: {
           in: ids
         }
-      }
+      },
+      data: { deletedAt: new Date() },
     });
 
     revalidatePath("/recipes");
@@ -280,5 +285,87 @@ export async function deleteMultipleRecipes(ids: number[]): Promise<ActionResult
   } catch (error) {
     console.error("Failed to delete recipes:", error);
     return { success: false, error: "Erreur lors de la suppression des recettes" };
+  }
+}
+
+/**
+ * Restaurer une recette soft-deleted (admin uniquement)
+ */
+export async function restoreRecipe(id: number): Promise<ActionResult> {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Vous devez être connecté" };
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
+      return { success: false, error: "Seuls les administrateurs peuvent restaurer des recettes" };
+    }
+
+    await db.recipe.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
+
+    revalidatePath("/recipes");
+    revalidatePath("/profile/recipes");
+    revalidatePath("/admin");
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error("Failed to restore recipe:", error);
+    return { success: false, error: "Erreur lors de la restauration de la recette" };
+  }
+}
+
+/**
+ * Lister les recettes supprimées (admin uniquement)
+ */
+export async function getDeletedRecipes(): Promise<ActionResult<{
+  id: number;
+  name: string;
+  category: string;
+  deletedAt: Date | null;
+  author: string;
+}[]>> {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Vous devez être connecté" };
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
+      return { success: false, error: "Seuls les administrateurs peuvent voir les recettes supprimées" };
+    }
+
+    const recipes = await db.recipe.findMany({
+      where: { deletedAt: { not: null } },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        deletedAt: true,
+        author: true,
+      },
+      orderBy: { deletedAt: "desc" },
+      take: 50,
+    });
+
+    return { success: true, data: recipes };
+  } catch (error) {
+    console.error("Failed to get deleted recipes:", error);
+    return { success: false, error: "Erreur lors de la récupération des recettes supprimées" };
   }
 }

@@ -21,7 +21,10 @@ export default async function MyRecipesPage() {
   }
 
   const recipes = await db.recipe.findMany({
-    where: { userId: session.user.id },
+    where: {
+      userId: session.user.id,
+      deletedAt: null, // Exclure les recettes soft-deleted
+    },
     include: {
       ingredients: {
         orderBy: { order: "asc" },

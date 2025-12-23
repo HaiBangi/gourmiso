@@ -42,7 +42,10 @@ export async function POST(request: Request) {
     // Si c'est une recette existante
     if (recipeId) {
       const recipe = await db.recipe.findUnique({
-        where: { id: recipeId },
+        where: {
+          id: recipeId,
+          deletedAt: null,
+        },
         include: {
           ingredients: true,
           steps: { orderBy: { order: "asc" } },

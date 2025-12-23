@@ -15,7 +15,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const recipe = await db.recipe.findUnique({
-      where: { id: recipeId },
+      where: {
+        id: recipeId,
+        deletedAt: null, // Exclure les recettes soft-deleted
+      },
       include: {
         ingredients: {
           orderBy: { order: "asc" },
