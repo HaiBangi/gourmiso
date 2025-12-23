@@ -16,11 +16,54 @@ function roundToMultipleOf5(minutes: number): number {
 }
 
 /**
+ * Traduit le nom d'une recette en anglais pour améliorer les résultats de recherche Unsplash
+ * @param recipeName - Nom de la recette en français
+ * @returns Nom traduit en anglais
+ */
+async function translateToEnglish(recipeName: string): Promise<string> {
+  try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a translator. Translate the recipe name from French to English. Reply ONLY with the translation, nothing else. Keep it short and natural for food photography search."
+        },
+        {
+          role: "user",
+          content: recipeName
+        }
+      ],
+      temperature: 1,
+      max_completion_tokens: 100,
+    });
+
+    const translation = response.choices[0]?.message?.content?.trim();
+    if (translation) {
+      console.log(`🌐 Traduction: "${recipeName}" → "${translation}"`);
+      return translation;
+    }
+    
+    // Fallback si pas de traduction
+    return recipeName;
+  } catch (error) {
+    console.error("❌ Erreur lors de la traduction:", error);
+    // En cas d'erreur, retourner le nom original
+    return recipeName;
+  }
+}
+
+/**
  * Récupère une image de haute qualité depuis Unsplash avec métadonnées pour attribution
- * @param recipeName - Nom de la recette pour la recherche
+ * @param recipeName - Nom de la recette (pour les logs)
+ * @param recipeNameEnglish - Nom traduit en anglais pour la recherche
  * @returns Objet avec URL de l'image et métadonnées Unsplash, ou null
  */
-async function fetchRecipeImage(recipeName: string): Promise<{
+async function fetchRecipeImage(recipeName: string, recipeNameEnglish: string): Promise<{
   imageUrl: string;
   unsplashData?: {
     photographerName: string;
@@ -34,7 +77,7 @@ async function fetchRecipeImage(recipeName: string): Promise<{
     
     if (accessKey) {
       // Version avec clé API (meilleure qualité et contrôle)
-      const searchQuery = encodeURIComponent(`${recipeName} food dish`);
+      const searchQuery = encodeURIComponent(`${recipeNameEnglish} food dish`);
       const response = await fetch(
         `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&orientation=landscape`,
         {
@@ -58,7 +101,7 @@ async function fetchRecipeImage(recipeName: string): Promise<{
             downloadLocation: photo.links.download_location, // Pour envoyer la requête de download
           };
           
-          console.log(`📸 Image Unsplash récupérée pour "${recipeName}" par ${unsplashData.photographerName}`);
+          console.log(`📸 Image Unsplash récupérée pour "${recipeName}" (${recipeNameEnglish}) par ${unsplashData.photographerName}`);
           return { imageUrl, unsplashData };
         }
       }
@@ -143,7 +186,7 @@ export async function POST(request: Request) {
           content: aiPrompt,
         },
       ],
-      temperature: 0.8,
+      temperature: 1,
       max_completion_tokens: 15000,
     });
 
@@ -158,8 +201,9 @@ export async function POST(request: Request) {
     const prepTime = roundToMultipleOf5(recipeData.prepTime || 0);
     const cookTime = roundToMultipleOf5(recipeData.cookTime || 0);
 
-    // Récupérer une image de haute qualité pour la recette
-    const imageData = await fetchRecipeImage(recipeData.name);
+    // Traduire le nom en anglais puis récupérer une image de haute qualité
+    const recipeNameEnglish = await translateToEnglish(recipeData.name);
+    const imageData = await fetchRecipeImage(recipeData.name, recipeNameEnglish);
 
     // Créer le repas
     const meal = await db.plannedMeal.create({

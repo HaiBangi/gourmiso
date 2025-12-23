@@ -18,11 +18,74 @@ const MEAL_TYPE_MAP: Record<string, { time: string; label: string }> = {
 };
 
 /**
+ * Traduit plusieurs noms de recettes en anglais en une seule requête pour optimiser les appels API
+ * @param recipeNames - Tableau des noms de recettes en français
+ * @returns Map avec les traductions (clé: nom FR, valeur: nom EN)
+ */
+async function translateMultipleToEnglish(recipeNames: string[]): Promise<Map<string, string>> {
+  try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a translator. Translate recipe names from French to English. Reply with a JSON object where keys are the original French names and values are the English translations. Keep translations short and natural for food photography search."
+        },
+        {
+          role: "user",
+          content: JSON.stringify(recipeNames)
+        }
+      ],
+      temperature: 1,
+      max_completion_tokens: 1000,
+    });
+
+    const content = response.choices[0]?.message?.content?.trim();
+    if (content) {
+      try {
+        const translations = JSON.parse(content);
+        const translationMap = new Map<string, string>();
+        
+        // Construire la Map avec les traductions
+        for (const [fr, en] of Object.entries(translations)) {
+          translationMap.set(fr, en as string);
+          console.log(`🌐 Traduction: "${fr}" → "${en}"`);
+        }
+        
+        return translationMap;
+      } catch (parseError) {
+        console.error("❌ Erreur lors du parsing des traductions:", parseError);
+        // Fallback: retourner les noms originaux
+        const fallbackMap = new Map<string, string>();
+        recipeNames.forEach(name => fallbackMap.set(name, name));
+        return fallbackMap;
+      }
+    }
+    
+    // Fallback si pas de contenu
+    const fallbackMap = new Map<string, string>();
+    recipeNames.forEach(name => fallbackMap.set(name, name));
+    return fallbackMap;
+  } catch (error) {
+    console.error("❌ Erreur lors de la traduction:", error);
+    // En cas d'erreur, retourner les noms originaux
+    const fallbackMap = new Map<string, string>();
+    recipeNames.forEach(name => fallbackMap.set(name, name));
+    return fallbackMap;
+  }
+}
+
+/**
  * Récupère une image de haute qualité depuis Unsplash avec métadonnées pour attribution
- * @param recipeName - Nom de la recette pour la recherche
+ * @param recipeName - Nom de la recette (pour les logs)
+ * @param recipeNameEnglish - Nom traduit en anglais pour la recherche
  * @returns Objet avec URL de l'image et métadonnées Unsplash, ou null
  */
-async function fetchRecipeImage(recipeName: string): Promise<{
+async function fetchRecipeImage(recipeName: string, recipeNameEnglish: string): Promise<{
   imageUrl: string;
   unsplashData?: {
     photographerName: string;
@@ -36,7 +99,7 @@ async function fetchRecipeImage(recipeName: string): Promise<{
     
     if (accessKey) {
       // Version avec clé API (meilleure qualité et contrôle)
-      const searchQuery = encodeURIComponent(`${recipeName} food dish`);
+      const searchQuery = encodeURIComponent(`${recipeNameEnglish} food dish`);
       const response = await fetch(
         `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&orientation=landscape`,
         {
@@ -60,7 +123,7 @@ async function fetchRecipeImage(recipeName: string): Promise<{
             downloadLocation: photo.links.download_location, // Pour envoyer la requête de download
           };
           
-          console.log(`📸 Image Unsplash récupérée pour "${recipeName}" par ${unsplashData.photographerName}`);
+          console.log(`📸 Image Unsplash récupérée pour "${recipeName}" (${recipeNameEnglish}) par ${unsplashData.photographerName}`);
           return { imageUrl, unsplashData };
         }
       }
@@ -281,7 +344,7 @@ C. **Quantités dans les étapes:**
         },
       ],
       temperature: 1,
-      max_completion_tokens: 20000
+      max_completion_tokens: 50000
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -292,6 +355,19 @@ C. **Quantités dans les étapes:**
     console.log("📝 Réponse ChatGPT:", content.substring(0, 200));
 
     const menuData = parseGPTJson(content);
+
+    // Collecter tous les noms de recettes qui nécessitent une traduction pour Unsplash
+    const recipeNamesToTranslate: string[] = [];
+    for (const meal of menuData.meals) {
+      // Ajouter le nom si ce n'est pas une recette existante avec useRecipeId
+      if (!meal.useRecipeId) {
+        recipeNamesToTranslate.push(meal.name);
+      }
+    }
+
+    // Traduire tous les noms en une seule requête pour optimiser les appels API
+    console.log(`🌐 Traduction de ${recipeNamesToTranslate.length} noms de recettes...`);
+    const translationsMap = await translateMultipleToEnglish(recipeNamesToTranslate);
 
     // Créer tous les repas dans la base de données
     const createdMeals = [];
@@ -399,7 +475,8 @@ C. **Quantités dans les étapes:**
         } else {
           // Utiliser les données générées par l'IA
           // Récupérer une image pour la nouvelle recette
-          const imageData = await fetchRecipeImage(meal.name);
+          const recipeNameEnglish = translationsMap.get(meal.name) || meal.name;
+          const imageData = await fetchRecipeImage(meal.name, recipeNameEnglish);
           
           // Convertir ingredientGroups en liste plate pour compatibility
           let ingredientsList: string[] = [];
@@ -441,7 +518,8 @@ C. **Quantités dans les étapes:**
       // Cas 3: Utiliser directement les données de l'IA (mode "new" ou pas de match)
       else {
         // Récupérer une image pour la nouvelle recette
-        const imageData = await fetchRecipeImage(meal.name);
+        const recipeNameEnglish = translationsMap.get(meal.name) || meal.name;
+        const imageData = await fetchRecipeImage(meal.name, recipeNameEnglish);
         
         // Convertir ingredientGroups en liste plate pour compatibility
         let ingredientsList: string[] = [];
