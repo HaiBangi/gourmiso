@@ -91,20 +91,29 @@ export function RecipeCard({ recipe, isFavorited = false, isDeletionMode = false
           variant="card"
         />
         
-        {/* Stats en bas à droite : Vues + Note */}
-        <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
-          {recipe.viewsCount !== undefined && recipe.viewsCount > 0 && (
-            <div className="flex items-center gap-1 bg-black/70 dark:bg-stone-900/80 px-2 py-1 rounded-md backdrop-blur-sm">
-              <Eye className="h-3 w-3 text-sky-300" />
-              <span className="text-xs font-medium text-white">{recipe.viewsCount.toLocaleString('fr-FR')}</span>
-            </div>
-          )}
-          {recipe.rating > 0 && (
-            <div className="flex items-center gap-1 bg-black/80 dark:bg-stone-900/90 px-2 py-1 rounded-md backdrop-blur-sm">
-              <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-              <span className="text-xs font-medium text-white">{recipe.rating.toFixed(1)}</span>
-            </div>
-          )}
+        {/* Stats en bas : Temps à gauche, Vues + Note à droite */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+          {/* Temps de préparation à gauche */}
+          <div className="flex items-center gap-1 bg-black/70 dark:bg-stone-900/80 px-2 py-1 rounded-md backdrop-blur-sm">
+            <Clock className="h-3 w-3 text-emerald-300" />
+            <span className="text-xs font-medium text-white">{formatTime(totalTime)}</span>
+          </div>
+          
+          {/* Vues + Note à droite */}
+          <div className="flex items-center gap-1.5">
+            {recipe.viewsCount !== undefined && recipe.viewsCount > 0 && (
+              <div className="flex items-center gap-1 bg-black/70 dark:bg-stone-900/80 px-2 py-1 rounded-md backdrop-blur-sm">
+                <Eye className="h-3 w-3 text-sky-300" />
+                <span className="text-xs font-medium text-white">{recipe.viewsCount.toLocaleString('fr-FR')}</span>
+              </div>
+            )}
+            {recipe.rating > 0 && (
+              <div className="flex items-center gap-1 bg-black/80 dark:bg-stone-900/90 px-2 py-1 rounded-md backdrop-blur-sm">
+                <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-xs font-medium text-white">{recipe.rating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -117,14 +126,6 @@ export function RecipeCard({ recipe, isFavorited = false, isDeletionMode = false
           <User className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           {recipe.author}
         </p>
-        
-        {/* Time */}
-        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-2 sm:mt-3">
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>{formatTime(totalTime)}</span>
-          </div>
-        </div>
       </div>
     </Card>
   );
