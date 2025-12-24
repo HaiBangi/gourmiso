@@ -119,6 +119,20 @@ export function RecipeDetail({
     document.body.scrollTop = 0;
   }, [recipe.id]);
 
+  // Calculer le nombre de stats à afficher pour adapter la hauteur
+  const statsCount = [
+    true, // Préparation (toujours affiché)
+    true, // Cuisson (toujours affiché)
+    true, // Personnes (toujours affiché)
+    recipe.costEstimate && costLabels[recipe.costEstimate], // Coût
+    recipe.caloriesPerServing, // Calories
+    recipe.rating > 0, // Note
+    recipe.viewsCount !== undefined && recipe.viewsCount > 0, // Vues
+  ].filter(Boolean).length;
+
+  // Hauteur dynamique basée sur le nombre de stats (environ 42px par stat + padding)
+  const statsHeight = Math.max(200, statsCount * 42 + 24);
+
   return (
     <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
       {/* Hero Section */}
@@ -258,7 +272,7 @@ export function RecipeDetail({
         </div>
 
         {/* Desktop: Image 85% + Stats 15% côte à côte */}
-        <div className="hidden lg:flex gap-4 h-[300px]">
+        <div className="hidden lg:flex gap-4" style={{ height: `${statsHeight}px` }}>
           {/* Image 85% */}
           <div className="relative w-[85%] overflow-hidden rounded-2xl bg-stone-900 shadow-xl">
             <RecipeImage
@@ -344,8 +358,8 @@ export function RecipeDetail({
             </div>
           </div>
 
-          {/* Stats 15% - 6 rows verticales */}
-          <div className="w-[15%] flex flex-col gap-1.5 p-3 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
+          {/* Stats 15% - rows verticales */}
+          <div className="w-[15%] flex flex-col gap-2 p-4 pb-5 rounded-2xl bg-white/80 dark:bg-stone-800/90 backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
             {/* Row 1: Préparation */}
             <div className="flex items-center gap-1.5">
               <div className="p-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex-shrink-0">
