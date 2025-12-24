@@ -128,10 +128,10 @@ export function RecipeDetail({
     recipe.caloriesPerServing, // Calories
     recipe.rating > 0, // Note
     recipe.viewsCount !== undefined && recipe.viewsCount > 0, // Vues
-  ].filter(Boolean).length;
+  ].filter(Boolean).length + 1;
 
   // Hauteur dynamique basée sur le nombre de stats (environ 42px par stat + padding)
-  const statsHeight = Math.max(200, statsCount * 42 + 24);
+  const statsHeight = Math.max(200, statsCount * 42 + 12);
 
   return (
     <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 pb-8">
