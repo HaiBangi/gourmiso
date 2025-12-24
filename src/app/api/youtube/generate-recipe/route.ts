@@ -372,20 +372,37 @@ Utilise le nom de la chaîne YouTube "${author || userPseudo}" comme auteur de l
     } catch (dbError) {
       console.error("[Generate Recipe] ❌ Erreur lors de la sauvegarde en base:", dbError);
       
-      // Si c'est une erreur de contrainte unique sur l'ID, c'est probablement un problème de séquence
+      // Vérifier si c'est une erreur de contrainte unique
       if (dbError instanceof Error && dbError.message.includes("Unique constraint failed")) {
-        console.error("[Generate Recipe] ⚠️  Problème de séquence PostgreSQL détecté");
-        console.error("[Generate Recipe] Tentative de réinitialisation de la séquence...");
+        const isSlugError = dbError.message.includes("slug");
+        const isIdError = !isSlugError; // Si ce n'est pas le slug, c'est probablement l'ID
+        
+        console.log(`[Generate Recipe] ⚠️ Conflit de contrainte unique (slug: ${isSlugError}, id: ${isIdError})`);
         
         try {
-          // Réinitialiser la séquence PostgreSQL avec le bon nom
-          const maxIdResult = await db.$queryRaw<Array<{ max: number | null }>>`SELECT MAX(id) as max FROM "Recipe"`;
-          const maxId = (maxIdResult[0]?.max || 0) + 1;
-          await db.$executeRaw`SELECT setval('"Recipe_id_seq"', ${maxId}, false)`;
-          console.log(`[Generate Recipe] ✅ Séquence réinitialisée à ${maxId}`);
+          // Si c'est un problème d'ID/séquence, réinitialiser
+          if (isIdError) {
+            console.log("[Generate Recipe] Tentative de réinitialisation de la séquence...");
+            const maxIdResult = await db.$queryRaw<Array<{ max: number | null }>>`SELECT MAX(id) as max FROM "Recipe"`;
+            const maxId = (maxIdResult[0]?.max || 0) + 1;
+            await db.$executeRaw`SELECT setval('"Recipe_id_seq"', ${maxId}, false)`;
+            console.log(`[Generate Recipe] ✅ Séquence réinitialisée à ${maxId}`);
+          }
           
-          // Réessayer une fois avec un nouveau slug
-          const retrySlug = await generateUniqueSlug(validatedRecipe.name);
+          // Générer un slug vraiment unique avec timestamp pour éviter tout conflit
+          const timestamp = Date.now();
+          const baseSlug = validatedRecipe.name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, "")
+            .replace(/[\s_]+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-+|-+$/g, "");
+          const retrySlug = baseSlug ? `${baseSlug}-${timestamp}` : `recette-${timestamp}`;
+          console.log(`[Generate Recipe] 🔄 Retry avec nouveau slug: ${retrySlug}`);
+          
           const savedRecipe = await db.recipe.create({
             data: {
               name: validatedRecipe.name,
@@ -412,7 +429,40 @@ Utilise le nom de la chaîne YouTube "${author || userPseudo}" comme auteur de l
             },
           });
           
-          console.log(`[Generate Recipe] ✅ Recette sauvegardée après réinitialisation: ID ${savedRecipe.id}`);
+          // Créer les ingrédients après la recette
+          if (validatedRecipe.ingredientGroups && validatedRecipe.ingredientGroups.length > 0) {
+            for (let i = 0; i < validatedRecipe.ingredientGroups.length; i++) {
+              const group = validatedRecipe.ingredientGroups[i];
+              await db.ingredientGroup.create({
+                data: {
+                  name: group.name,
+                  order: i,
+                  recipeId: savedRecipe.id,
+                  ingredients: {
+                    create: group.ingredients.map((ing: { name: string; quantity: number | null; unit: string | null }, ingIndex: number) => ({
+                      name: ing.name,
+                      quantity: ing.quantity,
+                      unit: ing.unit,
+                      order: ingIndex,
+                      recipeId: savedRecipe.id,
+                    })),
+                  },
+                },
+              });
+            }
+          } else if (validatedRecipe.ingredients && validatedRecipe.ingredients.length > 0) {
+            await db.ingredient.createMany({
+              data: validatedRecipe.ingredients.map((ing: { name: string; quantity: unknown; unit: string | null }, index: number) => ({
+                name: ing.name,
+                quantity: cleanQuantity(ing.quantity),
+                unit: ing.unit,
+                order: index,
+                recipeId: savedRecipe.id,
+              })),
+            });
+          }
+          
+          console.log(`[Generate Recipe] ✅ Recette sauvegardée après retry: ID ${savedRecipe.id}`);
           
           return NextResponse.json({
             recipe: {
@@ -421,8 +471,8 @@ Utilise le nom de la chaîne YouTube "${author || userPseudo}" comme auteur de l
             },
           });
         } catch (retryError) {
-          console.error("[Generate Recipe] ❌ Échec après réinitialisation:", retryError);
-          throw new Error("Impossible de sauvegarder la recette même après réinitialisation de la séquence");
+          console.error("[Generate Recipe] ❌ Échec après retry:", retryError);
+          throw new Error("Impossible de sauvegarder la recette même après correction du slug");
         }
       }
       
