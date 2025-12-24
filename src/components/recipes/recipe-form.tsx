@@ -190,12 +190,12 @@ export function RecipeForm({ recipe, trigger, isYouTubeImport = false, onSuccess
     }
   }, []);
 
-  // Fetch user pseudo when component mounts
+  // Fetch user pseudo when dialog opens (not on mount to avoid unnecessary server actions)
   useEffect(() => {
-    if (session?.user?.id) {
+    if (open && session?.user?.id) {
       getUserPseudo(session.user.id).then(setUserPseudo);
     }
-  }, [session?.user?.id]);
+  }, [open, session?.user?.id]);
 
   // Auto-open dialog if no trigger is provided (YouTube to Recipe mode)
   useEffect(() => {
